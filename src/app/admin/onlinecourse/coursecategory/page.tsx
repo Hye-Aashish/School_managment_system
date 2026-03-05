@@ -4,26 +4,62 @@ import React, { useEffect, useState } from "react";
 export default function AddCategory() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "export" | null>(null);
      const [categoryName, setCategoryName] = useState("");
+     const [categories, setCategories] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
 
-     // Sample category data
-     const categories = [
-          { id: 1, name: "Personal Development" },
-          { id: 2, name: "Health & Fitness Courses" },
-          { id: 3, name: "Network & Security Course" },
-          { id: 4, name: "Lifestyle course" },
-          { id: 5, name: "UPGRADE SKILL" },
-          { id: 6, name: "Business Marketing" }
-     ];
+     const fetchCategories = async () => {
+          setLoading(true);
+          try {
+               const res = await fetch("/api/online-course/category");
+               if (res.ok) {
+                    const data = await res.json();
+                    setCategories(data);
+               }
+          } catch (error) {
+               console.error("Failed to fetch categories");
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     useEffect(() => {
+          fetchCategories();
+     }, []);
 
      const toggleFilter = (type: "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     const handleSaveCategory = () => {
+     const handleSaveCategory = async () => {
           if (categoryName.trim()) {
-               console.log("Saving category:", categoryName);
-               // Add your save logic here
-               setCategoryName("");
+               try {
+                    const res = await fetch("/api/online-course/category", {
+                         method: "POST",
+                         headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ name: categoryName })
+                    });
+                    if (res.ok) {
+                         setCategoryName("");
+                         fetchCategories();
+                    }
+               } catch (error) {
+                    console.error("Failed to save category");
+               }
+          }
+     };
+
+     const handleDeleteCategory = async (id: string) => {
+          if (confirm("Are you sure you want to delete this category?")) {
+               try {
+                    const res = await fetch(`/api/online-course/category?id=${id}`, {
+                         method: "DELETE"
+                    });
+                    if (res.ok) {
+                         fetchCategories();
+                    }
+               } catch (error) {
+                    console.error("Failed to delete category");
+               }
           }
      };
 
@@ -52,7 +88,7 @@ export default function AddCategory() {
                                              <button
                                                   type="button"
                                                   onClick={handleSaveCategory}
-                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-bgray-500 hover:bg-bgray-600 transition-all rounded-lg w-full"
+                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-bgray-900 hover:bg-bgray-800 transition-all rounded-lg w-full dark:bg-darkblack-500 dark:hover:bg-darkblack-400"
                                              >
                                                   Save
                                              </button>
@@ -110,11 +146,11 @@ export default function AddCategory() {
                                                   >
                                                        Filter
                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M13 11H18L12 3V8C12 9.65685 13.3431 11 15 11H13Z" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                            <path d="M13 11C13 9.34315 14.3431 8 16 8H18" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                            <path d="M13 11H18L12 3V8C12 9.65685 13.3431 11 15 11H13Z" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                            <path d="M13 11C13 9.34315 14.3431 8 16 8H18" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                        </svg>
                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M19 9L12 16L5 9" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                            <path d="M19 9L12 16L5 9" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                        </svg>
                                                   </button>
 
@@ -123,33 +159,18 @@ export default function AddCategory() {
                                                   >
                                                        <ul>
                                                             <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold flex items-center gap-2">
-                                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                      <rect x="3" y="3" width="18" height="18" rx="2" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5"/>
-                                                                 </svg>
                                                                  Copy
                                                             </li>
                                                             <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold flex items-center gap-2">
-                                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M3 9h18M3 15h18" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5"/>
-                                                                 </svg>
                                                                  Excel
                                                             </li>
                                                             <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold flex items-center gap-2">
-                                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5"/>
-                                                                 </svg>
                                                                  CSV
                                                             </li>
                                                             <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold flex items-center gap-2">
-                                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5"/>
-                                                                 </svg>
                                                                  PDF
                                                             </li>
                                                             <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold flex items-center gap-2">
-                                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M6 9l6 6 6-6" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5"/>
-                                                                 </svg>
                                                                  Print
                                                             </li>
                                                        </ul>
@@ -164,112 +185,45 @@ export default function AddCategory() {
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="w-full flex space-x-2.5 items-center">
                                                                       <span className="text-base font-semibold text-bgray-600 dark:text-bgray-50">Category Name</span>
-                                                                      <span>
-                                                                           <svg
-                                                                                width="14"
-                                                                                height="15"
-                                                                                viewBox="0 0 14 15"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                           >
-                                                                                <path
-                                                                                     d="M10.332 1.31567V13.3157"
-                                                                                     stroke="#718096"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                     stroke="#718096"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M3.66602 13.3157V1.31567"
-                                                                                     stroke="#718096"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                     stroke="#718096"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </span>
                                                                  </div>
                                                             </td>
-                                                            <td className="py-5 px-6 xl:px-0 text-right">
+                                                            <td className="py-5 px-6 xl:px-0 text-right pr-6">
                                                                  <span className="text-base font-semibold text-bgray-600 dark:text-bgray-50">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {categories.map((category) => (
-                                                            <tr key={category.id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {category.name}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <div className="flex justify-end gap-3">
-                                                                           <button
-                                                                                type="button"
-                                                                                className="hover:text-success-300 transition-colors"
-                                                                                title="Edit"
-                                                                           >
-                                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                </svg>
-                                                                           </button>
-                                                                           <button
-                                                                                type="button"
-                                                                                className="hover:text-red-500 transition-colors"
-                                                                                title="Delete"
-                                                                           >
-                                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <path d="M18 6L6 18M6 6l12 12" className="stroke-bgray-900 dark:stroke-white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                </svg>
-                                                                           </button>
-                                                                      </div>
-                                                                 </td>
-                                                            </tr>
-                                                       ))}
+                                                       {loading ? (
+                                                            <tr><td colSpan={2} className="py-10 text-center text-bgray-600 dark:text-bgray-50">Loading categories...</td></tr>
+                                                       ) : categories.length > 0 ? (
+                                                            categories.map((category) => (
+                                                                 <tr key={category._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                                {category.name}
+                                                                           </p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 xl:px-0 text-right pr-6">
+                                                                           <div className="flex justify-end gap-3">
+                                                                                <button
+                                                                                     type="button"
+                                                                                     onClick={() => handleDeleteCategory(category._id)}
+                                                                                     className="hover:text-red-500 transition-colors"
+                                                                                     title="Delete"
+                                                                                >
+                                                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                          <path d="M18 6L6 18M6 6l12 12" className="stroke-red-500" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                     </svg>
+                                                                                </button>
+                                                                           </div>
+                                                                      </td>
+                                                                 </tr>
+                                                            ))
+                                                       ) : (
+                                                            <tr><td colSpan={2} className="py-10 text-center text-bgray-500">No categories found.</td></tr>
+                                                       )}
                                                   </tbody>
                                              </table>
-                                        </div>
-
-                                        <div className="pagination-content w-full">
-                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50">
-                                                  <span>Records: 1 to 6 of 6</span>
-                                                  <div className="flex items-center gap-2">
-                                                       <button
-                                                            type="button"
-                                                            className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded"
-                                                            disabled
-                                                       >
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M15 18l-6-6 6-6" className="stroke-bgray-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                            </svg>
-                                                       </button>
-                                                       <span className="px-3 py-1 bg-bgray-100 dark:bg-darkblack-500 rounded font-semibold">1</span>
-                                                       <button
-                                                            type="button"
-                                                            className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded"
-                                                       >
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M9 18l6-6-6-6" className="stroke-bgray-900 dark:stroke-white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                            </svg>
-                                                       </button>
-                                                  </div>
-                                             </div>
                                         </div>
                                    </div>
                               </div>

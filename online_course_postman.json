@@ -1,0 +1,252 @@
+{
+    "info": {
+        "_postman_id": "b3e3e2a2-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+        "name": "Online Course API",
+        "description": "Postman collection for testing the Online Course API endpoints (Category, Question, Setting) in the School Management app.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Course Category",
+            "item": [
+                {
+                    "name": "Get All Categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/category",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "category"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Category",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Mathematics 101\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/category",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "category"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Category",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/category?id=CATEGORY_ID_HERE",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "category"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "CATEGORY_ID_HERE",
+                                    "description": "Replace with actual category ID"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Course Question",
+            "item": [
+                {
+                    "name": "Get All Questions",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/question",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "question"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Question",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"question\": \"What is 2 + 2?\",\n    \"type\": \"multiple_choice\",\n    \"level\": \"easy\",\n    \"subject\": \"Mathematics 101\",\n    \"options\": [\"2\", \"3\", \"4\", \"5\"],\n    \"answer\": \"4\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/question",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "question"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Question",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/question?id=QUESTION_ID_HERE",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "question"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "QUESTION_ID_HERE",
+                                    "description": "Replace with actual question ID"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Course Setting",
+            "item": [
+                {
+                    "name": "Get Settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/setting",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "setting"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Settings",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"curriculum\": {\n        \"quiz\": true,\n        \"exam\": true,\n        \"assignment\": false\n    },\n    \"aws\": {\n        \"accessKeyId\": \"EXAMPLE_KEY_ID\",\n        \"secretAccessKey\": \"EXAMPLE_SECRET\",\n        \"bucketName\": \"my-course-bucket\",\n        \"region\": \"us-east-1\"\n    },\n    \"guest\": {\n        \"guestLogin\": \"enabled\",\n        \"guestUserPrefix\": \"Visitor\",\n        \"guestUserIdStartFrom\": \"100\"\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:3000/api/online-course/setting",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "3000",
+                            "path": [
+                                "api",
+                                "online-course",
+                                "setting"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

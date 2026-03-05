@@ -1,122 +1,86 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Link from 'next/link';
 
 export default function QuestionBank() {
-     const [openFilter, setOpenFilter] = useState<"tag" | "type" | "level" | "createdBy" | "pagination" | "action" | null>(null);
+     const [openFilter, setOpenFilter] = useState<string | null>(null);
      const [searchQuery, setSearchQuery] = useState("");
      const [entriesPerPage, setEntriesPerPage] = useState(100);
 
-     // Sample question data
-     const questions = [
-          {
-               id: 38,
-               questionTag: "Robotics",
-               questionType: "Single Choice",
-               level: "Medium",
-               question: "What is the main purpose of robotics? A. Making videos B. Performing automated tasks C. Playing music D. Playing games",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 37,
-               questionTag: "Hindi",
-               questionType: "Single Choice",
-               level: "Low",
-               question: "What is the smallest unit of a language?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 36,
-               questionTag: "Hindi",
-               questionType: "Single Choice",
-               level: "Medium",
-               question: "How many basic letters are there in Hindi?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 35,
-               questionTag: "Science",
-               questionType: "Single Choice",
-               level: "Medium",
-               question: "The Chipko movement was originated in_____district of Uttarakhand",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 34,
-               questionTag: "Mathematics",
-               questionType: "Single Choice",
-               level: "Low",
-               question: "What are two things all graphs require?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 33,
-               questionTag: "Mathematics",
-               questionType: "Single Choice",
-               level: "Medium",
-               question: "Which type of graph represents size relationship between parts and the whole?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 32,
-               questionTag: "Science",
-               questionType: "Single Choice",
-               level: "High",
-               question: "Which form of energy is currently causing the largest amount of greenhouse gas emissions, globally?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 31,
-               questionTag: "Science",
-               questionType: "Single Choice",
-               level: "Medium",
-               question: "Which forms of energy are ultimately derived from solar energy?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 30,
-               questionTag: "Communication Skills",
-               questionType: "Single Choice",
-               level: "Low",
-               question: "What is the ability to understand and share the perspective of others called?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 29,
-               questionTag: "Communication Skills",
-               questionType: "Single Choice",
-               level: "Low",
-               question: "What are interpersonal skills?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 28,
-               questionTag: "Communication Skills",
-               questionType: "Single Choice",
-               level: "Low",
-               question: "Which of the following is an example of written communication?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 27,
-               questionTag: "Science",
-               questionType: "Single Choice",
-               level: "High",
-               question: "Which of these is not a kind of plant?",
-               createdBy: "Joe Black (9000)"
-          },
-          {
-               id: 26,
-               questionTag: "Science",
-               questionType: "Single Choice",
-               level: "Medium",
-               question: "Which of these is not a dehiscent plant?",
-               createdBy: "Joe Black (9000)"
-          }
-     ];
+     const [selectedTag, setSelectedTag] = useState<string>("");
+     const [selectedType, setSelectedType] = useState<string>("");
+     const [selectedLevel, setSelectedLevel] = useState<string>("");
+     const [selectedCreator, setSelectedCreator] = useState<string>("");
 
-     const toggleFilter = (type: "tag" | "type" | "level" | "createdBy" | "pagination" | "action") => {
+     const [isAddQuestionModalOpen, setIsAddQuestionModalOpen] = useState(false);
+     const [formData, setFormData] = useState({
+          question: "",
+          type: "single_choice",
+          level: "low",
+          subject: "",
+          options: "",
+          answer: ""
+     });
+
+     const [questions, setQuestions] = useState<any[]>([]);
+
+     useEffect(() => {
+          fetchQuestions();
+     }, []);
+
+     const fetchQuestions = async () => {
+          try {
+               const response = await fetch("/api/online-course/question");
+               if (response.ok) {
+                    const data = await response.json();
+                    setQuestions(data);
+               } else {
+                    console.error("Failed to fetch questions");
+               }
+          } catch (error) {
+               console.error("An error occurred while fetching questions:", error);
+          }
+     };
+
+     const handleCreateQuestion = async (e: React.FormEvent) => {
+          e.preventDefault();
+          try {
+               const payload = {
+                    ...formData,
+                    options: formData.options.split(",").map((o) => o.trim()).filter((o) => o)
+               };
+               const response = await fetch("/api/online-course/question", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+               });
+               if (response.ok) {
+                    setIsAddQuestionModalOpen(false);
+                    setFormData({ question: "", type: "single_choice", level: "low", subject: "", options: "", answer: "" });
+                    fetchQuestions();
+               }
+          } catch (error) {
+               console.error("Failed to create question", error);
+          }
+     };
+
+     const toggleFilter = (type: string) => {
           setOpenFilter(openFilter === type ? null : type);
      };
+
+     const tags = Array.from(new Set(questions.map((q) => q.subject || q.questionTag || "N/A"))).filter(Boolean);
+     const types = Array.from(new Set(questions.map((q) => q.type || q.questionType || ""))).filter(Boolean);
+     const levels = Array.from(new Set(questions.map((q) => q.level || ""))).filter(Boolean);
+     const creators = Array.from(new Set(questions.map((q) => q.createdBy || "Super Admin"))).filter(Boolean);
+
+     const filteredQuestions = questions.filter((q) => {
+          const matchTag = selectedTag ? (q.subject || q.questionTag || "N/A") === selectedTag : true;
+          const matchType = selectedType ? (q.type || q.questionType || "") === selectedType : true;
+          const matchLevel = selectedLevel ? (q.level || "") === selectedLevel : true;
+          const matchCreator = selectedCreator ? (q.createdBy || "Super Admin") === selectedCreator : true;
+          const matchSearch = searchQuery ? (q.question || "").toLowerCase().includes(searchQuery.toLowerCase()) : true;
+          return matchTag && matchType && matchLevel && matchCreator && matchSearch;
+     });
 
      return (
           <>
@@ -138,7 +102,7 @@ export default function QuestionBank() {
                                                   className="w-full h-[50px] rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
                                                   onClick={() => toggleFilter("tag")}
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select</span>
+                                                  <span className="text-base text-bgray-500 text-nowrap">{selectedTag || "Select"}</span>
                                                   <span>
                                                        <svg
                                                             width="21"
@@ -163,11 +127,14 @@ export default function QuestionBank() {
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Robotics</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Hindi</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Science</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Mathematics</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Communication Skills</li>
+                                                       <li onClick={() => { setSelectedTag(""); toggleFilter("tag"); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                            All
+                                                       </li>
+                                                       {tags.map((tag) => (
+                                                            <li key={tag} onClick={() => { setSelectedTag(tag); toggleFilter("tag"); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                                 {tag}
+                                                            </li>
+                                                       ))}
                                                   </ul>
                                              </div>
                                         </div>
@@ -184,7 +151,7 @@ export default function QuestionBank() {
                                                   className="w-full h-[50px] rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
                                                   onClick={() => toggleFilter("type")}
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select</span>
+                                                  <span className="text-base text-bgray-500 text-nowrap capitalize">{selectedType ? selectedType.replace('_', ' ') : "Select"}</span>
                                                   <span>
                                                        <svg
                                                             width="21"
@@ -209,9 +176,14 @@ export default function QuestionBank() {
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Single Choice</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Multiple Choice</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">True/False</li>
+                                                       <li onClick={() => { setSelectedType(""); toggleFilter("type"); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                            All
+                                                       </li>
+                                                       {types.map((type) => (
+                                                            <li key={type} onClick={() => { setSelectedType(type); toggleFilter("type"); }} className="capitalize text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                                 {type.replace('_', ' ')}
+                                                            </li>
+                                                       ))}
                                                   </ul>
                                              </div>
                                         </div>
@@ -228,7 +200,7 @@ export default function QuestionBank() {
                                                   className="w-full h-[50px] rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
                                                   onClick={() => toggleFilter("level")}
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select</span>
+                                                  <span className="text-base text-bgray-500 text-nowrap capitalize">{selectedLevel || "Select"}</span>
                                                   <span>
                                                        <svg
                                                             width="21"
@@ -253,9 +225,14 @@ export default function QuestionBank() {
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Low</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Medium</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">High</li>
+                                                       <li onClick={() => { setSelectedLevel(""); toggleFilter("level"); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                            All
+                                                       </li>
+                                                       {levels.map((level) => (
+                                                            <li key={level} onClick={() => { setSelectedLevel(level); toggleFilter("level"); }} className="capitalize text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                                 {level}
+                                                            </li>
+                                                       ))}
                                                   </ul>
                                              </div>
                                         </div>
@@ -272,7 +249,7 @@ export default function QuestionBank() {
                                                   className="w-full h-[50px] rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
                                                   onClick={() => toggleFilter("createdBy")}
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select</span>
+                                                  <span className="text-base text-bgray-500 text-nowrap">{selectedCreator || "Select"}</span>
                                                   <span>
                                                        <svg
                                                             width="21"
@@ -297,7 +274,14 @@ export default function QuestionBank() {
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Joe Black (9000)</li>
+                                                       <li onClick={() => { setSelectedCreator(""); toggleFilter("createdBy"); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                            All
+                                                       </li>
+                                                       {creators.map((creator) => (
+                                                            <li key={creator} onClick={() => { setSelectedCreator(creator); toggleFilter("createdBy"); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
+                                                                 {creator}
+                                                            </li>
+                                                       ))}
                                                   </ul>
                                              </div>
                                         </div>
@@ -312,9 +296,9 @@ export default function QuestionBank() {
                                    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                                         <h2 className="text-xl font-bold text-bgray-900 dark:text-white">Question Bank</h2>
                                         <div className="flex flex-wrap gap-3">
-                                             <button
-                                                  type="button"
-                                                  className="px-4 py-2.5 rounded-lg bg-bgray-900 hover:bg-bgray-800 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
+                                             <Link
+                                                  href="/admin/onlinecourse/coursecategory"
+                                                  className="px-4 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
                                              >
                                                   <svg
                                                        width="16"
@@ -346,10 +330,11 @@ export default function QuestionBank() {
                                                        />
                                                   </svg>
                                                   Add Tag
-                                             </button>
+                                             </Link>
                                              <button
                                                   type="button"
-                                                  className="px-4 py-2.5 rounded-lg bg-bgray-900 hover:bg-bgray-800 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
+                                                  onClick={() => setIsAddQuestionModalOpen(true)}
+                                                  className="px-4 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
                                              >
                                                   <svg
                                                        width="16"
@@ -384,7 +369,7 @@ export default function QuestionBank() {
                                              </button>
                                              <button
                                                   type="button"
-                                                  className="px-4 py-2.5 rounded-lg bg-bgray-900 hover:bg-bgray-800 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
+                                                  className="px-4 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
                                              >
                                                   <svg
                                                        width="16"
@@ -422,7 +407,7 @@ export default function QuestionBank() {
                                              </button>
                                              <button
                                                   type="button"
-                                                  className="px-4 py-2.5 rounded-lg bg-bgray-900 hover:bg-bgray-800 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
+                                                  className="px-4 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 text-white text-sm font-semibold transition-colors duration-200 flex items-center gap-2"
                                              >
                                                   <svg
                                                        width="16"
@@ -831,8 +816,8 @@ export default function QuestionBank() {
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  {questions.map((question) => (
-                                                       <tr key={question.id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                  {filteredQuestions.map((question, index) => (
+                                                       <tr key={question._id || index} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-2">
                                                                  <label className="text-center">
                                                                       <input
@@ -843,39 +828,39 @@ export default function QuestionBank() {
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
                                                                  <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.id}
+                                                                      {questions.length - index}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
                                                                  <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.questionTag}
+                                                                      {question.subject || question.questionTag || "N/A"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.questionType}
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50 capitalize">
+                                                                      {(question.type || question.questionType || "").replace('_', ' ')}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50 capitalize">
                                                                       {question.level}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50 line-clamp-2" title={question.question}>
                                                                       {question.question}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
                                                                  <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.createdBy}
+                                                                      {question.createdBy || "Super Admin"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
                                                                  <div className="relative">
                                                                       <button
                                                                            type="button"
-                                                                           onClick={() => toggleFilter("action")}
+                                                                           onClick={() => toggleFilter(`action-${index}`)}
                                                                       >
                                                                            <svg
                                                                                 width="18"
@@ -909,7 +894,7 @@ export default function QuestionBank() {
                                                                       </button>
 
                                                                       <div
-                                                                           className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "action" ? "block" : "hidden"
+                                                                           className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === `action-${index}` ? "block" : "hidden"
                                                                                 }`}
                                                                       >
                                                                            <ul>
@@ -1025,6 +1010,109 @@ export default function QuestionBank() {
                          </div>
                     </section>
                </div>
+
+               {/* Add Question Modal */}
+               {isAddQuestionModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-lg shadow-lg w-full max-w-2xl p-6 mx-4">
+                              <div className="flex justify-between items-center mb-6">
+                                   <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Add Question</h3>
+                                   <button onClick={() => setIsAddQuestionModalOpen(false)} className="text-bgray-500 hover:text-bgray-900">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                             <path d="M18 6L6 18M6 6l12 12" />
+                                        </svg>
+                                   </button>
+                              </div>
+
+                              <form onSubmit={handleCreateQuestion}>
+                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Question Subject / Tag</label>
+                                             <input
+                                                  type="text"
+                                                  value={formData.subject}
+                                                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                                  className="w-full h-12 rounded-lg bg-bgray-50 border border-bgray-200 px-4 focus:outline-none focus:border-success-300 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-white"
+                                                  placeholder="e.g. Mathematics"
+                                                  required
+                                             />
+                                        </div>
+                                        <div>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Level</label>
+                                             <select
+                                                  value={formData.level}
+                                                  onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                                                  className="w-full h-12 rounded-lg bg-bgray-50 border border-bgray-200 px-4 focus:outline-none focus:border-success-300 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-white"
+                                             >
+                                                  <option value="low">Low</option>
+                                                  <option value="medium">Medium</option>
+                                                  <option value="high">High</option>
+                                             </select>
+                                        </div>
+                                        <div>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Question Type</label>
+                                             <select
+                                                  value={formData.type}
+                                                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                                  className="w-full h-12 rounded-lg bg-bgray-50 border border-bgray-200 px-4 focus:outline-none focus:border-success-300 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-white"
+                                             >
+                                                  <option value="single_choice">Single Choice</option>
+                                                  <option value="multiple_choice">Multiple Choice</option>
+                                                  <option value="true_false">True / False</option>
+                                             </select>
+                                        </div>
+                                        <div>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Answer</label>
+                                             <input
+                                                  type="text"
+                                                  value={formData.answer}
+                                                  onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
+                                                  className="w-full h-12 rounded-lg bg-bgray-50 border border-bgray-200 px-4 focus:outline-none focus:border-success-300 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-white"
+                                                  placeholder="The correct answer"
+                                                  required
+                                             />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Options (Comma separated)</label>
+                                             <input
+                                                  type="text"
+                                                  value={formData.options}
+                                                  onChange={(e) => setFormData({ ...formData, options: e.target.value })}
+                                                  className="w-full h-12 rounded-lg bg-bgray-50 border border-bgray-200 px-4 focus:outline-none focus:border-success-300 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-white"
+                                                  placeholder="e.g. Option A, Option B, Option C, Option D"
+                                                  required
+                                             />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Question</label>
+                                             <textarea
+                                                  value={formData.question}
+                                                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                                                  className="w-full h-24 rounded-lg bg-bgray-50 border border-bgray-200 p-4 focus:outline-none focus:border-success-300 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-white resize-none"
+                                                  placeholder="Enter your question here..."
+                                                  required
+                                             />
+                                        </div>
+                                   </div>
+                                   <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                             type="button"
+                                             onClick={() => setIsAddQuestionModalOpen(false)}
+                                             className="px-6 py-2.5 rounded-lg text-bgray-600 font-semibold bg-bgray-100 hover:bg-bgray-200 transition-colors"
+                                        >
+                                             Cancel
+                                        </button>
+                                        <button
+                                             type="submit"
+                                             className="px-6 py-2.5 rounded-lg text-white font-semibold bg-success-300 hover:bg-success-400 transition-colors cursor-pointer"
+                                        >
+                                             Save Question
+                                        </button>
+                                   </div>
+                              </form>
+                         </div>
+                    </div>
+               )}
           </>
      );
 }
