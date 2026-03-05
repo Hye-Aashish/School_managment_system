@@ -2,9 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useDrawer } from "@/context/DrawerContext";
-import {
-     User, FileText, CreditCard, DollarSign, CalendarCheck, BookOpen, Users, Clipboard, Archive, BarChart2, Settings, LayoutDashboard, Menu, X, MoreHorizontal
-} from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
+import { menu } from "@/constants/menu-data";
 
 export default function HorizontalNavbar() {
      const pathname = usePathname();
@@ -51,340 +50,6 @@ export default function HorizontalNavbar() {
                }
           });
      }, [pathname]);
-
-     const menu = [
-          {
-               title: "Dashboard",
-               url: "/admin/dashboard",
-               icon: <LayoutDashboard size={20} className="text-[#0FCDE1]" />,
-               dropdown: false,
-               submenu: [],
-          },
-          {
-               title: "Student Information",
-               url: "",
-               icon: <User size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Student Details", url: "/admin/Students/StudentDetails" },
-                    { title: "Student Admission", url: "/admin/Students/Create" },
-                    { title: "Online Admission", url: "/admin/Students/onlineAdmission" },
-                    { title: "Disabled Students", url: "/admin/Students/disableStudentsList" },
-                    { title: "Bulk Delete", url: "/admin/Students/BulkDelete" },
-                    { title: "Student Categories", url: "/admin/Students/StudentCategory" },
-                    { title: "Student House", url: "/admin/Students/schoolhouse" },
-                    { title: "Disable Reason", url: "/admin/Students/DisableReason" },
-               ],
-          },
-          {
-               title: "Fee Collection",
-               url: "",
-               icon: <CreditCard size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Collect Fees", url: "/admin/FeesCollection/studentfee" },
-                    { title: "Offline Bank Payments", url: "/admin/FeesCollection/offlinepayment" },
-                    { title: "Search Fees Payment", url: "/admin/FeesCollection/SearchPayment" },
-                    { title: "Search Due Fees", url: "/admin/FeesCollection/FeeSearch" },
-                    { title: "Fees Master", url: "/admin/FeesCollection/feemaster" },
-                    { title: "Quick Fees", url: "/admin/FeesCollection/QuickFees" },
-                    { title: "Fees Group", url: "/admin/FeesCollection/feegroup" },
-                    { title: "Fees Type", url: "/admin/FeesCollection/feetype" },
-                    { title: "Fees Discount", url: "/admin/FeesCollection/feediscount" },
-                    { title: "Fees Carry Forward", url: "/admin/FeesCollection/feesforward" },
-                    { title: "Fees Reminder", url: "/admin/FeesCollection/feereminder" },
-               ],
-          },
-          {
-               title: "Online Course",
-               url: "",
-               icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Online Course", url: "/income/add" },
-                    { title: "Offline Payment", url: "/admin/onlinecourse/offlinepayment" },
-                    { title: "Course Category", url: "/admin/onlinecourse/coursecategory" },
-                    { title: "Question Bank", url: "/admin/onlinecourse/courseexamquestion" },
-                    { title: "Online Course Report", url: "/admin/onlinecourse/OnlineCourseReport" },
-                    { title: "Setting", url: "/admin/onlinecourse/setting" },
-               ],
-          },
-          {
-               title: "Multi Branch",
-               url: "",
-               icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Overview", url: "/admin/multibranch/overview" },
-                    { title: "Report", url: "/admin/multibranch/report" },
-                    { title: "Setting", url: "/admin/multibranch/branch" },
-               ],
-          },
-          {
-               title: "Gmeet Live Classes",
-               url: "",
-               icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Live Classes", url: "/admin/GmeetLiveClasses/liveClasses" },
-                    { title: "Live Meeting", url: "/admin/GmeetLiveClasses/liveMeeting" },
-                    { title: "Live Classes Report", url: "/admin/GmeetLiveClasses/LiveClassesReport" },
-                    { title: "Live Meeting Report", url: "/admin/GmeetLiveClasses/LiveMeetingReport" },
-                    { title: "Setting", url: "/admin/GmeetLiveClasses/setting" },
-               ],
-          },
-          {
-               title: "Zoom Live Class",
-               url: "",
-               icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Live Meeting", url: "/admin/GmeetLiveClasses/liveMeeting" },
-                    { title: "Live Classes", url: "/admin/GmeetLiveClasses/liveClasses" },
-                    { title: "Live Classes Report", url: "/admin/GmeetLiveClasses/LiveClassesReport" },
-                    { title: "Live Meeting Report", url: "/admin/GmeetLiveClasses/LiveMeetingReport" },
-                    { title: "Setting", url: "/admin/GmeetLiveClasses/setting" },
-               ],
-          },
-          {
-               title: "Behaviour Records",
-               url: "",
-               icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Assign Incident", url: "/admin/behaviourRecords/AssignIncident" },
-                    { title: "Incidents", url: "/admin/behaviourRecords/Incidents" },
-                    { title: "Reports", url: "/admin/behaviourRecords/Reports" },
-                    { title: "Setting", url: "/admin/behaviourRecords/Setting" },
-               ],
-          },
-          {
-               title: "Income",
-               url: "",
-               icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Add Income", url: "/admin/income/addIncome" },
-                    { title: "Search Income", url: "/admin/income/searchIncome" },
-                    { title: "Income Head", url: "/admin/income/incomeHead" },
-               ],
-          },
-          {
-               title: "Expenses",
-               url: "",
-               icon: <FileText size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Add Expense", url: "/admin/income/addIncome" },
-                    { title: "Search Expense", url: "/admin/income/searchIncome" },
-                    { title: "Expense Head", url: "/admin/income/incomeHead" },
-               ],
-          },
-          {
-               title: "CBSE Examination",
-               url: "",
-               icon: <FileText size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Exam", url: "/admin/cbseexam/Exam" },
-                    { title: "Exam Schedule", url: "/admin/cbseexam/ExamSchedule" },
-                    { title: "Print Marksheet", url: "/admin/cbseexam/PrintMarksheet" },
-                    { title: "Exam Grade", url: "/admin/cbseexam/ExamGrade" },
-                    { title: "Assign Observation", url: "/admin/cbseexam/AssignObservation" },
-                    { title: "Observation", url: "/admin/cbseexam/Observation" },
-                    { title: "Observation Parameter", url: "/admin/cbseexam/ObservationParameter" },
-                    { title: "Assessment", url: "/admin/cbseexam/Assessment" },
-                    { title: "Term", url: "/admin/cbseexam/Term" },
-                    { title: "Template", url: "/admin/cbseexam/Template" },
-                    { title: "Reports", url: "/admin/cbseexam/Reports" },
-                    { title: "Setting", url: "/admin/cbseexam/Setting" },
-               ],
-          },
-          {
-               title: "Examinations",
-               url: "",
-               icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Exam Group", url: "/admin/Examinations/ExamGroup" },
-                    { title: "Exam Schedule", url: "/admin/Examinations/ExamSchedule" },
-                    { title: "Exam Result", url: "/admin/Examinations/ExamResult" },
-                    { title: "Design AdmitCard", url: "/admin/Examinations/DesignAdmitCard" },
-                    { title: "Print AdmitCard", url: "/admin/Examinations/PrintAdmitCard" },
-                    { title: "Design Marksheet", url: "/admin/Examinations/DesignMarksheet" },
-                    { title: "Print Marksheet", url: "/admin/Examinations/PrintMarksheet" },
-                    { title: "Marks Grade", url: "/admin/Examinations/MarksGrade" },
-                    { title: "Marks Division", url: "/admin/Examinations/MarksDivision" },
-               ],
-          },
-          {
-               title: "Attendance",
-               url: "",
-               icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Student Attendance", url: "/admin/Attendance/StudentAttendance" },
-                    { title: "Attendance By Date", url: "/admin/Attendance/AttendanceByDate" },
-                    { title: "Approve Leave", url: "/admin/Attendance/ApproveLeave" },
-               ],
-          },
-          {
-               title: "Online Examinations",
-               url: "",
-               icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Online Exam", url: "/admin/OnlineExaminations/OnlineExam" },
-                    { title: "Question Bank", url: "/admin/OnlineExaminations/QuestionBank" },
-               ],
-          },
-          {
-               title: "Academics",
-               url: "",
-               icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Class Timetable", url: "/admin/Academics/ClassTimetable" },
-                    { title: "Teachers Timetable", url: "/admin/Academics/ClassTimetable" },
-                    { title: "Assign Class Teacher", url: "/admin/Academics/AssignClassTeacher" },
-                    { title: "Promote Students", url: "/admin/Academics/PromoteStudents" },
-                    { title: "Subject Group", url: "/admin/Academics/SubjectGroup" },
-                    { title: "Subjects", url: "/admin/Academics/Subjects" },
-                    { title: "Class", url: "/admin/Academics/Class" },
-                    { title: "Sections", url: "/admin/Academics/Sections" },
-               ],
-          },
-          {
-               title: "Annual Calendar",
-               url: "",
-               icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Annual Calendar", url: "/admin/AnnualCalendar" },
-                    { title: "Holiday Type", url: "/admin/AnnualCalendar/HolidayType" },
-               ],
-          },
-          {
-               title: "Lesson Plan",
-               url: "",
-               icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Copy Old Lessons", url: "/admin/LessonPlan/CopyOldLessons" },
-                    { title: "Manage Lesson Plan", url: "/admin/LessonPlan/ManageLessonPlan" },
-                    { title: "Manage Syllabus Status", url: "/admin/LessonPlan/ManageSyllabusStatus" },
-                    { title: "Lesson", url: "/admin/LessonPlan/Lesson" },
-                    { title: "Topic", url: "/admin/LessonPlan/Topic" },
-               ],
-          },
-          {
-               title: "Human Resource",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Staff Directory", url: "/admin/hr/staffDirectory" },
-                    { title: "Staff Attendance", url: "/admin/hr/staffAttendance" },
-                    { title: "Payroll", url: "/admin/hr/payroll" },
-                    { title: "Approve Leave Request", url: "/admin/hr/approveLeave" },
-                    { title: "Apply Leave", url: "/admin/hr/applyLeave" },
-                    { title: "Leave Type", url: "/admin/hr/leaveType" },
-                    { title: "Teachers Rating", url: "/admin/hr/teachersRating" },
-                    { title: "Department", url: "/admin/hr/department" },
-                    { title: "Designation", url: "/admin/hr/designation" },
-                    { title: "Disabled Staff", url: "/admin/hr/disabledStaff" },
-               ],
-          },
-          {
-               title: "Communicate",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Notice Board", url: "/admin/Communicate/NoticeBoard" },
-                    { title: "Send Email", url: "/admin/Communicate/SendEmail" },
-                    { title: "Send SMS", url: "/admin/Communicate/SendSMS" },
-                    { title: "Email / SMS Log", url: "/admin/Communicate/EmailSMSLog" },
-                    { title: "Schedule Email SMS Log", url: "/admin/Communicate/ScheduleEmailSMSLog" },
-                    { title: "Login Credentials Send", url: "/admin/Communicate/LoginCredentialsSend" },
-                    { title: "Email Template", url: "/admin/Communicate/EmailTemplate" },
-                    { title: "SMS Template", url: "/admin/Communicate/SMSTemplate" },
-               ],
-          },
-          {
-               title: "Download Center",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Content Type", url: "/admin/DownloadCenter/ContentType" },
-                    { title: "Content Share List", url: "/admin/DownloadCenter/ContentShareList" },
-                    { title: "Upload/Share Content", url: "/admin/DownloadCenter/UploadShareContent" },
-                    { title: "Video Tutorial", url: "/admin/DownloadCenter/VideoTutorial" },
-               ],
-          },
-          {
-               title: "Homework",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Add Homework", url: "/admin/Homework/AddHomework" },
-                    { title: "Daily Assignment", url: "/admin/Homework/DailyAssignment" },
-               ],
-          },
-          {
-               title: "Library",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Book List", url: "/admin/Library/BookList" },
-                    { title: "Issue - Return", url: "/admin/Library/IssueReturn" },
-                    { title: "Add Student", url: "/admin/Library/AddStudent" },
-                    { title: "Add Staff Member", url: "/admin/Library/AddStaffMember" },
-               ],
-          },
-          {
-               title: "Inventory",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Issue Item", url: "/admin/Inventory/IssueItem" },
-                    { title: "Add Item Stock", url: "/admin/Inventory/AddItemStock" },
-                    { title: "Add Item", url: "/admin/Inventory/AddItem" },
-                    { title: "Item Category", url: "/admin/Inventory/ItemCategory" },
-                    { title: "Item Store", url: "/admin/Inventory/ItemStore" },
-                    { title: "Item Supplier", url: "/admin/Inventory/ItemSupplier" },
-               ],
-          },
-          {
-               title: "Student CV",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Build CV", url: "/admin/StudentCV/BuildCV" },
-                    { title: "Download CV", url: "/admin/StudentCV/DownloadCV" },
-               ],
-          },
-          {
-               title: "Transport",
-               url: "",
-               icon: <Users size={20} className="text-[#0FCDE1]" />,
-               dropdown: true,
-               submenu: [
-                    { title: "Fees Master", url: "/admin/Transport/FeesMaster" },
-                    { title: "Pickup Point", url: "/admin/Transport/PickupPoint" },
-                    { title: "Routes", url: "/admin/Transport/Routes" },
-                    { title: "Vehicles", url: "/admin/Transport/Vehicles" },
-                    { title: "Assign Vehicle", url: "/admin/Transport/AssignVehicle" },
-                    { title: "Route Pickup Point", url: "/admin/Transport/RoutePickupPoint" },
-                    { title: "Student Transport Fees", url: "/admin/StudentCV/StudentTransportFees" },
-               ],
-          },
-     ];
 
      // Split menu into visible and hidden items
      const visibleMenuItems = menu.slice(0, VISIBLE_MENU_COUNT);
@@ -808,7 +473,7 @@ export default function HorizontalNavbar() {
                                                   </svg>
                                              </button>
 
-                                             {/* More Dropdown Menu */}
+                                             {/* More Dropdown */}
                                              <div className={`more-dropdown ${showMoreMenu ? 'open' : ''}`}>
                                                   {hiddenMenuItems.map((item, idx) => (
                                                        <div key={idx} className="more-menu-item">
@@ -816,16 +481,13 @@ export default function HorizontalNavbar() {
                                                                  {item.icon}
                                                                  <span>{item.title}</span>
                                                             </div>
-                                                            {item.dropdown && item.submenu && (
+                                                            {item.dropdown && (
                                                                  <div className="more-submenu-list">
-                                                                      {item.submenu.map((sub, i) => (
-
-                                                                           <a key={i}
+                                                                      {item.submenu?.map((sub, i) => (
+                                                                           <a
+                                                                                key={i}
                                                                                 href={typeof sub === "string" ? "#" : sub.url}
-                                                                                className={`${typeof sub !== "string" && isSubmenuActive(sub.url)
-                                                                                     ? 'active-submenu'
-                                                                                     : ''
-                                                                                     }`}
+                                                                                className={`${typeof sub !== "string" && isSubmenuActive(sub.url) ? 'text-[#0FCDE1] font-semibold' : ''}`}
                                                                            >
                                                                                 {typeof sub === "string" ? sub : sub.title}
                                                                            </a>
@@ -837,10 +499,10 @@ export default function HorizontalNavbar() {
                                              </div>
                                         </li>
                                    )}
-                              </ul >
-                         </div >
-                    </div >
-               </nav >
+                              </ul>
+                         </div>
+                    </div>
+               </nav>
           </>
      );
 }

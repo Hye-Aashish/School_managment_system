@@ -2,10 +2,60 @@
 import React, { useEffect, useState } from "react";
 
 export default function StudentCategory() {
-     const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
+     const [reasons, setReasons] = useState<any[]>([]);
+     const [newReason, setNewReason] = useState("");
+     const [openFilter, setOpenFilter] = useState<string | null>(null);
 
-     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
+     const handleDelete = async (reason: string) => {
+          if (confirm("Are you sure you want to delete this reason?")) {
+               try {
+                    await fetch(`/api/disable-reasons/${encodeURIComponent(reason)}`, { method: "DELETE" });
+                    const res = await fetch("/api/disable-reasons");
+                    const data = await res.json();
+                    setReasons(data);
+               } catch (error) {
+                    console.error("Error deleting reason:", error);
+               }
+          }
+     };
+
+     const toggleFilter = (type: string) => {
           setOpenFilter(openFilter === type ? null : type);
+     };
+
+     useEffect(() => {
+          const fetchReasons = async () => {
+               const res = await fetch("/api/disable-reasons");
+               if (res.ok) setReasons(await res.json());
+          };
+          fetchReasons();
+     }, []);
+
+     const [adding, setAdding] = useState(false);
+
+     const handleAddReason = async () => {
+          if (!newReason) return;
+          try {
+               setAdding(true);
+               const res = await fetch("/api/disable-reasons", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reason: newReason })
+               });
+               if (res.ok) {
+                    const saved = await res.json();
+                    setReasons([...reasons, saved]);
+                    setNewReason("");
+               } else {
+                    const errData = await res.json();
+                    alert(errData.error || "Failed to add reason");
+               }
+          } catch (error) {
+               alert("An error occurred. Please check your database connection.");
+               console.error(error);
+          } finally {
+               setAdding(false);
+          }
      };
      return (
           <>
@@ -43,11 +93,13 @@ export default function StudentCategory() {
                                                                       d="M12 8V16"
                                                                       strokeWidth="1.5"
                                                                       strokeLinecap="round"
+                                                                      strokeLinejoin="round"
                                                                  />
                                                                  <path
                                                                       d="M8 12H16"
                                                                       strokeWidth="1.5"
                                                                       strokeLinecap="round"
+                                                                      strokeLinejoin="round"
                                                                  />
                                                             </svg>
 
@@ -56,8 +108,9 @@ export default function StudentCategory() {
                                                             <input
                                                                  type="text"
                                                                  id="listSearch"
-                                                                 placeholder="Add Disable Reason
-"
+                                                                 placeholder="Add Disable Reason"
+                                                                 value={newReason}
+                                                                 onChange={(e) => setNewReason(e.target.value)}
                                                                  className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
                                                        </label>
@@ -65,9 +118,10 @@ export default function StudentCategory() {
                                              </div>
                                              <button
                                                   type="button"
+                                                  onClick={handleAddReason}
                                                   className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
                                              >
-                                                  Add Category
+                                                  Add Reason
                                              </button>
                                         </div>
                                    </div>
@@ -213,68 +267,77 @@ export default function StudentCategory() {
                                                                       </span>
                                                                  </div>
                                                             </td>
-                                                            
+
                                                             <td className="py-5 px-6 xl:px-0">Action</td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      Regular Absent
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-
-                                                                 <div className="relative">
-                                                                      <button
-                                                                           type="button"
-                                                                           onClick={() => toggleFilter("action")}
-                                                                      >
-                                                                           <svg
-                                                                                width="18"
-                                                                                height="4"
-                                                                                viewBox="0 0 18 4"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                       {reasons.length === 0 ? (
+                                                            <tr>
+                                                                 <td colSpan={2} className="text-center py-10 text-bgray-600">No disable reasons found</td>
+                                                            </tr>
+                                                       ) : reasons.map((r, idx) => (
+                                                            <tr key={r._id || idx} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                           {r.reason}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <div className="relative">
+                                                                           <button
+                                                                                type="button"
+                                                                                onClick={() => toggleFilter(`action-${r.reason}`)}
                                                                            >
-                                                                                <path
-                                                                                     d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                                     stroke="#A0AEC0"
-                                                                                     strokeWidth="2"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                                     stroke="#A0AEC0"
-                                                                                     strokeWidth="2"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                                     stroke="#A0AEC0"
-                                                                                     strokeWidth="2"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </button>
-
-                                                                      <div
-                                                                           className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "action" ? "block" : "hidden"
-                                                                                }`}
-                                                                      >
-                                                                           <ul>
-                                                                                <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">View</li>
-                                                                                <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Edit</li>
-                                                                                <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Add Fee</li>
-                                                                           </ul>
+                                                                                <svg
+                                                                                     width="18"
+                                                                                     height="4"
+                                                                                     viewBox="0 0 18 4"
+                                                                                     fill="none"
+                                                                                     xmlns="http://www.w3.org/2000/svg"
+                                                                                >
+                                                                                     <path
+                                                                                          d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
+                                                                                          stroke="#A0AEC0"
+                                                                                          strokeWidth="2"
+                                                                                          strokeLinecap="round"
+                                                                                          strokeLinejoin="round"
+                                                                                     />
+                                                                                     <path
+                                                                                          d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
+                                                                                          stroke="#A0AEC0"
+                                                                                          strokeWidth="2"
+                                                                                          strokeLinecap="round"
+                                                                                          strokeLinejoin="round"
+                                                                                     />
+                                                                                     <path
+                                                                                          d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
+                                                                                          stroke="#A0AEC0"
+                                                                                          strokeWidth="2"
+                                                                                          strokeLinecap="round"
+                                                                                          strokeLinejoin="round"
+                                                                                     />
+                                                                                </svg>
+                                                                           </button>
+                                                                           <div
+                                                                                className={`rounded-lg shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-8 overflow-hidden transition-all ${openFilter === `action-${r.reason}` ? "block" : "hidden"
+                                                                                     }`}
+                                                                           >
+                                                                                <ul>
+                                                                                     <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">View</li>
+                                                                                     <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">Edit</li>
+                                                                                     <li
+                                                                                          onClick={() => handleDelete(r.reason)}
+                                                                                          className="text-nowrap text-sm text-red-500 cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left"
+                                                                                     >
+                                                                                          Delete
+                                                                                     </li>
+                                                                                </ul>
+                                                                           </div>
                                                                       </div>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
+                                                                 </td>
+                                                            </tr>
+                                                       ))}
                                                   </tbody>
                                              </table>
                                         </div>
@@ -407,9 +470,9 @@ export default function StudentCategory() {
                                         </div>
                                    </div>
                               </div>
-                         </div>
-                    </section>
-               </div>
+                         </div >
+                    </section >
+               </div >
           </>
      );
 }

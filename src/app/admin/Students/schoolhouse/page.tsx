@@ -2,10 +2,60 @@
 import React, { useEffect, useState } from "react";
 
 export default function SchoolHouse() {
-     const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
+     const [houses, setHouses] = useState<any[]>([]);
+     const [newHouse, setNewHouse] = useState({ house_name: "", description: "" });
+     const [openFilter, setOpenFilter] = useState<string | null>(null);
 
-     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
+     const handleDelete = async (houseName: string) => {
+          if (confirm("Are you sure you want to delete this house?")) {
+               try {
+                    await fetch(`/api/student-houses/${encodeURIComponent(houseName)}`, { method: "DELETE" });
+                    const res = await fetch("/api/student-houses");
+                    if (res.ok) {
+                         const data = await res.json();
+                         setHouses(data);
+                    }
+               } catch (error) {
+                    console.error("Error deleting house:", error);
+               }
+          }
+     };
+
+     const toggleFilter = (type: string) => {
           setOpenFilter(openFilter === type ? null : type);
+     };
+
+     useEffect(() => {
+          const fetchHouses = async () => {
+               try {
+                    const res = await fetch("/api/student-houses");
+                    if (res.ok) setHouses(await res.json());
+               } catch (error) {
+                    console.error("Error fetching houses:", error);
+               }
+          };
+          fetchHouses();
+     }, []);
+
+     const handleAddHouse = async () => {
+          if (!newHouse.house_name) return;
+          try {
+               const res = await fetch("/api/student-houses", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newHouse)
+               });
+               if (res.ok) {
+                    const saved = await res.json();
+                    setHouses([...houses, saved]);
+                    setNewHouse({ house_name: "", description: "" });
+               } else {
+                    const errData = await res.json();
+                    alert(errData.error || "Failed to add house");
+               }
+          } catch (error) {
+               console.error("Error adding house:", error);
+          }
      };
      return (
           <>
@@ -27,6 +77,8 @@ export default function SchoolHouse() {
                                                                  type="text"
                                                                  id="listSearch"
                                                                  placeholder="Add School House"
+                                                                 value={newHouse.house_name}
+                                                                 onChange={(e) => setNewHouse({ ...newHouse, house_name: e.target.value })}
                                                                  className="search-input w-full bg-bgray-200 border-none focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
                                                        </label>
@@ -42,6 +94,8 @@ export default function SchoolHouse() {
                                                             <textarea
                                                                  id="listSearch"
                                                                  placeholder="Description"
+                                                                 value={newHouse.description}
+                                                                 onChange={(e) => setNewHouse({ ...newHouse, description: e.target.value })}
                                                                  className="search-input w-full bg-bgray-200 border-none focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
                                                        </label>
@@ -49,6 +103,7 @@ export default function SchoolHouse() {
                                              </div>
                                              <button
                                                   type="button"
+                                                  onClick={handleAddHouse}
                                                   className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
                                              >
                                                   Add School House
@@ -300,73 +355,78 @@ export default function SchoolHouse() {
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      Amit Singh
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      1
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-
-                                                                 <div className="relative">
-                                                                      <button
-                                                                           type="button"
-                                                                           onClick={() => toggleFilter("action")}
-                                                                      >
-                                                                           <svg
-                                                                                width="18"
-                                                                                height="4"
-                                                                                viewBox="0 0 18 4"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                       {houses.map((house, idx) => (
+                                                            <tr key={house._id || idx} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                           {house.house_name}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                           {house.description}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                           {house._id}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <div className="relative">
+                                                                           <button
+                                                                                type="button"
+                                                                                onClick={() => toggleFilter(`action-${house.house_name}`)}
                                                                            >
-                                                                                <path
-                                                                                     d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                                     stroke="#A0AEC0"
-                                                                                     strokeWidth="2"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                                     stroke="#A0AEC0"
-                                                                                     strokeWidth="2"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                                     stroke="#A0AEC0"
-                                                                                     strokeWidth="2"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </button>
-
-                                                                      <div
-                                                                           className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "action" ? "block" : "hidden"
-                                                                                }`}
-                                                                      >
-                                                                           <ul>
-                                                                                <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">View</li>
-                                                                                <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Edit</li>
-                                                                                <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Add Fee</li>
-                                                                           </ul>
+                                                                                <svg
+                                                                                     width="18"
+                                                                                     height="4"
+                                                                                     viewBox="0 0 18 4"
+                                                                                     fill="none"
+                                                                                     xmlns="http://www.w3.org/2000/svg"
+                                                                                >
+                                                                                     <path
+                                                                                          d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
+                                                                                          stroke="#A0AEC0"
+                                                                                          strokeWidth="2"
+                                                                                          strokeLinecap="round"
+                                                                                          strokeLinejoin="round"
+                                                                                     />
+                                                                                     <path
+                                                                                          d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
+                                                                                          stroke="#A0AEC0"
+                                                                                          strokeWidth="2"
+                                                                                          strokeLinecap="round"
+                                                                                          strokeLinejoin="round"
+                                                                                     />
+                                                                                     <path
+                                                                                          d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
+                                                                                          stroke="#A0AEC0"
+                                                                                          strokeWidth="2"
+                                                                                          strokeLinecap="round"
+                                                                                          strokeLinejoin="round"
+                                                                                     />
+                                                                                </svg>
+                                                                           </button>
+                                                                           <div
+                                                                                className={`rounded-lg shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-8 overflow-hidden transition-all ${openFilter === `action-${house.house_name}` ? "block" : "hidden"
+                                                                                     }`}
+                                                                           >
+                                                                                <ul>
+                                                                                     <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">View</li>
+                                                                                     <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">Edit</li>
+                                                                                     <li
+                                                                                          onClick={() => handleDelete(house.house_name)}
+                                                                                          className="text-nowrap text-sm text-red-500 cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left"
+                                                                                     >
+                                                                                          Delete
+                                                                                     </li>
+                                                                                </ul>
+                                                                           </div>
                                                                       </div>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
+                                                                 </td>
+                                                            </tr>
+                                                       ))}
                                                   </tbody>
                                              </table>
                                         </div>

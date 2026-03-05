@@ -2,9 +2,39 @@
 import React, { useEffect, useState } from "react";
 
 export default function StudenAdmission() {
-     const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
+     const [admissions, setAdmissions] = useState<any[]>([]);
+     const [isLoading, setIsLoading] = useState(true);
+     const [openFilter, setOpenFilter] = useState<string | null>(null);
 
-     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
+     useEffect(() => {
+          fetchAdmissions();
+     }, []);
+
+     const fetchAdmissions = async () => {
+          setIsLoading(true);
+          try {
+               const res = await fetch("/api/online-admission");
+               const data = await res.json();
+               setAdmissions(data);
+          } catch (error) {
+               console.error("Error fetching admissions:", error);
+          } finally {
+               setIsLoading(false);
+          }
+     };
+
+     const handleDelete = async (refNo: string) => {
+          if (confirm("Are you sure you want to delete this admission record?")) {
+               try {
+                    await fetch(`/api/online-admission/${refNo}`, { method: "DELETE" });
+                    fetchAdmissions();
+               } catch (error) {
+                    console.error("Error deleting admission:", error);
+               }
+          }
+     };
+
+     const toggleFilter = (type: string) => {
           setOpenFilter(openFilter === type ? null : type);
      };
      return (
@@ -119,104 +149,64 @@ export default function StudenAdmission() {
                                              </thead>
 
                                              <tbody>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6">213558</td>
-                                                       <td className="py-5 px-6">Vaibhav Rana</td>
-                                                       <td className="py-5 px-6 text-nowrap">Class 3(A)</td>
-                                                       <td className="py-5 px-6">Arun Rana</td>
-                                                       <td className="py-5 px-6">05/11/2009</td>
-                                                       <td className="py-5 px-6">Male</td>
-                                                       <td className="py-5 px-6">OBC</td>
-                                                       <td className="py-5 px-6">9807897764</td>
-                                                       <td className="py-5 px-6">
-                                                            <span className="px-3 text-nowrap py-1 text-white text-sm rounded bg-pink-600">
-                                                                 Not Submitted
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6">
-                                                            <span className="px-3 py-1 text-white text-sm rounded bg-pink-600">
-                                                                 Unpaid
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6">
-                                                            <span className="text-green-600 text-xl">✔</span>
-                                                       </td>
-                                                       <td className="py-5 px-6">12/01/2025</td>
-                                                       <td className="py-5 px-6">
-                                                            <div className="relative">
-                                                                 <button
-                                                                      onClick={() => toggleFilter("action")}
-                                                                 >
-                                                                      ⋮
-                                                                 </button>
-                                                                 <div
-                                                                      className={`absolute right-0 top-8 bg-white dark:bg-darkblack-500 shadow-lg rounded-lg min-w-[150px] transition-all ${openFilter === "action" ? "block" : "hidden"
-                                                                           }`}
-                                                                 >
-                                                                      <ul>
-                                                                           <li className="px-5 py-2 hover:bg-bgray-100 cursor-pointer">
-                                                                                View
-                                                                           </li>
-                                                                           <li className="px-5 py-2 hover:bg-bgray-100 cursor-pointer">
-                                                                                Edit
-                                                                           </li>
-                                                                           <li className="px-5 py-2 hover:bg-bgray-100 cursor-pointer">
-                                                                                Add Fee
-                                                                           </li>
-                                                                      </ul>
+                                                  {isLoading ? (
+                                                       <tr>
+                                                            <td colSpan={13} className="text-center py-10 text-bgray-600">Loading...</td>
+                                                       </tr>
+                                                  ) : admissions.length === 0 ? (
+                                                       <tr>
+                                                            <td colSpan={13} className="text-center py-10 text-bgray-600">No online admissions found</td>
+                                                       </tr>
+                                                  ) : admissions.map((admission) => (
+                                                       <tr key={admission.reference_no} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                            <td className="py-5 px-6">{admission.reference_no}</td>
+                                                            <td className="py-5 px-6">{admission.first_name} {admission.last_name}</td>
+                                                            <td className="py-5 px-6 text-nowrap">{admission.class}({admission.section})</td>
+                                                            <td className="py-5 px-6">{admission.father_name}</td>
+                                                            <td className="py-5 px-6">{admission.dob}</td>
+                                                            <td className="py-5 px-6">{admission.gender}</td>
+                                                            <td className="py-5 px-6">{admission.category}</td>
+                                                            <td className="py-5 px-6">{admission.mobile_no}</td>
+                                                            <td className="py-5 px-6">
+                                                                 <span className="px-3 text-nowrap py-1 text-white text-sm rounded bg-success-300">
+                                                                      {admission.status || "Submitted"}
+                                                                 </span>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <span className="px-3 py-1 text-white text-sm rounded bg-success-300">
+                                                                      {admission.payment_status || "Paid"}
+                                                                 </span>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <span className="text-green-600 text-xl">✔</span>
+                                                            </td>
+                                                            <td className="py-5 px-6">{admission.admission_date || "N/A"}</td>
+                                                            <td className="py-5 px-6">
+                                                                 <div className="relative">
+                                                                      <button
+                                                                           onClick={() => toggleFilter(`action-${admission.reference_no}`)}
+                                                                      >
+                                                                           ⋮
+                                                                      </button>
+                                                                      <div
+                                                                           className={`absolute right-0 top-8 bg-white dark:bg-darkblack-500 shadow-lg rounded-lg min-w-[150px] z-10 transition-all ${openFilter === `action-${admission.reference_no}` ? "block" : "hidden"
+                                                                                }`}
+                                                                      >
+                                                                           <ul>
+                                                                                <li className="px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer font-semibold text-left">View</li>
+                                                                                <li className="px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer font-semibold text-left">Edit</li>
+                                                                                <li
+                                                                                     onClick={() => handleDelete(admission.reference_no)}
+                                                                                     className="px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer font-semibold text-left text-red-500"
+                                                                                >
+                                                                                     Delete
+                                                                                </li>
+                                                                           </ul>
+                                                                      </div>
                                                                  </div>
-                                                            </div>
-                                                       </td>
-                                                  </tr>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6">213558</td>
-                                                       <td className="py-5 px-6">Vaibhav Rana</td>
-                                                       <td className="py-5 px-6 text-nowrap">Class 3(A)</td>
-                                                       <td className="py-5 px-6">Arun Rana</td>
-                                                       <td className="py-5 px-6">05/11/2009</td>
-                                                       <td className="py-5 px-6">Male</td>
-                                                       <td className="py-5 px-6">OBC</td>
-                                                       <td className="py-5 px-6">9807897764</td>
-                                                       <td className="py-5 px-6">
-                                                            <span className="px-3 text-nowrap py-1 text-white text-sm rounded bg-success-300">
-                                                                 Submitted
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6">
-                                                            <span className="px-3 py-1 text-white text-sm rounded bg-success-300">
-                                                                 Paid
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6">
-                                                            <span className="text-green-600 text-xl">✔</span>
-                                                       </td>
-                                                       <td className="py-5 px-6">12/01/2025</td>
-                                                       <td className="py-5 px-6">
-                                                            <div className="relative">
-                                                                 <button
-                                                                      onClick={() => toggleFilter("action")}
-                                                                 >
-                                                                      ⋮
-                                                                 </button>
-                                                                 <div
-                                                                      className={`absolute right-0 top-8 bg-white dark:bg-darkblack-500 shadow-lg rounded-lg min-w-[150px] transition-all ${openFilter === "action" ? "block" : "hidden"
-                                                                           }`}
-                                                                 >
-                                                                      <ul>
-                                                                           <li className="px-5 py-2 hover:bg-bgray-100 cursor-pointer">
-                                                                                View
-                                                                           </li>
-                                                                           <li className="px-5 py-2 hover:bg-bgray-100 cursor-pointer">
-                                                                                Edit
-                                                                           </li>
-                                                                           <li className="px-5 py-2 hover:bg-bgray-100 cursor-pointer">
-                                                                                Add Fee
-                                                                           </li>
-                                                                      </ul>
-                                                                 </div>
-                                                            </div>
-                                                       </td>
-                                                  </tr>
+                                                            </td>
+                                                       </tr>
+                                                  ))}
                                              </tbody>
                                         </table>
                                    </div>

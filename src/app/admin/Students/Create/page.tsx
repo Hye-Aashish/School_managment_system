@@ -1,24 +1,164 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMinus, faPlus, faCalendar } from "@fortawesome/free-solid-svg-icons";
+import { faCalendar, faSearch, faTimes, faUserPlus, faUserMinus } from "@fortawesome/free-solid-svg-icons";
 import AccordionItem from "../../components/AccordionItem";
+import {
+     CLASSES,
+     SECTIONS,
+     GENDERS,
+     CATEGORIES,
+     BLOOD_GROUPS,
+     STUDENT_HOUSES,
+     RELIGIONS,
+     Student
+} from "@/constants/student-constants";
+
 interface FieldProps {
      label: string;
      name: string;
      type?: string;
+     value?: string;
+     onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+     required?: boolean;
 }
 
-interface SelectFieldProps {
-     label: string;
-     name: string;
+interface SelectFieldProps extends FieldProps {
+     options: string[];
 }
+
 export default function CreateStudent() {
-     const [openIndex, setOpenIndex] = useState(null);
+     const [openIndex, setOpenIndex] = useState<number | null>(null);
+     const [formData, setFormData] = useState<Partial<Student>>({
+          class: "",
+          section: "",
+          gender: "",
+          category: "",
+          blood_group: "",
+          student_house: "",
+          religion: ""
+     });
+     const [isSubmitted, setIsSubmitted] = useState(false);
+     const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
+     const [dynamicHouses, setDynamicHouses] = useState<string[]>([]);
 
-     const toggleAccordion = (index: any) => {
+     // Sibling States
+     const [siblingModalOpen, setSiblingModalOpen] = useState(false);
+     const [siblingSearch, setSiblingSearch] = useState("");
+     const [allStudents, setAllStudents] = useState<Student[]>([]);
+     const [selectedSibling, setSelectedSibling] = useState<Student | null>(null);
+
+     useEffect(() => {
+          const fetchDropdownData = async () => {
+               try {
+                    const [catRes, houseRes, studentsRes] = await Promise.all([
+                         fetch("/api/student-categories"),
+                         fetch("/api/student-houses"),
+                         fetch("/api/students")
+                    ]);
+
+                    if (catRes.ok) {
+                         const cats = await catRes.json();
+                         setDynamicCategories(cats.map((c: any) => c.category || c.name));
+                    }
+                    if (houseRes.ok) {
+                         const houses = await houseRes.json();
+                         setDynamicHouses(houses.map((h: any) => h.house_name || h.name));
+                    }
+                    if (studentsRes.ok) {
+                         const result = await studentsRes.json();
+                         setAllStudents(result.data || []);
+                    }
+               } catch (err) {
+                    console.error("Error fetching dropdown data:", err);
+               }
+          };
+          fetchDropdownData();
+     }, []);
+
+     const toggleAccordion = (index: number) => {
           setOpenIndex(openIndex === index ? null : index);
      };
+
+     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+          const { name, value } = e.target;
+          setFormData(prev => ({ ...prev, [name]: value }));
+     };
+
+     const handleSelectSibling = (sibling: Student) => {
+          setSelectedSibling(sibling);
+          setFormData(prev => ({
+               ...prev,
+               sibling_admission_no: sibling.admission_no,
+               father_name: sibling.father_name || prev.father_name,
+               father_phone: sibling.father_phone || prev.father_phone,
+               father_email: sibling.father_email || prev.father_email,
+               father_occupation: sibling.father_occupation || prev.father_occupation,
+               mother_name: sibling.mother_name || prev.mother_name,
+               mother_phone: sibling.mother_phone || prev.mother_phone,
+               mother_email: sibling.mother_email || prev.mother_email,
+               mother_occupation: sibling.mother_occupation || prev.mother_occupation,
+          }));
+          setSiblingModalOpen(false);
+     };
+
+     const handleRemoveSibling = () => {
+          setSelectedSibling(null);
+          setFormData(prev => ({
+               ...prev,
+               sibling_admission_no: undefined
+          }));
+     };
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+
+          const newStudent = {
+               ...formData,
+               admission_no: formData.admission_no || `ADM${Date.now()}`,
+               fname: formData.fname || "Unknown",
+               lname: formData.lname || "",
+               status: formData.status || "Active"
+          } as Student;
+
+          try {
+               const res = await fetch("/api/students", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newStudent)
+               });
+
+               if (res.ok) {
+                    setIsSubmitted(true);
+                    setFormData({
+                         class: "",
+                         section: "",
+                         gender: "",
+                         category: "",
+                         blood_group: "",
+                         student_house: "",
+                         religion: ""
+                    });
+                    setSelectedSibling(null);
+
+                    setTimeout(() => {
+                         setIsSubmitted(false);
+                    }, 5000);
+               } else {
+                    const errorData = await res.json();
+                    alert("Failed to admit student: " + (errorData.error || "Please try again."));
+               }
+          } catch (err) {
+               console.error("Error admitting student:", err);
+               alert("An error occurred while admitting the student.");
+          }
+     };
+
+     const filteredStudents = Array.isArray(allStudents) ? allStudents.filter(s =>
+          s.fname.toLowerCase().includes(siblingSearch.toLowerCase()) ||
+          s.lname.toLowerCase().includes(siblingSearch.toLowerCase()) ||
+          s.admission_no.toLowerCase().includes(siblingSearch.toLowerCase())
+     ) : [];
 
      return (
           <>
@@ -26,266 +166,94 @@ export default function CreateStudent() {
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-                                   <form action="">
+                                   {isSubmitted && (
+                                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                                             Student Admitted Successfully!
+                                        </div>
+                                   )}
+                                   <form onSubmit={handleSubmit}>
                                         <div className="flex flex-col space-y-5">
                                              <h3 className="text-2xl font-bold pb-5 text-bgray-900 dark:text-white dark:border-darkblack-400 border-b border-bgray-200">
                                                   Student Admission
                                              </h3>
                                              <div className="grid grid-cols-1 gap-6">
                                                   <div className="grid 2xl:grid-cols-4 md:grid-cols-3 grid-cols-1 gap-6">
-
-                                                       {/* Admission No */}
-                                                       <Field label="Admission No *" name="admission_no" type="text" />
-
-                                                       {/* Roll Number */}
-                                                       <Field label="Roll Number" name="roll_no" />
-
-                                                       {/* Class */}
-                                                       <SelectField label="Class *" name="class" />
-
-                                                       {/* Section */}
-                                                       <SelectField label="Section *" name="section" />
-
-                                                       {/* First Name */}
-                                                       <Field label="First Name *" name="fname" />
-
-                                                       {/* Last Name */}
-                                                       <Field label="Last Name" name="lname" />
-
-                                                       {/* Gender */}
-                                                       <SelectField label="Gender *" name="gender" />
-
-                                                       {/* Date of Birth */}
-                                                       <Field label="Date of Birth *" name="dob" type="date" />
-
-
+                                                       <Field label="Admission No *" name="admission_no" type="text" value={formData.admission_no} onChange={handleChange} required />
+                                                       <Field label="Roll Number" name="roll_no" value={formData.roll_no} onChange={handleChange} />
+                                                       <SelectField label="Class *" name="class" options={CLASSES} value={formData.class} onChange={handleChange} required />
+                                                       <SelectField label="Section *" name="section" options={SECTIONS} value={formData.section} onChange={handleChange} required />
+                                                       <Field label="First Name *" name="fname" value={formData.fname} onChange={handleChange} required />
+                                                       <Field label="Last Name" name="lname" value={formData.lname} onChange={handleChange} />
+                                                       <SelectField label="Gender *" name="gender" options={GENDERS} value={formData.gender} onChange={handleChange} required />
+                                                       <Field label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleChange} required />
                                                   </div>
 
                                                   <div className="grid 2xl:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-6">
                                                        <div className="grid 2xl:grid-cols-3 md:grid-cols-3 grid-cols-1 gap-6">
-                                                            {/* Category */}
-                                                            <SelectField label="Category" name="category" />
-
-                                                            {/* Religion */}
-                                                            <Field label="Religion" name="religion" />
-
-                                                            {/* Caste */}
-                                                            <Field label="Caste" name="caste" />
+                                                            <SelectField label="Category" name="category" options={dynamicCategories.length > 0 ? dynamicCategories : CATEGORIES} value={formData.category} onChange={handleChange} />
+                                                            <Field label="Religion" name="religion" value={formData.religion} onChange={handleChange} />
+                                                            <Field label="Caste" name="caste" value={formData.caste} onChange={handleChange} />
                                                        </div>
                                                        <div className="grid 2xl:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-6">
-                                                            {/* Mobile Number */}
-                                                            <Field label="Mobile Number" name="mobile" />
-
-                                                            {/* Email */}
-                                                            <Field label="Email" name="email" />
+                                                            <Field label="Mobile Number" name="mobile" value={formData.mobile} onChange={handleChange} />
+                                                            <Field label="Email" name="email" value={formData.email} onChange={handleChange} />
                                                        </div>
                                                   </div>
                                                   <div className="grid 2xl:grid-cols-4 md:grid-cols-3 grid-cols-1 gap-6">
-
-                                                       {/* Student Photo */}
-                                                       <Field label="Student Photo" name="email" type="file" />
-
-                                                       {/* Blood Group */}
-                                                       <SelectField label="Blood Group" name="blood_group" />
-
-                                                       {/* Student House */}
-                                                       <SelectField label="Student House" name="student_house" />
-
-                                                       {/* Admission Date */}
-                                                       <Field label="Admission Date" name="admission_date" type="date" />
-
-                                                       {/* Height */}
-                                                       <Field label="Height" name="height" />
-
-                                                       {/* Weight */}
-                                                       <Field label="Weight" name="weight" />
-
-                                                       {/* As on Date */}
-                                                       <Field label="As on Date" name="as_on_date" type="date" />
-
-                                                       {/* As on Date */}
-                                                       <Field label="Medical History" name="as_on_date" type="text" />
+                                                       <Field label="Student Photo" name="photo" type="file" />
+                                                       <SelectField label="Blood Group" name="blood_group" options={BLOOD_GROUPS} value={formData.blood_group} onChange={handleChange} />
+                                                       <SelectField label="Student House" name="student_house" options={dynamicHouses.length > 0 ? dynamicHouses : STUDENT_HOUSES} value={formData.student_house} onChange={handleChange} />
+                                                       <Field label="Admission Date" name="admission_date" type="date" value={formData.admission_date} onChange={handleChange} />
+                                                       <Field label="Height" name="height" value={formData.height} onChange={handleChange} />
+                                                       <Field label="Weight" name="weight" value={formData.weight} onChange={handleChange} />
+                                                       <Field label="As on Date" name="as_on_date" type="date" value={formData.as_on_date} onChange={handleChange} />
+                                                       <Field label="Medical History" name="medical_history" type="text" value={formData.medical_history} onChange={handleChange} />
                                                   </div>
 
-                                                  {/* Add Sibling Row */}
                                                   <div className="flex items-center justify-between mt-4">
-                                                       <button
-                                                            type="button"
-                                                            className="text-[#0FA4E1] font-medium flex items-center space-x-1"
-                                                       >
-                                                            + Add Sibling
-                                                       </button>
+                                                       {!selectedSibling ? (
+                                                            <button
+                                                                 type="button"
+                                                                 onClick={() => setSiblingModalOpen(true)}
+                                                                 className="text-[#0FA4E1] font-medium flex items-center space-x-1 hover:text-[#0d8fc3] transition-colors"
+                                                            >
+                                                                 <span>+ Add Sibling</span>
+                                                            </button>
+                                                       ) : (
+                                                            <div className="flex items-center gap-3">
+                                                                 <span className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2">
+                                                                      Sibling: {selectedSibling.fname} {selectedSibling.lname}
+                                                                      <button type="button" onClick={handleRemoveSibling} className="hover:text-red-200">&times;</button>
+                                                                 </span>
+                                                                 <span className="text-xs text-bgray-500 italic">(Parent details auto-filled)</span>
+                                                            </div>
+                                                       )}
+                                                  </div>
+                                             </div>
 
-                                                       <span className="bg-green-600 text-white px-3 py-1 rounded text-sm">
-                                                            Sibling: Srimanth V
-                                                       </span>
-                                                  </div>
-                                             </div>
-                                             <h3 className="text-2xl font-bold pb-5 text-bgray-900 dark:text-white dark:border-darkblack-400 border-b border-bgray-200">
-                                                  Transport Details
-                                             </h3>
-                                             <div className="grid grid-cols-1 gap-6">
-                                                  <div className="grid 2xl:grid-cols-3 md:grid-cols-3 grid-cols-1 gap-6">
-                                                       <SelectField label="Route List *" name="section" />
-                                                       <SelectField label="Pickup Point *" name="section" />
-                                                       <SelectField label="Fees Month" name="section" />
-                                                  </div>
-                                             </div>
-                                             <h3 className="text-2xl font-bold pb-5 text-bgray-900 dark:text-white dark:border-darkblack-400 border-b border-bgray-200">
-                                                  Hostel Details
-                                             </h3>
-                                             <div className="grid grid-cols-1 gap-6">
-                                                  <div className="grid 2xl:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-6">
-                                                       <SelectField label="Hostel" name="section" />
-                                                       <SelectField label="Room No." name="section" />
-                                                  </div>
-                                             </div>
-                                             <div className="border-b border-bgray-200  pb-5 flex items-center flex-wrap justify-between">
-                                                  <h3 className="text-2xl font-bold text-bgray-900 dark:text-white dark:border-darkblack-400">
-                                                       Fees Details
-                                                  </h3>
-                                                  <h3 className="text-2xl font-bold text-bgray-900 dark:text-white dark:border-darkblack-400">
-                                                       0.00
-                                                  </h3>
-                                             </div>
-                                             <div className="mt-0! pt-0! border border-gray-200 p-2 pb-0! overflow-hidden">
-                                                  <div className="space-y-4">
-                                                       <AccordionItem
-                                                            title="Class 1 General"
-                                                            amount="4,93,500.00"
-                                                            isOpen={openIndex === 0}
-                                                            onToggle={() => toggleAccordion(0)}
-                                                       >
-                                                            <table className="w-full">
-                                                                 <thead>
-                                                                      <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                           <th className="py-5 px-6 bg-gray-100 w-[165px]">
-                                                                                <div className="w-full flex space-x-2.5 items-center">
-                                                                                     <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                                     >Fees Type</span
-                                                                                     >
-                                                                                </div>
-                                                                           </th><th className="py-5 px-6 bg-gray-100  w-[165px]">
-                                                                                <div className="w-full flex space-x-2.5 items-center justify-center">
-                                                                                     <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                                     >Due Date</span
-                                                                                     >
-                                                                                </div>
-                                                                           </th><th className="py-5 px-6 bg-gray-100  w-[165px] text-end">
-                                                                                <div className="w-full flex space-x-2.5 items-center justify-end">
-                                                                                     <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                                     >Amount (₹)</span
-                                                                                     >
-                                                                                </div>
-                                                                           </th>
-                                                                      </tr>
-                                                                 </thead>
-                                                                 <tbody>
-                                                                      <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                           <td className="py-5 px-6">
-                                                                                <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                                     Admission Fees (admission-fees)
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-5 px-6 text-center">
-                                                                                <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                                     <FontAwesomeIcon icon={faCalendar}
-                                                                                          className="text-success-300 text-xl" />
-                                                                                     04/10/2025
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-5 px-6 text-end">
-                                                                                <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                                     1,75,000.00
-                                                                                </p>
-                                                                           </td>
-                                                                      </tr>
-                                                                 </tbody>
-                                                            </table>
-                                                       </AccordionItem>
-                                                  </div>
-                                             </div>
-                                             <div className="border-b border-bgray-200  pb-5 flex items-center flex-wrap justify-between">
-                                                  <h3 className="text-2xl font-bold text-bgray-900 dark:text-white dark:border-darkblack-400">
-                                                       Fees Discount Details
-                                                  </h3>
-                                             </div>
-                                             <div className="mt-0! pt-0! border border-gray-200 p-2 pb-0! overflow-hidden">
-                                                  <div className="space-y-4">
-                                                       <AccordionItem
-                                                            title="Sibling Discount - sibling-disc"
-                                                            amount=""
-                                                            isOpen={openIndex === 0}
-                                                            onToggle={() => toggleAccordion(0)}
-                                                       >
-                                                            <table className="w-full">
-                                                                 <thead>
-                                                                      <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                           <th className="py-5 px-6 bg-gray-100 w-[165px]">
-                                                                                <div className="w-full flex space-x-2.5 items-center">
-                                                                                     <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                                     >Fees Type</span
-                                                                                     >
-                                                                                </div>
-                                                                           </th><th className="py-5 px-6 bg-gray-100  w-[165px]">
-                                                                                <div className="w-full flex space-x-2.5 items-center justify-center">
-                                                                                     <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                                     >Due Date</span
-                                                                                     >
-                                                                                </div>
-                                                                           </th><th className="py-5 px-6 bg-gray-100  w-[165px] text-end">
-                                                                                <div className="w-full flex space-x-2.5 items-center justify-end">
-                                                                                     <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                                     >Amount (₹)</span
-                                                                                     >
-                                                                                </div>
-                                                                           </th>
-                                                                      </tr>
-                                                                 </thead>
-                                                                 <tbody>
-                                                                      <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                           <td className="py-5 px-6">
-                                                                                <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                                     Admission Fees (admission-fees)
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-5 px-6 text-center">
-                                                                                <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                                     <FontAwesomeIcon icon={faCalendar}
-                                                                                          className="text-success-300 text-xl" />
-                                                                                     04/10/2025
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-5 px-6 text-end">
-                                                                                <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                                     1,75,000.00
-                                                                                </p>
-                                                                           </td>
-                                                                      </tr>
-                                                                 </tbody>
-                                                            </table>
-                                                       </AccordionItem>
-                                                  </div>
-                                             </div>
                                              <h3 className="text-2xl font-bold pb-5 text-bgray-900 dark:text-white dark:border-darkblack-400 border-b border-bgray-200">
                                                   Parent Guardian Detail
                                              </h3>
-                                             <div className="grid grid-cols-1 gap-6">
+                                             <div className="grid grid-cols-1 gap-6 pb-10">
                                                   <div className="grid 2xl:grid-cols-4 md:grid-cols-5 grid-cols-1 gap-6">
-                                                       <Field label="Father Name" name="admission_no" type="text" />
-                                                       <Field label="Father Phone" name="admission_no" type="text" />
-                                                       <Field label="Father Email" name="admission_no" type="text" />
-                                                       <Field label="Father Occupation" name="admission_no" type="text" />
-                                                       <Field label="Mother Name" name="admission_no" type="text" />
-                                                       <Field label="Mother Phone" name="admission_no" type="text" />
-                                                       <Field label="Mother Email" name="admission_no" type="text" />
-                                                       <Field label="Mother Occupation" name="admission_no" type="text" />
+                                                       <Field label="Father Name" name="father_name" type="text" value={formData.father_name} onChange={handleChange} />
+                                                       <Field label="Father Phone" name="father_phone" type="text" value={formData.father_phone} onChange={handleChange} />
+                                                       <Field label="Father Email" name="father_email" type="text" value={formData.father_email} onChange={handleChange} />
+                                                       <Field label="Father Occupation" name="father_occupation" type="text" value={formData.father_occupation} onChange={handleChange} />
+                                                       <Field label="Mother Name" name="mother_name" type="text" value={formData.mother_name} onChange={handleChange} />
+                                                       <Field label="Mother Phone" name="mother_phone" type="text" value={formData.mother_phone} onChange={handleChange} />
+                                                       <Field label="Mother Email" name="mother_email" type="text" value={formData.mother_email} onChange={handleChange} />
+                                                       <Field label="Mother Occupation" name="mother_occupation" type="text" value={formData.mother_occupation} onChange={handleChange} />
                                                   </div>
-                                                  <div className="grid 2xl:grid-cols-3 md:grid-cols-3 grid-cols-1 gap-6">
-                                                       <Field label="Father Photo (100px X 100px)" name="admission_no" type="file" />
-                                                       <Field label="Mother Photo (100px X 100px)" name="admission_no" type="file" />
-                                                       <Textare label="Guardian Address" name="Guardian_Address" />
-                                                  </div>
+                                             </div>
+
+                                             <div className="flex justify-end">
+                                                  <button
+                                                       type="submit"
+                                                       className="bg-success-300 text-white px-10 py-4 rounded-lg font-bold hover:bg-success-400 transition-colors shadow-lg"
+                                                  >
+                                                       Save Student
+                                                  </button>
                                              </div>
                                         </div>
                                    </form>
@@ -293,11 +261,74 @@ export default function CreateStudent() {
                          </div>
                     </section>
                </div>
+
+               {/* Sibling Selection Modal */}
+               {siblingModalOpen && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                         <div className="bg-white dark:bg-darkblack-600 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                              <div className="p-6 border-b border-bgray-200 dark:border-darkblack-400 flex justify-between items-center">
+                                   <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                             <FontAwesomeIcon icon={faUserPlus} />
+                                        </div>
+                                        <h3 className="text-xl font-bold dark:text-white">Select Sibling</h3>
+                                   </div>
+                                   <button onClick={() => setSiblingModalOpen(false)} className="text-bgray-400 hover:text-bgray-900 dark:hover:text-white transition-colors">
+                                        <FontAwesomeIcon icon={faTimes} size="lg" />
+                                   </button>
+                              </div>
+
+                              <div className="p-6">
+                                   <div className="relative mb-6">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-bgray-400">
+                                             <FontAwesomeIcon icon={faSearch} />
+                                        </div>
+                                        <input
+                                             type="text"
+                                             placeholder="Search by name or admission no..."
+                                             className="w-full pl-10 pr-4 py-3 bg-bgray-100 dark:bg-darkblack-500 border-none rounded-xl focus:ring-2 focus:ring-success-300 dark:text-white text-sm"
+                                             value={siblingSearch}
+                                             onChange={(e) => setSiblingSearch(e.target.value)}
+                                        />
+                                   </div>
+
+                                   <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                        {filteredStudents.length > 0 ? (
+                                             filteredStudents.map((s) => (
+                                                  <div
+                                                       key={s.admission_no}
+                                                       onClick={() => handleSelectSibling(s)}
+                                                       className="flex items-center justify-between p-4 rounded-xl border border-bgray-200 dark:border-darkblack-400 hover:border-success-300 dark:hover:border-success-300 hover:bg-bgray-50 dark:hover:bg-darkblack-500 cursor-pointer transition-all group"
+                                                  >
+                                                       <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 rounded-full bg-bgray-200 dark:bg-darkblack-400 flex items-center justify-center text-bgray-600 dark:text-bgray-200 font-bold uppercase">
+                                                                 {s.fname[0]}{s.lname[0]}
+                                                            </div>
+                                                            <div>
+                                                                 <h4 className="font-bold dark:text-white group-hover:text-success-300 transition-colors">{s.fname} {s.lname}</h4>
+                                                                 <p className="text-xs text-bgray-500">ID: {s.admission_no} | Class: {s.class} ({s.section})</p>
+                                                            </div>
+                                                       </div>
+                                                       <button className="px-4 py-2 text-xs font-bold text-success-300 border border-success-300 rounded-lg group-hover:bg-success-300 group-hover:text-white transition-all">
+                                                            Select
+                                                       </button>
+                                                  </div>
+                                             ))
+                                        ) : (
+                                             <div className="text-center py-10">
+                                                  <p className="text-bgray-500">No students found.</p>
+                                             </div>
+                                        )}
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
           </>
      );
 }
-/* Reusable Input Field */
-function Field({ label, name, type }: FieldProps) {
+
+function Field({ label, name, type = "text", value, onChange, required = false }: FieldProps) {
      return (
           <div className="flex flex-col gap-2">
                <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">
@@ -305,29 +336,17 @@ function Field({ label, name, type }: FieldProps) {
                </label>
                <input
                     type={type}
-                    className="bg-bgray-500 border border-success-300 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg h-14  focus:border focus:border-success-300 focus:ring-0"
                     name={name}
-               />
-          </div>
-     );
-}
-/* Reusable Input Field */
-function Textare({ label, name }: FieldProps) {
-     return (
-          <div className="flex flex-col gap-2">
-               <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">
-                    {label}
-               </label>
-               <textarea
-                    className="bg-bgray-500 border border-success-300 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg focus:border focus:border-success-300 focus:ring-0" rows={1}
-                    name={name}
+                    {...(type !== "file" ? { value: value || "" } : {})}
+                    onChange={onChange}
+                    required={required}
+                    className="bg-bgray-50 border border-success-300 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg h-14  focus:border focus:border-success-300 focus:ring-0 transition-all"
                />
           </div>
      );
 }
 
-/* Reusable Select Field */
-function SelectField({ label, name }: SelectFieldProps) {
+function SelectField({ label, name, options, value, onChange, required = false }: SelectFieldProps) {
      return (
           <div className="flex flex-col gap-2">
                <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">
@@ -335,9 +354,17 @@ function SelectField({ label, name }: SelectFieldProps) {
                </label>
                <select
                     name={name}
-                    className="bg-bgray-50 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg h-14  border border-success-300 focus:border focus:border-success-300 focus:ring-0"
+                    value={value || ""}
+                    onChange={onChange}
+                    required={required}
+                    className="bg-bgray-50 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg h-14 border border-success-300 focus:border focus:border-success-300 focus:ring-0 transition-all"
                >
-                    <option>Select</option>
+                    <option value="">Select</option>
+                    {options.map((option, idx) => (
+                         <option key={idx} value={option}>
+                              {option}
+                         </option>
+                    ))}
                </select>
           </div>
      );
