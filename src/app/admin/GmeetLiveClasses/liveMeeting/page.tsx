@@ -1,493 +1,323 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import GmeetLiveMeetingModal from "./GmeetLiveMeetingModal";
+
+interface LiveMeeting {
+  _id: string;
+  meetingTitle: string;
+  description: string;
+  dateTime: string;
+  duration: number;
+  createdBy: string;
+  status: string;
+}
+
+const ALL_COLUMNS = [
+  { key: "meetingTitle", label: "Meeting Title" },
+  { key: "description", label: "Description" },
+  { key: "dateTime", label: "Date Time" },
+  { key: "duration", label: "Class Duration (Minutes)" },
+  { key: "createdBy", label: "Created By" },
+  { key: "status", label: "Status" },
+  { key: "action", label: "Action" },
+];
 
 export default function LiveMeeting() {
-     const [openFilter, setOpenFilter] = useState<"action" | "status" | null>(null);
+  const [liveMeetingData, setLiveMeetingData] = useState<LiveMeeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editData, setEditData] = useState<LiveMeeting | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set());
+  const [showColMenu, setShowColMenu] = useState(false);
+  const colMenuRef = useRef<HTMLDivElement>(null);
 
-     const toggleFilter = (type: "action" | "status") => {
-          setOpenFilter(openFilter === type ? null : type);
-     };
+  const fetchMeetings = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/gmeet-live-meetings");
+      const data = await res.json();
+      if (data.success) setLiveMeetingData(data.data);
+    } catch (error) {
+      console.error("Failed to fetch meetings:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-     // Sample data based on the image
-     const liveMeetingData = [
-          {
-               id: 1,
-               meetingTitle: "Student Health Serve Mission",
-               description: "Student Health Serve Mission",
-               dateTime: "12/30/2025 02:30:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 2,
-               meetingTitle: "Christmas Celebration for meeting",
-               description: "Christmas Celebration",
-               dateTime: "12/25/2025 12:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 3,
-               meetingTitle: "Book Stock Discussion",
-               description: "Book Stock Discussion",
-               dateTime: "12/20/2025 03:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 4,
-               meetingTitle: "Teacher's Meeting",
-               description: "Teacher's Meeting",
-               dateTime: "12/15/2025 01:30:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 5,
-               meetingTitle: "PTM Preparation Online",
-               description: "PTM Preparation Online",
-               dateTime: "12/10/2025 12:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 6,
-               meetingTitle: "Online Teacher Training Meeting",
-               description: "Online Teacher Training Meeting",
-               dateTime: "12/05/2025 12:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Finished"
-          },
-          {
-               id: 7,
-               meetingTitle: "Finance Report Meeting",
-               description: "Finance Report Meeting",
-               dateTime: "12/01/2025 12:30:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 8,
-               meetingTitle: "Staff Meeting",
-               description: "Staff Meeting",
-               dateTime: "11/30/2025 14:00:00",
-               duration: 35,
-               createdBy: "William Abbot (Admin : 9003)",
-               status: "Awaited",
-               statusBadge: true
-          },
-          {
-               id: 9,
-               meetingTitle: "Teacher's Meeting",
-               description: "Teacher's Meeting",
-               dateTime: "11/25/2025 13:00:00",
-               duration: 45,
-               createdBy: "William Abbot (Admin : 9003)",
-               status: "Awaited",
-               statusBadge: true
-          },
-          {
-               id: 10,
-               meetingTitle: "Student Health Serve Mission",
-               description: "Student Health Serve Mission",
-               dateTime: "11/20/2025 13:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 11,
-               meetingTitle: "children's day program by teachers",
-               description: "children's day program by teachers",
-               dateTime: "11/14/2025 09:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 12,
-               meetingTitle: "Book Stock Discussion",
-               description: "Book Stock Discussion",
-               dateTime: "11/10/2025 12:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 13,
-               meetingTitle: "School Timetable Preparation",
-               description: "School Timetable Preparation",
-               dateTime: "11/05/2025 13:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 14,
-               meetingTitle: "Project status updates",
-               description: "Project status updates",
-               dateTime: "11/01/2025 12:30:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Finished"
-          },
-          {
-               id: 15,
-               meetingTitle: "Staff Meeting",
-               description: "Staff Meeting",
-               dateTime: "10/30/2025 12:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 16,
-               meetingTitle: "Teacher's Meeting",
-               description: "Teacher's Meeting",
-               dateTime: "10/25/2025 14:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 17,
-               meetingTitle: "Finance Report Meeting",
-               description: "Finance Report Meeting",
-               dateTime: "10/20/2025 12:00:00",
-               duration: 35,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 18,
-               meetingTitle: "PTM Preparation Online",
-               description: "PTM Preparation Online",
-               dateTime: "10/15/2025 15:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 19,
-               meetingTitle: "Online Teacher Training Meeting",
-               description: "Online Teacher Training Meeting",
-               dateTime: "10/10/2025 13:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-          {
-               id: 20,
-               meetingTitle: "Syllabus Complete before Timeline",
-               description: "Syllabus Complete before Timeline",
-               dateTime: "10/05/2025 12:00:00",
-               duration: 45,
-               createdBy: "Self",
-               status: "Awaited"
-          },
-     ];
+  useEffect(() => { fetchMeetings(); }, []);
 
-     return (
-          <>
-               <div className="2xl:flex 2xl:space-x-[48px]">
-                    <section className="2xl:flex-1 2xl:mb-0 mb-6">
-                         {/* Header Section */}
-                         <div className="flex justify-between items-center mb-6">
-                              <h1 className="text-2xl font-bold text-bgray-900 dark:text-white">Live Meeting</h1>
-                              <button
-                                   type="button"
-                                   className="px-4 py-2 bg-success-300 hover:bg-success-400 text-white rounded-lg font-semibold flex items-center gap-2 transition duration-300"
-                              >
-                                   <span>+</span>
-                                   Add
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (colMenuRef.current && !colMenuRef.current.contains(e.target as Node)) {
+        setShowColMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleAdd = () => { setEditData(null); setIsModalOpen(true); };
+  const handleEdit = (item: LiveMeeting) => { setEditData(item); setIsModalOpen(true); };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this live meeting?")) return;
+    try {
+      await fetch(`/api/gmeet-live-meetings/${id}`, { method: "DELETE" });
+      fetchMeetings();
+    } catch (error) {
+      console.error("Failed to delete meeting:", error);
+    }
+  };
+
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      await fetch(`/api/gmeet-live-meetings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      fetchMeetings();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
+
+  const filtered = liveMeetingData.filter((item) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      item.meetingTitle?.toLowerCase().includes(q) ||
+      item.description?.toLowerCase().includes(q) ||
+      item.createdBy?.toLowerCase().includes(q) ||
+      item.status?.toLowerCase().includes(q)
+    );
+  });
+
+  const isVisible = (key: string) => !hiddenColumns.has(key);
+
+  const getVisibleHeaders = () =>
+    ALL_COLUMNS.filter((c) => c.key !== "action" && isVisible(c.key)).map((c) => c.label);
+
+  const getRowValues = (item: LiveMeeting) => {
+    const map: Record<string, string> = {
+      meetingTitle: item.meetingTitle,
+      description: item.description,
+      dateTime: new Date(item.dateTime).toLocaleString(),
+      duration: String(item.duration),
+      createdBy: item.createdBy,
+      status: item.status,
+    };
+    return ALL_COLUMNS.filter((c) => c.key !== "action" && isVisible(c.key)).map(
+      (c) => map[c.key] ?? ""
+    );
+  };
+
+  const handleCopy = () => {
+    const headers = getVisibleHeaders().join("\t");
+    const rows = filtered.map((item) => getRowValues(item).join("\t")).join("\n");
+    navigator.clipboard.writeText(`${headers}\n${rows}`);
+  };
+
+  const buildCsv = () => {
+    const headers = getVisibleHeaders().join(",");
+    const rows = filtered
+      .map((item) =>
+        getRowValues(item).map((v) => `"${v.replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+    return `${headers}\n${rows}`;
+  };
+
+  const handleCsvDownload = () => {
+    const blob = new Blob([buildCsv()], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "live-meetings.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExcelDownload = () => {
+    const blob = new Blob([buildCsv()], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "live-meetings.xls"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => window.print();
+
+  const toggleColumn = (key: string) => {
+    setHiddenColumns((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  const SortIcon = () => (
+    <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
+  return (
+    <>
+      <GmeetLiveMeetingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onRefresh={fetchMeetings}
+        editData={editData}
+      />
+      <div className="2xl:flex 2xl:space-x-[48px]">
+        <section className="2xl:flex-1 2xl:mb-0 mb-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-bgray-900 dark:text-white">Live Meeting</h1>
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="px-4 py-2 bg-success-300 hover:bg-success-400 text-white rounded-lg font-semibold flex items-center gap-2 transition duration-300"
+            >
+              <span>+</span> Add
+            </button>
+          </div>
+
+          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
+            <div className="flex flex-col space-y-5">
+              {/* Search */}
+              <div className="w-full flex h-14 gap-4">
+                <div className="flex-1 border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
+                  <div className="flex w-full h-full items-center space-x-[15px]">
+                    <span>
+                      <svg className="stroke-bgray-900 dark:stroke-white" width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="9.80204" cy="10.6761" r="8.98856" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M16.0537 17.3945L19.5777 20.9094" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <label className="w-full">
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Icons Bar */}
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={handleCopy} className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300" title="Copy">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#718096" strokeWidth="1.5" /><path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="#718096" strokeWidth="1.5" /></svg>
+                  </button>
+                  <button type="button" onClick={handleExcelDownload} className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300" title="Excel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M14 2V8H20" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  <button type="button" onClick={handleCsvDownload} className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300" title="CSV">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M13 2V9H20" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  <button type="button" onClick={handlePrint} className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300" title="Print">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9V2H18V9M6 18H4C3.46957 18 2.96086 17.7893 2.58579 17.4142C2.21071 17.0391 2 16.5304 2 16V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H20C20.5304 9 21.0391 9.21071 21.4142 9.58579C21.7893 9.96086 22 10.4696 22 11V16C22 16.5304 21.7893 17.0391 21.4142 17.4142C21.0391 17.7893 20.5304 18 20 18H18M6 14H18V22H6V14Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  {/* Column Visibility */}
+                  <div className="relative" ref={colMenuRef}>
+                    <button type="button" onClick={() => setShowColMenu((v) => !v)} className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300" title="Column Visibility">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3H10V10H3V3ZM14 3H21V10H14V3ZM14 14H21V21H14V14ZM3 14H10V21H3V14Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </button>
+                    {showColMenu && (
+                      <div className="absolute right-0 top-12 z-20 bg-white dark:bg-darkblack-500 rounded-lg shadow-lg border border-bgray-200 dark:border-darkblack-400 w-52 p-3">
+                        <p className="text-xs font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Toggle Columns</p>
+                        {ALL_COLUMNS.filter((c) => c.key !== "action").map((col) => (
+                          <label key={col.key} className="flex items-center gap-2 py-1 cursor-pointer">
+                            <input type="checkbox" checked={isVisible(col.key)} onChange={() => toggleColumn(col.key)} className="accent-success-300" />
+                            <span className="text-sm text-bgray-900 dark:text-bgray-50">{col.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="table-content w-full overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-bgray-300 dark:border-darkblack-400">
+                      {isVisible("meetingTitle") && (
+                        <td className="py-4 px-4"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Meeting Title</span><button type="button"><SortIcon /></button></div></td>
+                      )}
+                      {isVisible("description") && (
+                        <td className="py-4 px-4"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</span><button type="button"><SortIcon /></button></div></td>
+                      )}
+                      {isVisible("dateTime") && (
+                        <td className="py-4 px-4"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date Time</span><button type="button"><SortIcon /></button></div></td>
+                      )}
+                      {isVisible("duration") && (
+                        <td className="py-4 px-4"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class Duration (Minutes)</span><button type="button"><SortIcon /></button></div></td>
+                      )}
+                      {isVisible("createdBy") && (
+                        <td className="py-4 px-4"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Created By</span><button type="button"><SortIcon /></button></div></td>
+                      )}
+                      {isVisible("status") && (
+                        <td className="py-4 px-4"><div className="flex items-center gap-2"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Status</span><button type="button"><SortIcon /></button></div></td>
+                      )}
+                      <td className="py-4 px-4"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span></td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
+                      <tr><td colSpan={7} className="text-center py-4 text-bgray-600 dark:text-bgray-50">Loading...</td></tr>
+                    ) : filtered.length === 0 ? (
+                      <tr><td colSpan={7} className="text-center py-4 text-bgray-600 dark:text-bgray-50">{searchQuery ? "No matching meetings found." : "No live meetings found."}</td></tr>
+                    ) : (
+                      filtered.map((item) => (
+                        <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
+                          {isVisible("meetingTitle") && <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.meetingTitle}</p></td>}
+                          {isVisible("description") && <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.description}</p></td>}
+                          {isVisible("dateTime") && <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{new Date(item.dateTime).toLocaleString()}</p></td>}
+                          {isVisible("duration") && <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.duration}</p></td>}
+                          {isVisible("createdBy") && <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</p></td>}
+                          {isVisible("status") && (
+                            <td className="py-4 px-4">
+                              {item.status === "Finished" ? (
+                                <span className="px-3 py-1 bg-warning-300 text-white rounded text-xs font-semibold">{item.status}</span>
+                              ) : (
+                                <select
+                                  value={item.status}
+                                  onChange={(e) => handleStatusChange(item._id, e.target.value)}
+                                  className="text-sm text-bgray-900 dark:text-bgray-50 bg-bgray-100 dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-success-300"
+                                >
+                                  <option value="Started">Started</option>
+                                  <option value="Completed">Completed</option>
+                                  <option value="Cancelled">Cancelled</option>
+                                  <option value="Finished">Finished</option>
+                                </select>
+                              )}
+                            </td>
+                          )}
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <button type="button" onClick={() => handleEdit(item)} className="px-3 py-1.5 bg-success-300 hover:bg-success-400 text-white rounded text-xs font-semibold transition duration-300">Edit</button>
+                              <button type="button" onClick={() => handleDelete(item._id)} className="w-8 h-8 flex items-center justify-center rounded hover:bg-error-50 text-error-300 transition duration-300">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                               </button>
-                         </div>
-
-                         <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
-                              <div className="flex flex-col space-y-5 ">
-                                   {/* Search Bar */}
-                                   <div className="w-full flex h-14 gap-4">
-                                        <div className="flex-1 border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                                             <div className="flex w-full h-full items-center space-x-[15px]">
-                                                  <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            placeholder="Search..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                       />
-                                                  </label>
-                                             </div>
-                                        </div>
-                                   {/* Action Icons Bar */}
-                                   <div className="flex justify-end items-center gap-3">
-                                        <button
-                                             type="button"
-                                             className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300"
-                                             title="Copy"
-                                        >
-                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                  <rect x="9" y="9" width="13" height="13" rx="2" stroke="#718096" strokeWidth="1.5"/>
-                                                  <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="#718096" strokeWidth="1.5"/>
-                                             </svg>
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300"
-                                             title="Excel"
-                                        >
-                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                  <path d="M14 2V8H20" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                             </svg>
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300"
-                                             title="CSV"
-                                        >
-                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                  <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                  <path d="M13 2V9H20" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                             </svg>
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300"
-                                             title="PDF"
-                                        >
-                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                  <path d="M14 2V8H20M16 13H8M16 17H8M10 9H8" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                             </svg>
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="w-10 h-10 rounded-lg bg-bgray-100 dark:bg-darkblack-500 flex items-center justify-center hover:bg-success-50 transition duration-300"
-                                             title="Print"
-                                        >
-                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                  <path d="M6 9V2H18V9M6 18H4C3.46957 18 2.96086 17.7893 2.58579 17.4142C2.21071 17.0391 2 16.5304 2 16V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H20C20.5304 9 21.0391 9.21071 21.4142 9.58579C21.7893 9.96086 22 10.4696 22 11V16C22 16.5304 21.7893 17.0391 21.4142 17.4142C21.0391 17.7893 20.5304 18 20 18H18M6 14H18V22H6V14Z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                             </svg>
-                                        </button>
-                                   </div>
-                                   </div>
-
-
-                                   {/* Table */}
-                                   <div className="table-content w-full overflow-x-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-4 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Meeting Title</span>
-                                                                 <button type="button">
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-4 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</span>
-                                                                 <button type="button">
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-4 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date Time</span>
-                                                                 <button type="button">
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-4 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class Duration (Minutes)</span>
-                                                                 <button type="button">
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-4 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Created By</span>
-                                                                 <button type="button">
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-4 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Status</span>
-                                                                 <button type="button">
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-4 px-4">
-                                                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span>
-                                                       </td>
-                                                  </tr>
-                                             </thead>
-                                             <tbody>
-                                                  {liveMeetingData.map((item) => (
-                                                       <tr key={item.id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
-                                                            <td className="py-4 px-4">
-                                                                 <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.meetingTitle}</p>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                 <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.description}</p>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                 <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.dateTime}</p>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                 <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.duration}</p>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                 <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</p>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                 <div className="flex items-center gap-2">
-                                                                      {item.statusBadge ? (
-                                                                           <span className="px-3 py-1 bg-warning-300 text-white rounded text-xs font-semibold">
-                                                                                {item.status}
-                                                                           </span>
-                                                                      ) : (
-                                                                           <select className="text-sm text-bgray-900 dark:text-bgray-50 bg-bgray-100 dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-success-300">
-                                                                                <option>{item.status}</option>
-                                                                                <option>Started</option>
-                                                                                <option>Completed</option>
-                                                                                <option>Cancelled</option>
-                                                                           </select>
-                                                                      )}
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                 <div className="flex items-center gap-2">
-                                                                      {item.statusBadge ? (
-                                                                           <>
-                                                                                <button
-                                                                                     type="button"
-                                                                                     className="px-3 py-1.5 bg-success-300 hover:bg-success-400 text-white rounded text-xs font-semibold transition duration-300"
-                                                                                >
-                                                                                     Join
-                                                                                </button>
-                                                                                <button
-                                                                                     type="button"
-                                                                                     className="w-8 h-8 flex items-center justify-center rounded hover:bg-bgray-200 dark:hover:bg-darkblack-400 transition duration-300"
-                                                                                     title="Settings"
-                                                                                >
-                                                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                          <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                          <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                     </svg>
-                                                                                </button>
-                                                                           </>
-                                                                      ) : (
-                                                                           <>
-                                                                                <button
-                                                                                     type="button"
-                                                                                     className="px-3 py-1.5 bg-success-300 hover:bg-success-400 text-white rounded text-xs font-semibold transition duration-300"
-                                                                                >
-                                                                                     Start
-                                                                                </button>
-                                                                                <button
-                                                                                     type="button"
-                                                                                     className="w-8 h-8 flex items-center justify-center rounded hover:bg-bgray-200 dark:hover:bg-darkblack-400 transition duration-300"
-                                                                                     title="Settings"
-                                                                                >
-                                                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                          <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                          <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                     </svg>
-                                                                                </button>
-                                                                                <button
-                                                                                     type="button"
-                                                                                     className="w-8 h-8 flex items-center justify-center rounded hover:bg-error-50 text-error-300 transition duration-300"
-                                                                                     title="Delete"
-                                                                                >
-                                                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                     </svg>
-                                                                                </button>
-                                                                           </>
-                                                                      )}
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-                                                  ))}
-                                             </tbody>
-                                        </table>
-                                   </div>
-                              </div>
-                         </div>
-                    </section>
-               </div>
-          </>
-     );
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
+  );
 }

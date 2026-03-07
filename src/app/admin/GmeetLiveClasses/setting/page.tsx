@@ -1,20 +1,58 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Settings() {
-     const [apiKey, setApiKey] = useState("988720996993-ctjb5ibg56b45fu505l3lv310bv55d79.apps.googleusercontent.com");
-     const [apiSecret, setApiSecret] = useState("XkSqRpcFacU2Gg6QqCZP8kVP");
+     const [apiKey, setApiKey] = useState("");
+     const [apiSecret, setApiSecret] = useState("");
      const [useGoogleCalendar, setUseGoogleCalendar] = useState("disabled");
      const [parentLiveClass, setParentLiveClass] = useState("disabled");
+     const [isLoading, setIsLoading] = useState(true);
 
-     const handleSave = () => {
-          // Handle save logic here
-          console.log({
-               apiKey,
-               apiSecret,
-               useGoogleCalendar,
-               parentLiveClass
-          });
+     useEffect(() => {
+          const fetchSettings = async () => {
+               try {
+                    const res = await fetch("/api/gmeet-settings");
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                         setApiKey(data.data.apiKey || "");
+                         setApiSecret(data.data.apiSecret || "");
+                         setUseGoogleCalendar(data.data.useGoogleCalendar ? "enabled" : "disabled");
+                         setParentLiveClass(data.data.parentLiveClass ? "enabled" : "disabled");
+                    }
+               } catch (error) {
+                    console.error("Failed to fetch settings:", error);
+               } finally {
+                    setIsLoading(false);
+               }
+          };
+
+          fetchSettings();
+     }, []);
+
+     const handleSave = async () => {
+          try {
+               const payload = {
+                    apiKey,
+                    apiSecret,
+                    useGoogleCalendar: useGoogleCalendar === "enabled",
+                    parentLiveClass: parentLiveClass === "enabled",
+               };
+
+               const res = await fetch("/api/gmeet-settings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+               });
+
+               if (res.ok) {
+                    alert("Settings saved successfully!");
+               } else {
+                    alert("Failed to save settings.");
+               }
+          } catch (error) {
+               console.error("Error saving settings:", error);
+               alert("An error occurred while saving.");
+          }
      };
 
      return (
