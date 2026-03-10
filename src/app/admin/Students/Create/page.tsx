@@ -29,6 +29,7 @@ interface SelectFieldProps extends FieldProps {
 
 export default function CreateStudent() {
      const [openIndex, setOpenIndex] = useState<number | null>(null);
+     const today = new Date().toLocaleDateString("en-CA");
      const [formData, setFormData] = useState<Partial<Student>>({
           class: "",
           section: "",
@@ -36,7 +37,8 @@ export default function CreateStudent() {
           category: "",
           blood_group: "",
           student_house: "",
-          religion: ""
+          religion: "",
+          admission_date: today
      });
      const [isSubmitted, setIsSubmitted] = useState(false);
      const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
@@ -137,7 +139,8 @@ export default function CreateStudent() {
                          category: "",
                          blood_group: "",
                          student_house: "",
-                         religion: ""
+                         religion: "",
+                         admission_date: today
                     });
                     setSelectedSibling(null);
 
