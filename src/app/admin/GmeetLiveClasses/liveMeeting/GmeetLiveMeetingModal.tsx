@@ -7,6 +7,8 @@ interface LiveMeeting {
   dateTime: string;
   duration: number;
   createdBy: string;
+  classes: string[];
+  meetUrl: string;
   status: string;
 }
 
@@ -23,7 +25,14 @@ export default function GmeetLiveMeetingModal({ isOpen, onClose, onRefresh, edit
   const [dateTime, setDateTime] = useState("");
   const [duration, setDuration] = useState(0);
   const [createdBy, setCreatedBy] = useState("");
+  const [addedClasses, setAddedClasses] = useState<string[]>([]);
+  const [meetUrl, setMeetUrl] = useState("");
+  const [tempClass, setTempClass] = useState("Class 1");
+  const [tempSection, setTempSection] = useState("A");
   const [status, setStatus] = useState("Awaited");
+
+  const classList = ["Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10"];
+  const sectionList = ["A","B","C","D","E"];
 
   useEffect(() => {
     if (editData) {
@@ -33,6 +42,8 @@ export default function GmeetLiveMeetingModal({ isOpen, onClose, onRefresh, edit
       setDateTime(dt);
       setDuration(editData.duration);
       setCreatedBy(editData.createdBy);
+      setAddedClasses(editData.classes || []);
+      setMeetUrl(editData.meetUrl || "");
       setStatus(editData.status);
     } else {
       setMeetingTitle("");
@@ -40,6 +51,8 @@ export default function GmeetLiveMeetingModal({ isOpen, onClose, onRefresh, edit
       setDateTime("");
       setDuration(0);
       setCreatedBy("");
+      setAddedClasses([]);
+      setMeetUrl("");
       setStatus("Awaited");
     }
   }, [editData, isOpen]);
@@ -53,6 +66,8 @@ export default function GmeetLiveMeetingModal({ isOpen, onClose, onRefresh, edit
       dateTime,
       duration,
       createdBy,
+      classes: addedClasses,
+      meetUrl,
       status,
     };
 
@@ -126,6 +141,16 @@ export default function GmeetLiveMeetingModal({ isOpen, onClose, onRefresh, edit
             </div>
           </div>
           <div>
+            <label className="block text-sm font-medium mb-1 text-bgray-900 dark:text-white">Meet URL</label>
+            <input
+              type="text"
+              value={meetUrl}
+              onChange={(e) => setMeetUrl(e.target.value)}
+              placeholder="e.g. https://meet.google.com/..."
+              className="w-full px-3 py-2 border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+            />
+          </div>
+          <div>
             <label className="block text-sm font-medium mb-1 text-bgray-900 dark:text-white">Created By</label>
             <input
               type="text"
@@ -133,6 +158,57 @@ export default function GmeetLiveMeetingModal({ isOpen, onClose, onRefresh, edit
               onChange={(e) => setCreatedBy(e.target.value)}
               className="w-full px-3 py-2 border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 dark:bg-darkblack-500 text-bgray-900 dark:text-white"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-bgray-900 dark:text-white">Add Classes & Sections</label>
+            <div className="flex gap-2 mb-3">
+              <select
+                value={tempClass}
+                onChange={(e) => setTempClass(e.target.value)}
+                className="flex-1 px-3 py-2 border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 dark:bg-darkblack-500 text-bgray-900 dark:text-white text-sm"
+              >
+                {classList.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select
+                value={tempSection}
+                onChange={(e) => setTempSection(e.target.value)}
+                className="w-24 px-3 py-2 border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 dark:bg-darkblack-500 text-bgray-900 dark:text-white text-sm"
+              >
+                {sectionList.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  const newEntry = `${tempClass} (${tempSection})`;
+                  if (!addedClasses.includes(newEntry)) {
+                    setAddedClasses([...addedClasses, newEntry]);
+                  }
+                }}
+                className="px-4 py-2 bg-bgray-100 dark:bg-darkblack-500 text-bgray-900 dark:text-white rounded-lg hover:bg-bgray-200 transition-colors font-semibold border border-bgray-300 dark:border-darkblack-400"
+              >
+                Add
+              </button>
+            </div>
+            
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 p-3 border border-dashed border-bgray-300 dark:border-darkblack-400 rounded-lg min-h-[50px] bg-bgray-50 dark:bg-darkblack-600/30">
+              {addedClasses.length === 0 ? (
+                <span className="text-xs text-bgray-500 italic">No classes added yet</span>
+              ) : (
+                addedClasses.map((cls, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 bg-success-50 text-success-300 px-3 py-1 rounded-full text-sm font-medium border border-success-100 dark:bg-success-300/10 dark:border-success-300/20">
+                    <span>{cls}</span>
+                    <button
+                      type="button"
+                      onClick={() => setAddedClasses(addedClasses.filter(c => c !== cls))}
+                      className="hover:text-error-300 transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-bgray-900 dark:text-white">Status</label>

@@ -9,6 +9,7 @@ interface LiveMeeting {
   dateTime: string;
   duration: number;
   createdBy: string;
+  meetUrl: string;
   status: string;
 }
 
@@ -28,6 +29,7 @@ export default function LiveMeeting() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<LiveMeeting | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set());
   const [showColMenu, setShowColMenu] = useState(false);
   const colMenuRef = useRef<HTMLDivElement>(null);
@@ -72,12 +74,16 @@ export default function LiveMeeting() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
-      await fetch(`/api/gmeet-live-meetings/${id}`, {
+      const res = await fetch(`/api/gmeet-live-meetings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      fetchMeetings();
+      if (res.ok) {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        fetchMeetings();
+      }
     } catch (error) {
       console.error("Failed to update status:", error);
     }
@@ -165,6 +171,16 @@ export default function LiveMeeting() {
 
   return (
     <>
+      {showSuccess && (
+        <div className="fixed top-5 right-5 z-[500] animate-in slide-in-from-right-full duration-300">
+          <div className="bg-success-300 text-white px-6 py-4 rounded-lg shadow-xl flex items-center gap-3 border border-success-400">
+            <div className="bg-white/20 rounded-full p-1">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <p className="font-bold tracking-wide">Status Updated Successfully!</p>
+          </div>
+        </div>
+      )}
       <GmeetLiveMeetingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -302,9 +318,46 @@ export default function LiveMeeting() {
                           )}
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                              <button type="button" onClick={() => handleEdit(item)} className="px-3 py-1.5 bg-success-300 hover:bg-success-400 text-white rounded text-xs font-semibold transition duration-300">Edit</button>
-                              <button type="button" onClick={() => handleDelete(item._id)} className="w-8 h-8 flex items-center justify-center rounded hover:bg-error-50 text-error-300 transition duration-300">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                              {/* Edit Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleEdit(item)}
+                                className="text-bgray-600 dark:text-bgray-50 hover:text-success-300 transition-colors title='Edit'"
+                              >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
+                              </button>
+                              
+                              {/* Start Button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleStatusChange(item._id, "Started");
+                                  // Redirect to stored URL or fallback to Google Meet landing page
+                                  const url = item.meetUrl || "https://meet.google.com";
+                                  window.open(url, "_blank");
+                                }}
+                                style={{ backgroundColor: "#82b440" }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition duration-300"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                  <rect x="1" y="5" width="15" height="14" rx="2"></rect>
+                                </svg>
+                                Start
+                              </button>
+
+                              {/* X (Delete) Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(item._id)}
+                                style={{ backgroundColor: "#7b61f8" }}
+                                className="w-8 h-8 flex items-center justify-center text-white rounded hover:opacity-90 transition duration-300"
+                                title="Delete"
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
                               </button>
                             </div>
                           </td>

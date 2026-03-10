@@ -1,9 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Student, CLASSES, SECTIONS, GENDERS, CATEGORIES, BLOOD_GROUPS, STUDENT_HOUSES } from "@/constants/student-constants";
 import Pagination from "../../components/Pagination";
 
 export default function StudenDetails() {
+     const router = useRouter();
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "pagination" | "export" | null>(null);
      const [activeActionId, setActiveActionId] = useState<string | null>(null);
      const [students, setStudents] = useState<Student[]>([]);
@@ -317,7 +319,7 @@ export default function StudenDetails() {
 
                                                                       {activeActionId === student.admission_no && (
                                                                            <div className="absolute right-0 top-10 mt-2 w-48 bg-white dark:bg-darkblack-500 rounded-lg shadow-xl border border-bgray-300 dark:border-darkblack-400 z-50 overflow-hidden">
-                                                                                <button onClick={() => { setViewStudent(student); setActiveActionId(null); }} className="w-full text-left px-5 py-3 text-sm font-semibold text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-600 border-b border-bgray-200 dark:border-darkblack-400">View Details</button>
+                                                                                 <button onClick={() => { router.push(`/admin/Students/Profile/${student.admission_no}`); setActiveActionId(null); }} className="w-full text-left px-5 py-3 text-sm font-semibold text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-600 border-b border-bgray-200 dark:border-darkblack-400">View Details</button>
                                                                                 <button onClick={() => { setEditStudent(student); setActiveActionId(null); }} className="w-full text-left px-5 py-3 text-sm font-semibold text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-600 border-b border-bgray-200 dark:border-darkblack-400">Edit Student</button>
                                                                                 <button onClick={() => { setDisableStudent(student); setActiveActionId(null); }} className="w-full text-left px-5 py-3 text-sm font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-b border-bgray-200 dark:border-darkblack-400">Disable Student</button>
                                                                                 <button onClick={() => handleDelete(student.admission_no)} className="w-full text-left px-5 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">Delete Record</button>

@@ -7,6 +7,9 @@ interface LiveMeeting {
   description: string;
   dateTime: string;
   createdBy: string;
+  classes: string[];
+  joinList: { admissionNo: string; studentName: string; fatherName: string; lastJoin: string }[];
+  meetUrl: string;
   status: string;
 }
 
@@ -17,6 +20,20 @@ export default function LiveMeetingReport() {
   const [liveMeetingReportData, setLiveMeetingReportData] = useState<LiveMeeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [joinListItem, setJoinListItem] = useState<LiveMeeting | null>(null);
+  const [joinSearch, setJoinSearch] = useState("");
+  const [joinPage, setJoinPage] = useState(1);
+  const joinPerPage = 10;
+  const [openFilter, setOpenFilter] = useState<"class" | "section" | null>(null);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
+
+  const classList = ["All","Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10"];
+  const sectionList = ["All","A","B","C","D","E"];
+
+  const toggleFilter = (type: "class" | "section") => {
+    setOpenFilter(openFilter === type ? null : type);
+  };
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -36,6 +53,13 @@ export default function LiveMeetingReport() {
 
   const filtered = liveMeetingReportData.filter((item) => {
     const q = searchQuery.toLowerCase();
+    
+    // Class and Section filtering
+    const classMatch = !selectedClass || selectedClass === "All" || item.classes?.some(c => c.startsWith(selectedClass));
+    const sectionMatch = !selectedSection || selectedSection === "All" || item.classes?.some(c => c.includes(`(${selectedSection})`));
+    
+    if (!(classMatch && sectionMatch)) return false;
+
     return (
       item.meetingTitle?.toLowerCase().includes(q) ||
       item.description?.toLowerCase().includes(q) ||
@@ -99,11 +123,140 @@ export default function LiveMeetingReport() {
 
   return (
     <>
+      {/* Join List Modal */}
+      {joinListItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setJoinListItem(null)}>
+          <div
+            className="bg-white dark:bg-darkblack-600 rounded-xl shadow-2xl w-full mx-4 overflow-hidden"
+            style={{ maxWidth: "780px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Purple Header */}
+            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: "#6654c0" }}>
+              <h3 className="text-lg font-bold text-white">Join List</h3>
+              <button type="button" onClick={() => setJoinListItem(null)} className="text-white hover:opacity-80 transition">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-bgray-200 dark:border-darkblack-400">
+              <input
+                type="text"
+                placeholder="Search"
+                value={joinSearch}
+                onChange={(e) => { setJoinSearch(e.target.value); setJoinPage(1); }}
+                className="h-9 px-3 border border-bgray-300 dark:border-darkblack-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6654c0] dark:bg-darkblack-500 dark:text-white w-48"
+              />
+            </div>
+
+            {/* Table */}
+            {(() => {
+              const entries = (joinListItem.joinList ?? []).filter(e =>
+                e.admissionNo?.toLowerCase().includes(joinSearch.toLowerCase()) ||
+                e.studentName?.toLowerCase().includes(joinSearch.toLowerCase()) ||
+                e.fatherName?.toLowerCase().includes(joinSearch.toLowerCase())
+              );
+              const totalPages = Math.max(1, Math.ceil(entries.length / joinPerPage));
+              const paginated = entries.slice((joinPage - 1) * joinPerPage, joinPage * joinPerPage);
+              return (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500">
+                          {["Admission No", "Student Name", "Father Name", "Last Join"].map(h => (
+                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-bgray-50">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginated.length === 0 ? (
+                          <tr><td colSpan={4} className="text-center py-10 text-sm text-bgray-500 dark:text-bgray-300">No participants found.</td></tr>
+                        ) : paginated.map((e, idx) => (
+                          <tr key={idx} className="border-b border-bgray-100 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition">
+                            <td className="py-3 px-5 text-sm text-bgray-900 dark:text-white">{e.admissionNo}</td>
+                            <td className="py-3 px-5 text-sm text-bgray-900 dark:text-white">{e.studentName}</td>
+                            <td className="py-3 px-5 text-sm text-bgray-900 dark:text-white">{e.fatherName}</td>
+                            <td className="py-3 px-5 text-sm text-bgray-900 dark:text-white">{e.lastJoin ? new Date(e.lastJoin).toLocaleString() : "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Footer */}
+                  <div className="flex items-center justify-between px-5 py-3 border-t border-bgray-200 dark:border-darkblack-400">
+                    <span className="text-sm text-bgray-600 dark:text-bgray-300">
+                      Showing {entries.length === 0 ? 0 : (joinPage - 1) * joinPerPage + 1} to {Math.min(joinPage * joinPerPage, entries.length)} of {entries.length} entries
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button type="button" disabled={joinPage === 1} onClick={() => setJoinPage(p => p - 1)}
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M12.72 5L7.72 10L12.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                      <button type="button" className="w-8 h-8 flex items-center justify-center rounded text-sm font-semibold text-white" style={{ backgroundColor: "#6654c0" }}>{joinPage}</button>
+                      <button type="button" disabled={joinPage === totalPages} onClick={() => setJoinPage(p => p + 1)}
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M7.72 5L12.72 10L7.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
       <div className="2xl:flex 2xl:space-x-[48px]">
         <section className="2xl:flex-1 2xl:mb-0 mb-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold text-bgray-900 dark:text-white">Live Meeting Report</h1>
+          </div>
+
+          {/* Select Criteria */}
+          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600 mb-6">
+            <h2 className="text-xl font-semibold text-bgray-900 dark:text-white mb-5">Select Criteria</h2>
+            <div className="flex flex-col space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Class Dropdown */}
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Class <span className="text-error-300">*</span></label>
+                  <div className="relative">
+                    <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("class")}>
+                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedClass || "All"}</span>
+                      <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+                    </button>
+                    <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
+                      <ul className="max-h-48 overflow-y-auto">
+                        {classList.map((cls) => (
+                          <li key={cls} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(cls === "All" ? "" : cls); setOpenFilter(null); setCurrentPage(1); }}>{cls}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                {/* Section Dropdown */}
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Section <span className="text-error-300">*</span></label>
+                  <div className="relative">
+                    <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("section")}>
+                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedSection || "All"}</span>
+                      <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+                    </button>
+                    <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"}`}>
+                      <ul className="max-h-48 overflow-y-auto">
+                        {sectionList.map((section) => (
+                          <li key={section} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(section === "All" ? "" : section); setOpenFilter(null); setCurrentPage(1); }}>{section}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
@@ -183,8 +336,18 @@ export default function LiveMeetingReport() {
                           <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</p></td>
                           <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">0</p></td>
                           <td className="py-4 px-4">
-                            <button type="button" className="w-8 h-8 flex items-center justify-center rounded hover:bg-bgray-200 dark:hover:bg-darkblack-400 transition duration-300" title="View Details">
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H21M3 12H21M3 18H21" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <button
+                              type="button"
+                              title="View Join List"
+                              onClick={() => setJoinListItem(item)}
+                              style={{ backgroundColor: "#7b61f8" }}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg text-white hover:opacity-80 transition duration-300"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                              </svg>
                             </button>
                           </td>
                         </tr>

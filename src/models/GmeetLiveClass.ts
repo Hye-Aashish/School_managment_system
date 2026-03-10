@@ -1,5 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export interface IJoinEntry {
+  admissionNo: string;
+  studentName: string;
+  fatherName: string;
+  lastJoin: Date;
+}
+
 export interface IGmeetLiveClass extends Document {
   classTitle: string;
   description: string;
@@ -8,41 +15,29 @@ export interface IGmeetLiveClass extends Document {
   createdBy: string;
   createdFor: string;
   classes: string[];
+  meetUrl: string;
+  joinList: IJoinEntry[];
   status: string;
 }
 
+const JoinEntrySchema = new Schema({
+  admissionNo: { type: String, default: "" },
+  studentName: { type: String, default: "" },
+  fatherName: { type: String, default: "" },
+  lastJoin: { type: Date, default: Date.now },
+}, { _id: false });
+
 const GmeetLiveClassSchema: Schema = new Schema(
   {
-    classTitle: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    dateTime: {
-      type: Date,
-      required: true,
-    },
-    duration: {
-      type: Number,
-      default: 0,
-    },
-    createdBy: {
-      type: String,
-      trim: true,
-    },
-    createdFor: {
-      type: String,
-      trim: true,
-    },
-    classes: {
-      type: [String],
-      default: [],
-    },
+    classTitle: { type: String, required: true, trim: true },
+    description: { type: String, trim: true, default: "" },
+    dateTime: { type: Date, required: true },
+    duration: { type: Number, default: 0 },
+    createdBy: { type: String, trim: true },
+    createdFor: { type: String, trim: true },
+    classes: { type: [String], default: [] },
+    meetUrl: { type: String, trim: true, default: "" },
+    joinList: { type: [JoinEntrySchema], default: [] },
     status: {
       type: String,
       enum: ["Awaited", "Started", "Completed", "Cancelled"],
