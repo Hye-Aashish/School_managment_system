@@ -4,6 +4,8 @@ import Student from "@/models/Student";
 import FeeMaster from "@/models/FeeMaster";
 import FeePayment from "@/models/FeePayment";
 import FeeDiscount from "@/models/FeeDiscount";
+import FeeGroup from "@/models/FeeGroup";
+import FeeType from "@/models/FeeType";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {

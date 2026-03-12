@@ -3,8 +3,13 @@
 @import "slick-carousel/slick/slick-theme.css";
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
+  --background: #ffffff;
+  --foreground: #000000;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -14,12 +19,14 @@
   --font-mono: var(--font-geist-mono);
 }
 
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
+  :root:not(.light) {
+    --background: #000000;
+    --foreground: #ffffff;
   }
 }
+
 
 body {
   background: var(--background);

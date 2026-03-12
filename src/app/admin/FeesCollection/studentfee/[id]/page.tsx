@@ -129,10 +129,10 @@ export default function StudentFeeDetail() {
     return (
         <div className="p-6 bg-white dark:bg-darkblack-600 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-bgray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-foreground">
                     Collect Fees: {student?.fname} {student?.lname}
                 </h2>
-                <div className="text-sm text-bgray-600 dark:text-bgray-50">
+                <div className="text-sm text-foreground">
                     Admission No: <span className="font-bold">{student?.admission_no}</span> |
                     Class: <span className="font-bold">{student?.class} ({student?.section})</span>
                 </div>
@@ -142,13 +142,13 @@ export default function StudentFeeDetail() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50">Fees Group</th>
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50">Fees Type</th>
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50">Due Date</th>
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50 text-right">Amount (₹)</th>
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50 text-right">Paid (₹)</th>
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50 text-right">Balance (₹)</th>
-                            <th className="py-4 px-2 text-bgray-600 dark:text-bgray-50">Action</th>
+                            <th className="py-4 px-2 text-foreground">Fees Group</th>
+                            <th className="py-4 px-2 text-foreground">Fees Type</th>
+                            <th className="py-4 px-2 text-foreground">Due Date</th>
+                            <th className="py-4 px-2 text-foreground text-right">Amount (₹)</th>
+                            <th className="py-4 px-2 text-foreground text-right">Paid (₹)</th>
+                            <th className="py-4 px-2 text-foreground text-right">Balance (₹)</th>
+                            <th className="py-4 px-2 text-foreground">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -208,13 +208,13 @@ export default function StudentFeeDetail() {
                         <div className="p-8 space-y-6">
                             {/* Fees Display */}
                             <div className="grid grid-cols-4 items-center">
-                                <label className="text-gray-600 dark:text-gray-400 text-sm col-span-1">Fees ($)</label>
-                                <div className="text-gray-900 dark:text-gray-100 font-medium col-span-3">{(selectedMaster?.amount || 0).toFixed(2)}</div>
+                                <label className="text-foreground text-sm col-span-1">Fees ($)</label>
+                                <div className="text-foreground font-medium col-span-3">{(selectedMaster?.amount || 0).toFixed(2)}</div>
                             </div>
 
                             {/* Date Field */}
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-gray-600 dark:text-gray-400 text-sm col-span-1">Date <span className="text-red-500">*</span></label>
+                                <label className="text-foreground text-sm col-span-1">Date <span className="text-red-500">*</span></label>
                                 <input
                                     type="date"
                                     value={paymentDate}
@@ -225,7 +225,7 @@ export default function StudentFeeDetail() {
 
                             {/* Paying Amount */}
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-gray-600 dark:text-gray-400 text-sm col-span-1">Paying Amount ($) <span className="text-red-500">*</span></label>
+                                <label className="text-foreground text-sm col-span-1">Paying Amount ($) <span className="text-red-500">*</span></label>
                                 <input
                                     type="number"
                                     value={payingAmount}
@@ -236,9 +236,9 @@ export default function StudentFeeDetail() {
 
                             {/* Discount Group */}
                             <div className="grid grid-cols-4 gap-4">
-                                <label className="text-gray-600 dark:text-gray-400 text-sm col-span-1 pt-1">Discount Group</label>
+                                <label className="text-foreground text-sm col-span-1 pt-1">Discount Group</label>
                                 <div className="col-span-3 space-y-4">
-                                    <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase tracking-tight">
+                                    <div className="flex justify-between text-[11px] font-bold text-foreground opacity-70 uppercase tracking-tight">
                                         <span className="w-1/2">Fees Discount</span>
                                         <span className="w-1/4 text-center">Available Count</span>
                                         <span className="w-1/4 text-right">Value</span>
@@ -253,10 +253,10 @@ export default function StudentFeeDetail() {
                                                         checked={selectedDiscounts.includes(disc._id)}
                                                         onChange={() => handleDiscountToggle(disc)}
                                                     />
-                                                    <span className="text-gray-700 dark:text-gray-300">{disc.name} ({disc.discount_code})</span>
+                                                    <span className="text-foreground">{disc.name} ({disc.discount_code})</span>
                                                 </label>
-                                                <span className="w-1/4 text-center text-gray-600 dark:text-gray-400">{disc.use_count}</span>
-                                                <span className="w-1/4 text-right font-medium text-gray-900 dark:text-gray-100">
+                                                <span className="w-1/4 text-center text-foreground opacity-80">{disc.use_count}</span>
+                                                <span className="w-1/4 text-right font-medium text-foreground">
                                                     {disc.type === "percentage" ? `${disc.percentage}%` : `$${disc.amount}`}
                                                 </span>
                                             </div>
@@ -271,7 +271,7 @@ export default function StudentFeeDetail() {
                             {/* Discount and Fine Row */}
                             <div className="grid grid-cols-4 gap-6">
                                 <div className="col-span-2 flex items-center gap-4 pl-[25%]">
-                                    <label className="text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap">Discount ($) <span className="text-red-500">*</span></label>
+                                    <label className="text-foreground text-sm whitespace-nowrap">Discount ($) <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         value={discountAmount}
@@ -286,7 +286,7 @@ export default function StudentFeeDetail() {
                                     />
                                 </div>
                                 <div className="col-span-2 flex items-center gap-4">
-                                    <label className="text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap">Fine ($) <span className="text-red-500">*</span></label>
+                                    <label className="text-foreground text-sm whitespace-nowrap">Fine ($) <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         value={fineAmount}
@@ -310,7 +310,7 @@ export default function StudentFeeDetail() {
                                                 onChange={(e) => setPaymentMode(e.target.value)}
                                                 className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                             />
-                                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{mode}</span>
+                                            <span className="text-sm text-foreground font-medium">{mode}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -318,7 +318,7 @@ export default function StudentFeeDetail() {
 
                             {/* Note */}
                             <div className="grid grid-cols-4 gap-4">
-                                <label className="text-gray-600 dark:text-gray-400 text-sm col-span-1 pt-2">Note</label>
+                                <label className="text-foreground text-sm col-span-1 pt-2">Note</label>
                                 <textarea
                                     value={note}
                                     onChange={(e) => setNote(e.target.value)}

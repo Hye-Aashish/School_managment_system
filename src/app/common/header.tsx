@@ -63,11 +63,11 @@ export default function Header() {
             </span>
           </button>
           <div>
-            <h3 className="lg:text-3xl text-xl dark:text-bgray-50 text-bgray-900 font-bold lg:leading-[36.4px] capitalize">
+            <h3 className="lg:text-3xl text-xl text-foreground font-bold lg:leading-[36.4px] capitalize">
               {formattedName}
             </h3>
             <p
-              className="lg:text-sm text-xs dark:text-bgray-50 text-bgray-600 font-medium lg:leading-[25.2px]">
+              className="lg:text-sm text-xs text-foreground font-medium lg:leading-[25.2px]">
               Let's check your update today
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function Header() {
                       strokeWidth="1.5" />
                   </svg>
                 </span>
-                <span className="text-base dark:text-bgray-300 text-bgray-900">K</span>
+                <span className="text-base text-foreground">K</span>
               </div>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function Header() {
                 <div className="2xl:block hidden">
                   <div className="flex space-x-2.5 items-center">
                     <h3
-                      className="text-base dark:text-white text-bgray-900 font-bold leading-7">
+                      className="text-base text-foreground font-bold leading-7">
                       John Doe
                     </h3>
                     <span>
@@ -247,7 +247,7 @@ export default function Header() {
                     </span>
                   </div>
                   <p
-                    className="text-sm font-medium leading-5 dark:text-bgray-50 text-bgray-600">
+                    className="text-sm font-medium leading-5 text-foreground">
                     Super Admin
                   </p>
                 </div>

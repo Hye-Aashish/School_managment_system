@@ -1,10 +1,149 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function StudenAdmission() {
      const [admissions, setAdmissions] = useState<any[]>([]);
      const [isLoading, setIsLoading] = useState(true);
      const [openFilter, setOpenFilter] = useState<string | null>(null);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [currentPage, setCurrentPage] = useState(1);
+     const [itemsPerPage, setItemsPerPage] = useState(10);
+     const tableRef = useRef<HTMLTableElement>(null);
+
+     const filteredAdmissions = admissions.filter((admission) => {
+          const searchLower = searchTerm.toLowerCase();
+          const fullName = `${admission.first_name || ""} ${admission.last_name || ""}`.toLowerCase();
+          return (
+               fullName.includes(searchLower) ||
+               (admission.reference_no && admission.reference_no.toLowerCase().includes(searchLower)) ||
+               (admission.mobile_no && admission.mobile_no.includes(searchLower))
+          );
+     });
+
+     // Pagination Logic
+     const indexOfLastItem = currentPage * itemsPerPage;
+     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+     const currentAdmissions = filteredAdmissions.slice(indexOfFirstItem, indexOfLastItem);
+     const totalPages = Math.ceil(filteredAdmissions.length / itemsPerPage);
+
+     const handlePageChange = (pageNumber: number) => {
+          setCurrentPage(pageNumber);
+     };
+
+     // Export Functions
+     const handleCopy = () => {
+          if (filteredAdmissions.length === 0) return alert("No data to copy");
+          const headers = ["Reference No", "Student Name", "Class", "Father Name", "Date Of Birth", "Gender", "Category", "Mobile Number", "Form Status", "Payment Status", "Enrolled", "Admission Date"];
+          const rows = filteredAdmissions.map(adm => [
+               adm.reference_no || "",
+               `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
+               `${adm.class || ""}(${adm.section || ""})`,
+               adm.father_name || "",
+               adm.dob || "",
+               adm.gender || "",
+               adm.category || "",
+               adm.mobile_no || "",
+               adm.status || "Submitted",
+               adm.payment_status || "Paid",
+               "Yes",
+               adm.admission_date || "N/A"
+          ]);
+          const csvContent = [headers.join("\t"), ...rows.map(row => row.join("\t"))].join("\n");
+          navigator.clipboard.writeText(csvContent);
+          alert("Data copied to clipboard!");
+          setOpenFilter(null);
+     };
+
+     const handleExcel = () => {
+          if (filteredAdmissions.length === 0) return alert("No data to export");
+          const exportData = filteredAdmissions.map(adm => ({
+               "Reference No": adm.reference_no,
+               "Student Name": `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
+               "Class": `${adm.class || ""}(${adm.section || ""})`,
+               "Father Name": adm.father_name,
+               "Date Of Birth": adm.dob,
+               "Gender": adm.gender,
+               "Category": adm.category,
+               "Mobile Number": adm.mobile_no,
+               "Form Status": adm.status || "Submitted",
+               "Payment Status": adm.payment_status || "Paid",
+               "Enrolled": "Yes",
+               "Admission Date": adm.admission_date || "N/A"
+          }));
+          const worksheet = XLSX.utils.json_to_sheet(exportData);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Admissions");
+          XLSX.writeFile(workbook, "online_admissions.xlsx");
+          setOpenFilter(null);
+     };
+
+     const handleCSV = () => {
+          if (filteredAdmissions.length === 0) return alert("No data to export");
+          const exportData = filteredAdmissions.map(adm => ({
+               "Reference No": adm.reference_no,
+               "Student Name": `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
+               "Class": `${adm.class || ""}(${adm.section || ""})`,
+               "Father Name": adm.father_name,
+               "Date Of Birth": adm.dob,
+               "Gender": adm.gender,
+               "Category": adm.category,
+               "Mobile Number": adm.mobile_no,
+               "Form Status": adm.status || "Submitted",
+               "Payment Status": adm.payment_status || "Paid",
+               "Enrolled": "Yes",
+               "Admission Date": adm.admission_date || "N/A"
+          }));
+          const worksheet = XLSX.utils.json_to_sheet(exportData);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Admissions");
+          XLSX.writeFile(workbook, "online_admissions.csv");
+          setOpenFilter(null);
+     };
+
+     const handlePDF = () => {
+          if (filteredAdmissions.length === 0) return alert("No data to export");
+          const doc = new jsPDF('landscape');
+          doc.text("Online Admissions Report", 14, 15);
+          
+          const headers = [["Ref No", "Name", "Class", "Father", "DOB", "Gender", "Category", "Mobile", "Form Status", "Pay Status", "Date"]];
+          const data = filteredAdmissions.map(adm => [
+               adm.reference_no || "",
+               `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
+               `${adm.class || ""}(${adm.section || ""})`,
+               adm.father_name || "",
+               adm.dob || "",
+               adm.gender || "",
+               adm.category || "",
+               adm.mobile_no || "",
+               adm.status || "Submitted",
+               adm.payment_status || "Paid",
+               adm.admission_date || "N/A"
+          ]);
+
+          (doc as any).autoTable({
+               head: headers,
+               body: data,
+               startY: 20,
+               styles: { fontSize: 8 },
+               headStyles: { fillColor: [41, 128, 185] }
+          });
+          doc.save("online_admissions.pdf");
+          setOpenFilter(null);
+     };
+
+     const handlePrint = () => {
+          if (!tableRef.current) return;
+          const printContents = tableRef.current.outerHTML;
+          const originalContents = document.body.innerHTML;
+          document.body.innerHTML = `<div><h2 style="text-align:center;">Online Admissions</h2>${printContents}</div>`;
+          window.print();
+          document.body.innerHTML = originalContents;
+          window.location.reload(); // Reload to restore React bindings after replacing innerHTML
+     };
+
 
      useEffect(() => {
           fetchAdmissions();
@@ -81,8 +220,10 @@ export default function StudenAdmission() {
                                                        <input
                                                             type="text"
                                                             id="listSearch"
-                                                            placeholder="Search Students..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
+                                                            placeholder="Search Students... (Name, Ref No, Mobile)"
+                                                            value={searchTerm}
+                                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-foreground tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500"
                                                        />
                                                   </label>
                                              </div>
@@ -118,20 +259,20 @@ export default function StudenAdmission() {
                                                   className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
                                                        }`}
                                              >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Coppy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
-                                                  </ul>
+                                                   <ul>
+                                                        <li onClick={handleCopy} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
+                                                        <li onClick={handleExcel} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
+                                                        <li onClick={handleCSV} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
+                                                        <li onClick={handlePDF} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
+                                                        <li onClick={handlePrint} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
+                                                   </ul>
                                              </div>
                                         </div>
                                    </div>
-                                   <div className="table-content w-full min-h-[52vh] overflow-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
+                                    <div className="table-content w-full min-h-[52vh] overflow-auto">
+                                         <table className="w-full" ref={tableRef}>
+                                              <thead>
+                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400 text-foreground font-semibold">
                                                        <td className="py-5 px-6 text-nowrap">Reference No</td>
                                                        <td className="py-5 px-6 text-nowrap">Student Name</td>
                                                        <td className="py-5 px-6 text-nowrap">Class</td>
@@ -151,14 +292,14 @@ export default function StudenAdmission() {
                                              <tbody>
                                                   {isLoading ? (
                                                        <tr>
-                                                            <td colSpan={13} className="text-center py-10 text-bgray-600">Loading...</td>
+                                                            <td colSpan={13} className="text-center py-10 text-foreground">Loading...</td>
                                                        </tr>
-                                                  ) : admissions.length === 0 ? (
+                                                  ) : currentAdmissions.length === 0 ? (
                                                        <tr>
-                                                            <td colSpan={13} className="text-center py-10 text-bgray-600">No online admissions found</td>
+                                                            <td colSpan={13} className="text-center py-10 text-foreground">No online admissions found</td>
                                                        </tr>
-                                                  ) : admissions.map((admission) => (
-                                                       <tr key={admission.reference_no} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                  ) : currentAdmissions.map((admission) => (
+                                                       <tr key={admission.reference_no} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 hover:dark:bg-darkblack-500 text-foreground transition-colors">
                                                             <td className="py-5 px-6">{admission.reference_no}</td>
                                                             <td className="py-5 px-6">{admission.first_name} {admission.last_name}</td>
                                                             <td className="py-5 px-6 text-nowrap">{admission.class}({admission.section})</td>
@@ -215,7 +356,7 @@ export default function StudenAdmission() {
                                              className="w-full flex lg:justify-between justify-center items-center"
                                         >
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
+                                                  <span className="text-foreground text-sm font-semibold"
                                                   >Show result:</span
                                                   >
                                                   <div className="relative">
@@ -224,8 +365,8 @@ export default function StudenAdmission() {
                                                             className="px-2.5 py-3.5 border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                             onClick={() => toggleFilter("pagination")}
                                                        >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50"
-                                                            >3</span
+                                                            <span className="text-sm font-semibold text-foreground"
+                                                            >{itemsPerPage}</span
                                                             >
                                                             <span>
                                                                  <svg
@@ -251,90 +392,87 @@ export default function StudenAdmission() {
                                                                  }`}
                                                        >
                                                             <ul>
-                                                                 <li
-                                                                      className="text-sm font-medium text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
-                                                                 >
-                                                                      1
-                                                                 </li>
-                                                                 <li
-                                                                      className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
-                                                                 >
-                                                                      2
-                                                                 </li>
-
-                                                                 <li
-                                                                      className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
-                                                                 >
-                                                                      3
-                                                                 </li>
-                                                            </ul>
+                                                                  {[10, 20, 50].map((num) => (
+                                                                       <li
+                                                                            key={num}
+                                                                            onClick={() => { setItemsPerPage(num); setCurrentPage(1); setOpenFilter(null); }}
+                                                                            className="text-sm font-medium text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600"
+                                                                       >
+                                                                            {num}
+                                                                       </li>
+                                                                  ))}
+                                                             </ul>
                                                        </div>
                                                   </div>
                                              </div>
                                              <div
-                                                  className="flex sm:space-x-[35px] space-x-5 items-center"
-                                             >
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                       >
-                                                            1
-                                                       </button>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            2
-                                                       </button>
-
-                                                       <span className="text-bgray-500 text-sm">. . . .</span>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            20
-                                                       </button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                             </div>
+                                                   className="flex sm:space-x-[35px] space-x-5 items-center"
+                                              >
+                                                   <button 
+                                                        type="button" 
+                                                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                                        disabled={currentPage === 1}
+                                                        className={currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}
+                                                   >
+                                                        <span>
+                                                             <svg
+                                                                  width="21"
+                                                                  height="21"
+                                                                  viewBox="0 0 21 21"
+                                                                  fill="none"
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                             >
+                                                                  <path
+                                                                       d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
+                                                                       stroke="#A0AEC0"
+                                                                       strokeWidth="2"
+                                                                       strokeLinecap="round"
+                                                                       strokeLinejoin="round"
+                                                                  />
+                                                             </svg>
+                                                        </span>
+                                                   </button>
+                                                   <div className="flex items-center space-x-2">
+                                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                                             <button
+                                                                  key={page}
+                                                                  type="button"
+                                                                  onClick={() => handlePageChange(page)}
+                                                                  className={`rounded-lg lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 transition duration-300 ease-in-out ${
+                                                                       currentPage === page 
+                                                                       ? "text-success-300 bg-success-50 dark:bg-darkblack-500" 
+                                                                       : "text-foreground hover:bg-success-50 hover:text-success-300 dark:hover:bg-darkblack-500"
+                                                                  }`}
+                                                             >
+                                                                  {page}
+                                                             </button>
+                                                        ))}
+                                                   </div>
+                                                   <button 
+                                                        type="button"
+                                                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                                        disabled={currentPage === totalPages || totalPages === 0}
+                                                        className={(currentPage === totalPages || totalPages === 0) ? "opacity-50 cursor-not-allowed" : ""}
+                                                   >
+                                                        <span>
+                                                             <svg
+                                                                  width="21"
+                                                                  height="21"
+                                                                  viewBox="0 0 21 21"
+                                                                  fill="none"
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                             >
+                                                                  <path
+                                                                       d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
+                                                                       stroke="#A0AEC0"
+                                                                       strokeWidth="2"
+                                                                       strokeLinecap="round"
+                                                                       strokeLinejoin="round"
+                                                                  />
+                                                             </svg>
+                                                        </span>
+                                                   </button>
+                                              </div>
                                         </div>
                                    </div>
                               </div>

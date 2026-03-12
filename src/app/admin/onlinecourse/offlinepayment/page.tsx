@@ -5,10 +5,27 @@ export default function StudentFee() {
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
      const [isPayModalOpen, setIsPayModalOpen] = useState(false);
      const [selectedCourse, setSelectedCourse] = useState<any>(null);
-     const [records, setRecords] = useState([
-          { id: 1, course: "Vedic Mathematics Course", section: "2", lesson: "2", quiz: "0", exam: "0", assignment: "0", provider: "Youtube", price: "200.00", currentPrice: "200.00", isPaid: false },
-          { id: 2, course: "Mathematics a Graphical Course", section: "1", lesson: "2", quiz: "1", exam: "1", assignment: "1", provider: "Youtube", price: "100.00", currentPrice: "90.00", isPaid: false }
-     ]);
+     const [records, setRecords] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
+
+     useEffect(() => {
+          fetchCourses();
+     }, []);
+
+     const fetchCourses = async () => {
+          try {
+               const response = await fetch("/api/online-course");
+               const data = await response.json();
+               if (response.ok) {
+                    setRecords(data);
+               }
+          } catch (error) {
+               console.error("Failed to fetch courses:", error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
 
      const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
@@ -240,9 +257,9 @@ export default function StudentFee() {
                                                             className="py-5 px-6 lg:w-auto"
                                                        >
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span
-                                                                      className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                 >Course</span>
+                                                                  <span
+                                                                       className="text-base font-medium text-foreground"
+                                                                  >Course</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -285,9 +302,9 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
-                                                                 >Section</span
-                                                                 >
+                                                                  <span className="text-base font-medium text-foreground"
+                                                                  >Section</span
+                                                                  >
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -331,10 +348,10 @@ export default function StudentFee() {
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="flex space-x-2.5 items-center">
                                                                  <span
-                                                                      className="text-base font-medium text-bgray-600 dark:text-gray-50"
-                                                                 >
-                                                                      Lesson</span
-                                                                 >
+                                                                       className="text-base font-medium text-foreground"
+                                                                  >
+                                                                       Lesson</span
+                                                                  >
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -377,7 +394,7 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-foreground"
                                                                  >Quiz</span
                                                                  >
                                                                  <span>
@@ -422,7 +439,7 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-foreground"
                                                                  >Exam</span
                                                                  >
                                                                  <span>
@@ -467,7 +484,7 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-foreground"
                                                                  >Assignment</span
                                                                  >
                                                                  <span>
@@ -512,7 +529,7 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-foreground"
                                                                  >Course Provider</span
                                                                  >
                                                                  <span>
@@ -557,7 +574,7 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-foreground"
                                                                  >Price ($)</span
                                                                  >
                                                                  <span>
@@ -602,7 +619,7 @@ export default function StudentFee() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-foreground"
                                                                  >Current Price ($)</span
                                                                  >
                                                                  <span>
@@ -646,7 +663,7 @@ export default function StudentFee() {
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 text-nowrap min-w-max">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                             <span className="text-base font-medium text-foreground">Action</span>
                                                        </td>
                                                   </tr>
                                              </thead>
@@ -654,47 +671,47 @@ export default function StudentFee() {
                                                   {records.map((record) => (
                                                        <tr key={record.id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {record.course}
-                                                                 </p>
+                                                                  <p className="font-medium text-base text-foreground">
+                                                                       {record.title}
+                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.section}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.lesson}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.quiz}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.exam}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.assignment}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.provider}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.price}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-foreground">
                                                                       {record.currentPrice}
                                                                  </p>
                                                             </td>
@@ -738,7 +755,7 @@ export default function StudentFee() {
                                              className="w-full flex lg:justify-between justify-center items-center"
                                         >
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
+                                                  <span className="text-foreground text-sm font-semibold"
                                                   >Show result:</span
                                                   >
                                                   <div className="relative">
@@ -747,7 +764,7 @@ export default function StudentFee() {
                                                             className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                             onClick={() => toggleFilter("pagination")}
                                                        >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50"
+                                                            <span className="text-sm font-semibold text-foreground"
                                                             >3</span
                                                             >
                                                             <span>
@@ -775,12 +792,12 @@ export default function StudentFee() {
                                                        >
                                                             <ul>
                                                                  <li
-                                                                      className="text-sm font-medium text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
+                                                                      className="text-sm font-medium text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 "
                                                                  >
                                                                       1
                                                                  </li>
                                                                  <li
-                                                                      className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
+                                                                      className="text-sm font-medium text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 "
                                                                  >
                                                                       2
                                                                  </li>

@@ -35,3 +35,17 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ error: "Failed to delete question" }, { status: 500 });
     }
 }
+
+export async function PUT(req: Request) {
+    try {
+        await dbConnect();
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+        if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+        const body = await req.json();
+        const question = await CourseQuestion.findByIdAndUpdate(id, body, { new: true });
+        return NextResponse.json(question);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message || "Failed to update question" }, { status: 500 });
+    }
+}

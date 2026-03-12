@@ -125,11 +125,11 @@ export const menu: MenuItem[] = [
         icon: <Monitor size={20} className="text-[#0FCDE1]" />,
         dropdown: true,
         submenu: [
-            { title: "Live Meeting", url: "/admin/GmeetLiveClasses/liveMeeting" },
-            { title: "Live Classes", url: "/admin/GmeetLiveClasses/liveClasses" },
-            { title: "Live Classes Report", url: "/admin/GmeetLiveClasses/LiveClassesReport" },
-            { title: "Live Meeting Report", url: "/admin/GmeetLiveClasses/LiveMeetingReport" },
-            { title: "Setting", url: "/admin/GmeetLiveClasses/setting" },
+            { title: "Live Classes", url: "/admin/ZoomLiveClasses/liveClasses" },
+            { title: "Live Meeting", url: "/admin/ZoomLiveClasses/liveMeeting" },
+            { title: "Live Classes Report", url: "/admin/ZoomLiveClasses/LiveClassesReport" },
+            { title: "Live Meeting Report", url: "/admin/ZoomLiveClasses/LiveMeetingReport" },
+            { title: "Setting", url: "/admin/ZoomLiveClasses/setting" },
         ],
     },
     {
