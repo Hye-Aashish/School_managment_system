@@ -5,7 +5,15 @@ import FeePayment from "@/models/FeePayment";
 export async function GET() {
     try {
         await dbConnect();
-        const payments = await FeePayment.find().populate("student").populate("fee_master");
+        const payments = await FeePayment.find()
+            .populate("student")
+            .populate({
+                path: "fee_master",
+                populate: [
+                    { path: "fee_group" },
+                    { path: "fee_type" }
+                ]
+            });
         return NextResponse.json(payments);
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch payments" }, { status: 500 });
@@ -20,5 +28,17 @@ export async function POST(req: Request) {
         return NextResponse.json(payment, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message || "Failed to create payment" }, { status: 500 });
+    }
+}
+
+export async function PATCH(req: Request) {
+    try {
+        await dbConnect();
+        const { id, ...updateData } = await req.json();
+        if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+        const updatedPayment = await FeePayment.findByIdAndUpdate(id, updateData, { new: true });
+        return NextResponse.json(updatedPayment);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message || "Failed to update payment" }, { status: 500 });
     }
 }

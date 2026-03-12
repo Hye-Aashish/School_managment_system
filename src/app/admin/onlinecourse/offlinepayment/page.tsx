@@ -3,10 +3,31 @@ import React, { useEffect, useState } from "react";
 
 export default function StudentFee() {
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
+     const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+     const [selectedCourse, setSelectedCourse] = useState<any>(null);
+     const [records, setRecords] = useState([
+          { id: 1, course: "Vedic Mathematics Course", section: "2", lesson: "2", quiz: "0", exam: "0", assignment: "0", provider: "Youtube", price: "200.00", currentPrice: "200.00", isPaid: false },
+          { id: 2, course: "Mathematics a Graphical Course", section: "1", lesson: "2", quiz: "1", exam: "1", assignment: "1", provider: "Youtube", price: "100.00", currentPrice: "90.00", isPaid: false }
+     ]);
 
      const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
      };
+
+     const handlePayClick = (record: any) => {
+          setSelectedCourse(record);
+          setIsPayModalOpen(true);
+     };
+
+     const handleModalPay = () => {
+          setRecords(prev => prev.map(r => r.id === selectedCourse.id ? { ...r, isPaid: true } : r));
+          setIsPayModalOpen(false);
+     };
+
+     const handleRevert = (id: number) => {
+          setRecords(prev => prev.map(r => r.id === id ? { ...r, isPaid: false } : r));
+     };
+
      return (
           <>
                <div className="2xl:flex 2xl:space-x-[48px]">
@@ -33,14 +54,12 @@ export default function StudentFee() {
                                                                  cx="9.80204"
                                                                  cy="10.6761"
                                                                  r="8.98856"
-
                                                                  strokeWidth="1.5"
                                                                  strokeLinecap="round"
                                                                  strokeLinejoin="round"
                                                             />
                                                             <path
                                                                  d="M16.0537 17.3945L19.5777 20.9094"
-
                                                                  strokeWidth="1.5"
                                                                  strokeLinecap="round"
                                                                  strokeLinejoin="round"
@@ -218,7 +237,7 @@ export default function StudentFee() {
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td
-                                                            className="py-5 px-6 xl:px-0 w-[250px] lg:w-auto inline-block"
+                                                            className="py-5 px-6 lg:w-auto"
                                                        >
                                                             <div className="w-full flex space-x-2.5 items-center">
                                                                  <span
@@ -626,122 +645,91 @@ export default function StudentFee() {
                                                                  </span>
                                                             </div>
                                                        </td>
-                                                       <td className="py-5 px-6 xl:px-0">
+                                                       <td className="py-5 px-6 text-nowrap min-w-max">
                                                             <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
                                                        </td>
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Vedic Mathematics Course
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                2
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 2
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 0
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 0
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 0
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Youtube
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 200.00
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 200.00
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <button
-                                                                 type="button"
-                                                                 className="px-4 py-2 rounded-lg bg-success-300 hover:bg-success-400 text-white text-sm font-semibold transition-colors duration-200"
-                                                            >
-                                                                 Pay
-                                                            </button>
-                                                       </td>
-                                                  </tr>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Mathematics a Graphical Course
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 2
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Youtube
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 100.00
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 90.00
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <button
-                                                                 type="button"
-                                                                 className="px-4 py-2 rounded-lg bg-success-300 hover:bg-success-400 text-white text-sm font-semibold transition-colors duration-200"
-                                                            >
-                                                                 Pay
-                                                            </button>
-                                                       </td>
-                                                  </tr>
+                                                  {records.map((record) => (
+                                                       <tr key={record.id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.course}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.section}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.lesson}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.quiz}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.exam}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.assignment}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.provider}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.price}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {record.currentPrice}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6">
+                                                                 {record.isPaid ? (
+                                                                      <div className="flex space-x-2">
+                                                                           <button
+                                                                                type="button"
+                                                                                onClick={() => handleRevert(record.id)}
+                                                                                className="px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all flex items-center space-x-1"
+                                                                           >
+                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                                                                                <span>Revert</span>
+                                                                           </button>
+                                                                           <button
+                                                                                type="button"
+                                                                                className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-all flex items-center space-x-1"
+                                                                           >
+                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                                                                <span>Print</span>
+                                                                           </button>
+                                                                      </div>
+                                                                 ) : (
+                                                                      <button
+                                                                           type="button"
+                                                                           onClick={() => handlePayClick(record)}
+                                                                           className="px-4 py-1.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-all flex items-center space-x-1"
+                                                                      >
+                                                                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                                                           <span>Pay</span>
+                                                                      </button>
+                                                                 )}
+                                                            </td>
+                                                       </tr>
+                                                  ))}
                                              </tbody>
                                         </table>
                                    </div>
@@ -876,6 +864,123 @@ export default function StudentFee() {
                          </div>
                     </section>
                </div>
+
+               {/* Payment Modal */}
+               {isPayModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-lg shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col transition-all duration-300">
+                              {/* Header */}
+                              <div className="bg-[#6E63F1] px-6 py-4 flex justify-between items-center shrink-0">
+                                   <div className="flex items-center space-x-3">
+                                        <div className="p-2 bg-white/20 rounded-lg">
+                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M7 15h.01M11 15h.01M15 15h.01"/></svg>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white tracking-tight">Online Course Fees</h3>
+                                   </div>
+                                   <button 
+                                        onClick={() => setIsPayModalOpen(false)} 
+                                        className="p-2 hover:bg-white/10 rounded-full transition-colors group"
+                                   >
+                                        <svg className="group-hover:rotate-90 transition-transform duration-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                   </button>
+                              </div>
+
+                              <div className="p-8 overflow-y-auto space-y-6">
+                                   {/* Course Info Card */}
+                                   <div className="bg-bgray-50 dark:bg-darkblack-500 p-4 rounded-xl border border-bgray-200 dark:border-darkblack-400">
+                                        <div className="flex items-start">
+                                             <div className="w-1/3">
+                                                  <span className="text-xs font-bold text-bgray-500 dark:text-bgray-400 uppercase tracking-wider">Course Selected</span>
+                                                  <p className="mt-1 text-sm font-semibold text-bgray-900 dark:text-white leading-tight">
+                                                       {selectedCourse?.course}
+                                                  </p>
+                                             </div>
+                                             <div className="w-1/3 border-l border-bgray-200 dark:border-darkblack-400 pl-4">
+                                                  <span className="text-xs font-bold text-bgray-500 dark:text-bgray-400 uppercase tracking-wider">Price</span>
+                                                  <p className="mt-1 text-sm font-semibold text-bgray-900 dark:text-white">
+                                                       ${selectedCourse?.price}
+                                                  </p>
+                                             </div>
+                                             <div className="w-1/3 border-l border-bgray-200 dark:border-darkblack-400 pl-4">
+                                                  <span className="text-xs font-bold text-bgray-500 dark:text-bgray-400 uppercase tracking-wider">Discounted</span>
+                                                  <p className="mt-1 text-sm font-bold text-success-300">
+                                                       ${selectedCourse?.currentPrice}
+                                                  </p>
+                                             </div>
+                                        </div>
+                                   </div>
+
+                                   {/* Form Fields */}
+                                   <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                             <label className="block text-sm font-bold text-bgray-700 dark:text-bgray-300">
+                                                  Date <span className="text-red-500">*</span>
+                                             </label>
+                                             <input 
+                                                  type="date" 
+                                                  defaultValue={new Date().toISOString().split('T')[0]}
+                                                  className="w-full bg-white dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#6E63F1] focus:border-transparent outline-none transition-all dark:text-white"
+                                             />
+                                        </div>
+                                        <div className="space-y-2">
+                                             <label className="block text-sm font-bold text-bgray-700 dark:text-bgray-300">
+                                                  Reference No
+                                             </label>
+                                             <input 
+                                                  type="text" 
+                                                  placeholder="REF-00123"
+                                                  className="w-full bg-white dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#6E63F1] focus:border-transparent outline-none transition-all dark:text-white"
+                                             />
+                                        </div>
+                                   </div>
+
+                                   <div className="space-y-3">
+                                        <label className="block text-sm font-bold text-bgray-700 dark:text-bgray-300">Payment Mode</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                             {['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Card', 'DD'].map((mode) => (
+                                                  <label key={mode} className="relative flex items-center p-3 rounded-lg border border-bgray-200 dark:border-darkblack-400 cursor-pointer hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors group">
+                                                       <input type="radio" name="paymentMode" defaultChecked={mode === 'Cash'} className="hidden peer" />
+                                                       <div className="w-4 h-4 rounded-full border-2 border-bgray-300 peer-checked:border-[#6E63F1] peer-checked:bg-[#6E63F1] transition-all shrink-0"></div>
+                                                       <span className="ml-3 text-sm font-medium text-bgray-700 dark:text-bgray-300 group-hover:text-[#6E63F1] transition-colors">{mode}</span>
+                                                  </label>
+                                             ))}
+                                        </div>
+                                   </div>
+
+                                   <div className="space-y-2">
+                                        <label className="block text-sm font-bold text-bgray-700 dark:text-bgray-300">Remark / Note</label>
+                                        <textarea 
+                                             rows={3}
+                                             className="w-full bg-white dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#6E63F1] focus:border-transparent outline-none transition-all dark:text-white resize-none"
+                                             placeholder="Add any specific details about this offline payment..."
+                                        />
+                                   </div>
+                              </div>
+
+                              {/* Footer Action */}
+                              <div className="p-6 bg-bgray-50 dark:bg-darkblack-500 border-t border-bgray-200 dark:border-darkblack-400 flex items-center justify-between shrink-0">
+                                   <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-bgray-500 dark:text-bgray-400 uppercase tracking-wider">Payable Amount</span>
+                                        <span className="text-2xl font-black text-bgray-900 dark:text-white">${selectedCourse?.currentPrice}</span>
+                                   </div>
+                                   <div className="flex space-x-3">
+                                        <button 
+                                             onClick={() => setIsPayModalOpen(false)}
+                                             className="px-6 py-2.5 rounded-lg border border-bgray-300 dark:border-darkblack-400 text-bgray-700 dark:text-bgray-300 font-bold hover:bg-white dark:hover:bg-darkblack-400 transition-all"
+                                        >
+                                             Cancel
+                                        </button>
+                                        <button 
+                                             onClick={handleModalPay}
+                                             className="px-10 py-2.5 rounded-lg bg-[#6E63F1] hover:bg-opacity-90 text-white font-bold transition-all shadow-[0_4px_14px_0_rgba(110,99,241,0.39)] hover:scale-[1.02] active:scale-[0.98]"
+                                        >
+                                             Confirm Payment
+                                        </button>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
           </>
      );
 }

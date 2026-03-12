@@ -1,5 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function StudentFee() {
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
@@ -12,33 +15,83 @@ export default function StudentFee() {
      const [selectedClass, setSelectedClass] = useState<string | null>(null);
      const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
-     const fetchStudents = async () => {
-          setLoading(true);
-          try {
-               let url = "/api/students?";
-               if (selectedClass) url += `class=${selectedClass}&`;
-               if (selectedSection) url += `section=${selectedSection}&`;
-               if (searchQuery) url += `search=${searchQuery}&`;
+      const fetchStudents = async () => {
+           setLoading(true);
+           try {
+                let url = "/api/students?";
+                if (selectedClass) url += `class=${selectedClass}&`;
+                if (selectedSection) url += `section=${selectedSection}&`;
+                if (searchQuery) url += `search=${searchQuery}&`;
 
-               const res = await fetch(url);
-               if (res.ok) {
-                    const result = await res.json();
-                    setStudents(result.data || []);
-               }
-          } catch (err) {
-               setError("Failed to fetch students");
-          } finally {
-               setLoading(false);
-          }
-     };
+                const res = await fetch(url);
+                if (res.ok) {
+                     const result = await res.json();
+                     setStudents(result.data || []);
+                }
+           } catch (err) {
+                setError("Failed to fetch students");
+           } finally {
+                setLoading(false);
+           }
+      };
 
-     useEffect(() => {
-          fetchStudents();
-     }, [selectedClass, selectedSection, searchQuery]);
+      useEffect(() => {
+           fetchStudents();
+      }, [selectedClass, selectedSection, searchQuery]);
 
-     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
-          setOpenFilter(openFilter === type ? null : type);
-     };
+      const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
+           setOpenFilter(openFilter === type ? null : type);
+      };
+
+      const handleExport = (type: "Copy" | "Excel" | "CSV" | "PDF" | "Print") => {
+           const exportData = students.map(s => ({
+                "Class": s.class,
+                "Section": s.section,
+                "Admission No": s.admission_no,
+                "Student Name": `${s.fname} ${s.lname}`,
+                "Father Name": s.father_name || "N/A",
+                "Date Of Birth": s.dob || "N/A",
+                "Category": s.category || "N/A",
+                "Mobile": s.mobile || "N/A"
+           }));
+
+           if (exportData.length === 0) {
+                alert("No data to export");
+                return;
+           }
+
+           if (type === "Copy") {
+                const header = Object.keys(exportData[0]).join("\t");
+                const rows = exportData.map(row => Object.values(row).join("\t")).join("\n");
+                navigator.clipboard.writeText(`${header}\n${rows}`);
+                alert("Data copied to clipboard!");
+           } else if (type === "Excel") {
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Students");
+                XLSX.writeFile(wb, "Student_Fee_List.xlsx");
+           } else if (type === "CSV") {
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const csv = XLSX.utils.sheet_to_csv(ws);
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", "Student_Fee_List.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+           } else if (type === "PDF") {
+                const doc = new jsPDF("l");
+                autoTable(doc, {
+                     head: [Object.keys(exportData[0])],
+                     body: exportData.map(row => Object.values(row)),
+                });
+                doc.save("Student_Fee_List.pdf");
+           } else if (type === "Print") {
+                window.print();
+           }
+           setOpenFilter(null);
+      };
 
      return (
           <>
@@ -213,15 +266,18 @@ export default function StudentFee() {
                                              </button>
 
                                              <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
+                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-20 top-14 overflow-hidden border border-gray-100 dark:border-darkblack-400 transition-all ${openFilter === "export" ? "block scale-100" : "hidden scale-95 opacity-0"
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Coppy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
+                                                       {["Copy", "Excel", "CSV", "PDF", "Print"].map(item => (
+                                                            <li key={item} 
+                                                                 onClick={() => handleExport(item as any)}
+                                                                 className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium transition-colors"
+                                                            >
+                                                                 {item}
+                                                            </li>
+                                                       ))}
                                                   </ul>
                                              </div>
                                         </div>

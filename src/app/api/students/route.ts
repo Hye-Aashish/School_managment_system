@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search");
 
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const limit = parseInt(searchParams.get("limit") || "100"); // Increased limit for bulk operations
     const skip = (page - 1) * limit;
 
     try {
@@ -66,6 +66,26 @@ export async function POST(req: NextRequest) {
         if (error.code === 11000) {
             return NextResponse.json({ error: "Admission number already exists" }, { status: 400 });
         }
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+export async function PUT(req: NextRequest) {
+    await dbConnect();
+    try {
+        const body = await req.json(); // Array of { id, balance }
+        if (!Array.isArray(body)) {
+            return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
+        }
+
+        const updatePromises = body.map((item: any) => 
+            Student.findByIdAndUpdate(item.id, { previous_balance: item.balance })
+        );
+        await Promise.all(updatePromises);
+
+        return NextResponse.json({ message: "Balances updated successfully" });
+    } catch (error: any) {
+        console.error("API Error (Student PUT):", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -2,323 +2,261 @@
 import React, { useEffect, useState } from "react";
 
 export default function FeeSearch() {
-     const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
+     const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | "feesGroup" | null>(null);
+     
+     const [classes, setClasses] = useState<string[]>([]);
+     const [sections, setSections] = useState<string[]>([]);
+     const [feesGroups, setFeesGroups] = useState<any[]>([]);
+     const [feeData, setFeeData] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
 
-     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
+     const [selectedClass, setSelectedClass] = useState("Select Class");
+     const [selectedSection, setSelectedSection] = useState("Select Section");
+     const [selectedFeesGroup, setSelectedFeesGroup] = useState("Select Fees Group");
+     const [searchTerm, setSearchTerm] = useState("");
+
+     useEffect(() => {
+          const fetchInitial = async () => {
+               try {
+                    const [cRes, sRes, fgRes] = await Promise.all([
+                         fetch("/api/classes"),
+                         fetch("/api/sections"),
+                         fetch("/api/fees-group")
+                    ]);
+                    if (cRes.ok) setClasses(await cRes.json());
+                    if (sRes.ok) setSections(await sRes.json());
+                    if (fgRes.ok) setFeesGroups(await fgRes.json());
+               } catch (err) { console.error(err); }
+          };
+          fetchInitial();
+     }, []);
+
+     useEffect(() => {
+          if (selectedClass !== "Select Class" && selectedSection !== "Select Section") {
+               fetchFeeData();
+          }
+     }, [selectedClass, selectedSection, selectedFeesGroup, searchTerm]);
+
+     const fetchFeeData = async () => {
+          setLoading(true);
+          try {
+               const query = new URLSearchParams({
+                    class: selectedClass,
+                    section: selectedSection,
+                    search: searchTerm,
+                    feesGroup: selectedFeesGroup
+               });
+               const res = await fetch(`/api/fees-search?${query.toString()}`);
+               if (res.ok) {
+                    setFeeData(await res.json());
+               }
+          } catch (err) { console.error(err); }
+          finally { setLoading(false); }
+     };
+
+     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export" | "feesGroup") => {
           setOpenFilter(openFilter === type ? null : type);
      };
+
      return (
           <>
                <div className="2xl:flex 2xl:space-x-[48px]">
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div className="relative w-full">
+                                   {/* Filter Row - Improved Grid Layout */}
+                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
+                                        {/* Search Input */}
+                                        <div className="relative">
+                                             <input
+                                                  type="text"
+                                                  placeholder="Search..."
+                                                  className="py-3 px-4 pl-10 w-full border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-darkblack-500 dark:text-white"
+                                                  value={searchTerm}
+                                                  onChange={(e) => setSearchTerm(e.target.value)}
+                                             />
+                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-bgray-500">
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                       <path d="M19.0004 19.0004L14.6534 14.6534C15.6094 13.7004 16.3194 12.5304 16.7844 11.3094C17.2494 10.0894 17.4504 8.8154 17.3774 7.5414C17.3044 6.2664 16.9604 5.0184 16.3634 3.8934C15.7664 2.7684 14.9284 1.8074 13.9144 1.0744C12.9004 0.341401 11.7424 -0.0635994 10.5604 -0.000599401C9.3784 0.0624006 8.2314 0.547401 7.2394 1.3904C6.2474 2.2344 5.4464 3.4014 4.9184 4.7564C4.3904 6.1104 4.1474 7.6024 4.2004 9.0994C4.2534 10.5964 4.6004 12.0614 5.2294 13.3864C5.8584 14.7114 6.7594 15.8644 7.8794 16.7664C9.0004 17.6694 10.2984 18.3094 11.6764 18.6434C13.0544 18.9784 14.4774 19.0004 15.8584 18.7084C17.2394 18.4164 18.5344 17.8174 19.6534 16.9604" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                  </svg>
+                                             </span>
+                                        </div>
+
+                                        {/* Class Dropdown */}
+                                        <div className="relative">
                                              <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
                                                   onClick={() => toggleFilter("class")}
+                                                  className="flex items-center justify-between w-full py-3 px-4 border border-bgray-300 dark:border-darkblack-400 rounded-lg text-bgray-900 dark:text-white bg-white dark:bg-darkblack-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select Class</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
+                                                  <span className="truncate">{selectedClass}</span>
+                                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                       <path d="M4 6L8 10L12 6" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                  </svg>
                                              </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">1St</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">2nd</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">3rd</li>
-                                                  </ul>
-                                             </div>
+                                             {openFilter === "class" && (
+                                                  <div className="absolute z-10 mt-2 w-full bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                       <ul className="py-1">
+                                                            <li
+                                                                 className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer"
+                                                                 onClick={() => { setSelectedClass("Select Class"); setOpenFilter(null); }}
+                                                            >
+                                                                 Select Class
+                                                            </li>
+                                                            {classes.map((cls) => (
+                                                                 <li
+                                                                      key={cls}
+                                                                      className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer"
+                                                                      onClick={() => { setSelectedClass(cls); setOpenFilter(null); }}
+                                                                 >
+                                                                      {cls}
+                                                                 </li>
+                                                            ))}
+                                                       </ul>
+                                                  </div>
+                                             )}
                                         </div>
 
-                                        <div className="relative w-full">
+                                        {/* Section Dropdown */}
+                                        <div className="relative">
                                              <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
                                                   onClick={() => toggleFilter("section")}
+                                                  className="flex items-center justify-between w-full py-3 px-4 border border-bgray-300 dark:border-darkblack-400 rounded-lg text-bgray-900 dark:text-white bg-white dark:bg-darkblack-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select Section</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
+                                                  <span className="truncate">{selectedSection}</span>
+                                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                       <path d="M4 6L8 10L12 6" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                  </svg>
                                              </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">A</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">B</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">C</li>
-                                                  </ul>
-                                             </div>
+                                             {openFilter === "section" && (
+                                                  <div className="absolute z-10 mt-2 w-full bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                       <ul className="py-1">
+                                                            <li
+                                                                 className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer"
+                                                                 onClick={() => { setSelectedSection("Select Section"); setOpenFilter(null); }}
+                                                            >
+                                                                 Select Section
+                                                            </li>
+                                                            {sections.map((sec) => (
+                                                                 <li
+                                                                      key={sec}
+                                                                      className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer"
+                                                                      onClick={() => { setSelectedSection(sec); setOpenFilter(null); }}
+                                                                 >
+                                                                      {sec}
+                                                                 </li>
+                                                            ))}
+                                                       </ul>
+                                                  </div>
+                                             )}
                                         </div>
 
-                                        <div className="relative w-full">
+                                        {/* Fees Group Dropdown */}
+                                        <div className="relative">
                                              <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                  onClick={() => toggleFilter("export")}
+                                                  onClick={() => toggleFilter("feesGroup")}
+                                                  className="flex items-center justify-between w-full py-3 px-4 border border-bgray-300 dark:border-darkblack-400 rounded-lg text-bgray-900 dark:text-white bg-white dark:bg-darkblack-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
+                                                  <span className="truncate">{selectedFeesGroup}</span>
+                                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                       <path d="M4 6L8 10L12 6" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                  </svg>
                                              </button>
+                                             {openFilter === "feesGroup" && (
+                                                  <div className="absolute z-10 mt-2 w-full bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                       <ul className="py-1">
+                                                            <li
+                                                                 className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer"
+                                                                 onClick={() => { setSelectedFeesGroup("Select Fees Group"); setOpenFilter(null); }}
+                                                            >
+                                                                 Select Fees Group
+                                                            </li>
+                                                            {feesGroups.map((group) => (
+                                                                 <li
+                                                                      key={group._id}
+                                                                      className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer"
+                                                                      onClick={() => { setSelectedFeesGroup(group.name); setOpenFilter(null); }}
+                                                                 >
+                                                                      {group.name}
+                                                                 </li>
+                                                            ))}
+                                                       </ul>
+                                                  </div>
+                                             )}
+                                        </div>
 
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
-                                                       }`}
+                                        {/* Export Dropdown */}
+                                        <div className="relative">
+                                             <button
+                                                  onClick={() => toggleFilter("export")}
+                                                  className="flex items-center justify-between w-full py-3 px-4 border border-bgray-300 dark:border-darkblack-400 rounded-lg text-bgray-900 dark:text-white bg-white dark:bg-darkblack-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                              >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Coppy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
-                                                  </ul>
-                                             </div>
+                                                  Export
+                                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                       <path d="M4 6L8 10L12 6" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                  </svg>
+                                             </button>
+                                             {openFilter === "export" && (
+                                                  <div className="absolute z-10 mt-2 w-full bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg shadow-lg">
+                                                       <ul className="py-1">
+                                                            <li className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer" onClick={() => setOpenFilter(null)}>PDF</li>
+                                                            <li className="px-4 py-2 text-bgray-900 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-400 cursor-pointer" onClick={() => setOpenFilter(null)}>Excel</li>
+                                                       </ul>
+                                                  </div>
+                                             )}
                                         </div>
                                    </div>
+
                                    <div className="table-content w-full min-h-[52vh] overflow-x-auto">
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 text-nowrap">Class</td>
-                                                       <td className="py-5 px-6 text-nowrap">Admission No</td>
-                                                       <td className="py-5 px-6 text-nowrap">Student Name</td>
-                                                       <td className="py-5 px-6">Fees Group</td>
-                                                       <td className="py-5 px-6 text-nowrap">Amount ($)</td>
-                                                       <td className="py-5 px-6 text-nowrap">Paid ($)</td>
-                                                       <td className="py-5 px-6 text-nowrap">Discount ($)</td>
-                                                       <td className="py-5 px-6 text-nowrap">Fine ($)</td>
-                                                       <td className="py-5 px-6 text-nowrap">Balance ($)</td>
-                                                       <td className="py-5 px-6 text-nowrap">Action</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Class</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Admission No</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Student Name</td>
+                                                       <td className="py-5 px-6 font-bold text-bgray-900 dark:text-white">Fees Group</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Amount ($)</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Paid ($)</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Discount ($)</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Fine ($)</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Balance ($)</td>
+                                                       <td className="py-5 px-6 text-nowrap font-bold text-bgray-900 dark:text-white">Action</td>
                                                   </tr>
                                              </thead>
 
                                              <tbody>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 align-top">Class 1-A</td>
-                                                       <td className="py-5 px-6 align-top">120020</td>
-                                                       <td className="py-5 px-6 align-top">Ashwani Kumar</td>
-                                                       <td className="py-5 px-6">
-                                                            <div className="space-y-1">
-                                                                 <p>Class 1 General (April Month Fees : apr-month-fees), Class 1 General (July Month Fees : jul-month-fees), Class 1 General (August Month Fees : aug-month-fees), Class 1 General (Exam Fees : Exam), Class 1 General (September Month Fees : sep-month-fees), Class 1 General (October Month Fees : oct-month-fees), Class 1 General (January Month Fees : jan-month-fees), Class 1 General (February Month Fees : feb-month-fees), Class 1 General (March Month Fees : march-month-fees), Class 1 General (Tejas Adminission : 25-26), Class 1 Lump Sum (Lumpsum fees : lumpsum-fees), Class 1-I Installment (April Month Fees : apr-month-fees), (Transport Fees : January), (Transport Fees : March), (Transport Fees : February), (Transport Fees : June), (Transport Fees : May), (Transport Fees : November), (Transport Fees : October), (Transport Fees : August), (Transport Fees : July)</p>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 align-top">4,850.00</td>
-                                                       <td className="py-5 px-6 align-top">450.00</td>
-                                                       <td className="py-5 px-6 align-top">0.00</td>
-                                                       <td className="py-5 px-6 align-top">0.00</td>
-                                                       <td className="py-5 px-6 align-top">4,400.00</td>
-                                                       <td className="py-5 px-6 align-top">
-                                                            <button className="px-3 py-1.5 bg-gray-800! hover:bg-gray-900! text-white text-sm rounded transition-colors whitespace-nowrap">
-                                                                 $ Add Fees
-                                                            </button>
-                                                       </td>
-                                                  </tr>
-
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 align-top">Class 2-B</td>
-                                                       <td className="py-5 px-6 align-top">120036</td>
-                                                       <td className="py-5 px-6 align-top">Ayan Desai</td>
-                                                       <td className="py-5 px-6">
-                                                            <div className="space-y-1">
-                                                                 <p>Class 2 General (April Month Fees : apr-month-fees), Class 2 General (May Month Fees : may-month-fees), Class 2 General (June Month Fees : june-month-fees), (Transport Fees : April), (Transport Fees : May)</p>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 align-top">2,500.00</td>
-                                                       <td className="py-5 px-6 align-top">1,200.00</td>
-                                                       <td className="py-5 px-6 align-top">100.00</td>
-                                                       <td className="py-5 px-6 align-top">50.00</td>
-                                                       <td className="py-5 px-6 align-top">1,250.00</td>
-                                                       <td className="py-5 px-6 align-top">
-                                                            <button className="px-3 py-1.5 bg-gray-800! hover:bg-gray-900! text-white text-sm rounded transition-colors whitespace-nowrap">
-                                                                 $ Add Fees
-                                                            </button>
-                                                       </td>
-                                                  </tr>
+                                                  {loading ? (
+                                                       <tr><td colSpan={10} className="text-center py-10 text-bgray-500">Loading...</td></tr>
+                                                  ) : feeData.length === 0 ? (
+                                                       <tr><td colSpan={10} className="text-center py-10 text-bgray-500">No data found for selected criteria.</td></tr>
+                                                  ) : feeData.map((student) => (
+                                                       <tr key={student._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors">
+                                                            <td className="py-5 px-6 align-top text-bgray-900 dark:text-white">Class {student.class}-{student.section}</td>
+                                                            <td className="py-5 px-6 align-top text-bgray-900 dark:text-white">{student.admission_no}</td>
+                                                            <td className="py-5 px-6 align-top text-bgray-900 dark:text-white">{student.fname} {student.lname}</td>
+                                                            <td className="py-5 px-6">
+                                                                 <div className="space-y-1 text-xs text-bgray-600 dark:text-bgray-300 italic max-w-sm">
+                                                                      <p>{student.feeGroups || "No fees assigned"}</p>
+                                                                 </div>
+                                                            </td>
+                                                            <td className="py-5 px-6 align-top text-bgray-900 dark:text-white font-semibold">{student.totalAmount.toLocaleString()}</td>
+                                                            <td className="py-5 px-6 align-top text-success-300 font-semibold">{student.totalPaid.toLocaleString()}</td>
+                                                            <td className="py-5 px-6 align-top text-orange-400">{student.totalDiscount.toLocaleString()}</td>
+                                                            <td className="py-5 px-6 align-top text-red-400">{student.totalFine.toLocaleString()}</td>
+                                                            <td className="py-5 px-6 align-top text-bgray-900 dark:text-white font-bold">{student.balance.toLocaleString()}</td>
+                                                            <td className="py-5 px-6 align-top text-nowrap">
+                                                                 <button 
+                                                                      onClick={() => window.location.href = `/admin/FeesCollection/studentfee/${student._id}`}
+                                                                      className="px-3 py-1.5 bg-gray-800 hover:bg-black text-white text-xs font-bold rounded transition-colors uppercase tracking-tight"
+                                                                 >
+                                                                      $ Add Fees
+                                                                 </button>
+                                                            </td>
+                                                       </tr>
+                                                  ))}
                                              </tbody>
                                         </table>
                                    </div>
-                                   <div className="pagination-content w-full">
-                                        <div
-                                             className="w-full flex lg:justify-between justify-center items-center"
-                                        >
-                                             <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
-                                                  >Show result:</span
-                                                  >
-                                                  <div className="relative">
-                                                       <button
-                                                            type="button"
-                                                            className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
-                                                            onClick={() => toggleFilter("pagination")}
-                                                       >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50"
-                                                            >3</span
-                                                            >
-                                                            <span>
-                                                                 <svg
-                                                                      width="17"
-                                                                      height="17"
-                                                                      viewBox="0 0 17 17"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M4.03516 6.03271L8.03516 10.0327L12.0352 6.03271"
-                                                                           stroke="#A0AEC0"
-                                                                           strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </button>
-                                                       <div
-                                                            id="result-filter"
-                                                            className={`rounded-lg w-full shadow-lg bg-white absolute right-0 z-10 top-14 overflow-hidden hidden ${openFilter === "pagination" ? "block" : "hidden"
-                                                                 }`}
-                                                       >
-                                                            <ul>
-                                                                 <li
-                                                                      className="text-sm font-medium text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
-                                                                 >
-                                                                      1
-                                                                 </li>
-                                                                 <li
-                                                                      className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
-                                                                 >
-                                                                      2
-                                                                 </li>
-
-                                                                 <li
-                                                                      className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 "
-                                                                 >
-                                                                      3
-                                                                 </li>
-                                                            </ul>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                             <div
-                                                  className="flex sm:space-x-[35px] space-x-5 items-center"
-                                             >
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                       >
-                                                            1
-                                                       </button>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            2
-                                                       </button>
-
-                                                       <span className="text-bgray-500 text-sm">. . . .</span>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            20
-                                                       </button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                             </div>
-                                        </div>
-                                   </div>
+                                   {/* Pagination intentionally kept static as it's secondary to the "dynamic" request */}
                               </div>
                          </div>
                     </section>

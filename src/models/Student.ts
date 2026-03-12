@@ -33,6 +33,7 @@ export interface IStudent extends Document {
     medical_history?: string;
     photo?: string;
     sibling_admission_no?: string;
+    previous_balance: number;
     created_at: Date;
 }
 
@@ -69,6 +70,7 @@ const StudentSchema: Schema = new Schema({
     medical_history: { type: String },
     photo: { type: String },
     sibling_admission_no: { type: String },
+    previous_balance: { type: Number, default: 0 },
     created_at: { type: Date, default: Date.now },
 });
 

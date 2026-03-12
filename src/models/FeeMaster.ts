@@ -8,11 +8,13 @@ export interface IFeeMaster extends Document {
     fine_type: "none" | "fixAmount" | "percentage" | "cumulative";
     fine_percentage?: number;
     fine_amount?: number;
+    student?: mongoose.Types.ObjectId;
 }
 
 const FeeMasterSchema: Schema = new Schema({
     fee_group: { type: Schema.Types.ObjectId, ref: "FeeGroup", required: true },
     fee_type: { type: Schema.Types.ObjectId, ref: "FeeType", required: true },
+    student: { type: Schema.Types.ObjectId, ref: "Student" },
     due_date: { type: Date },
     amount: { type: Number, required: true },
     fine_type: {
