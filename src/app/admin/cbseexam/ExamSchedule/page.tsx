@@ -1,422 +1,352 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-interface ExamSubject {
-     subject: string;
-     subjectCode: string;
-     date: string;
-     startTime: string;
-     duration: number;
-     roomNo: number;
+interface IExam {
+    _id: string;
+    name: string;
 }
 
-interface ExamSchedule {
-     examName: string;
-     subjects: ExamSubject[];
+interface IExamSchedule {
+    _id: string;
+    exam: IExam | string;
+    subject: string;
+    date: string;
+    time: string;
+    duration: string;
+    roomNo: string;
+    maxMarks: number;
+    minMarks: number;
 }
 
 export default function ExamSchedule() {
-     const [openFilter, setOpenFilter] = useState<"class" | "section" | "export" | null>(null);
+     const [exams, setExams] = useState<IExam[]>([]);
+     const [schedules, setSchedules] = useState<IExamSchedule[]>([]);
+     const [isLoading, setIsLoading] = useState(true);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [formData, setFormData] = useState({
+          exam: "",
+          subject: "",
+          date: "",
+          time: "",
+          duration: "",
+          roomNo: "",
+          maxMarks: 100,
+          minMarks: 33
+     });
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     const [notification, setNotification] = useState<{ message: string, type: "success" | "error" } | null>(null);
 
-     const toggleFilter = (type: "class" | "section" | "export") => {
-          setOpenFilter(openFilter === type ? null : type);
+     const showNotification = (message: string, type: "success" | "error") => {
+          setNotification({ message, type });
+          setTimeout(() => setNotification(null), 3000);
      };
 
-     // Sample exam data
-     const examSchedules: ExamSchedule[] = [
-          {
-               examName: "Weekly Test(December)",
-               subjects: [
-                    {
-                         subject: "English",
-                         subjectCode: "210",
-                         date: "12/02/2025",
-                         startTime: "13:22:35",
-                         duration: 1,
-                         roomNo: 10,
-                    },
-               ],
-          },
-          {
-               examName: "Periodic Term-End Exams(December-2025)",
-               subjects: [
-                    {
-                         subject: "English",
-                         subjectCode: "210",
-                         date: "12/05/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 12,
-                    },
-                    {
-                         subject: "Mathematics",
-                         subjectCode: "110",
-                         date: "12/08/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 11,
-                    },
-                    {
-                         subject: "Science",
-                         subjectCode: "111",
-                         date: "12/10/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 12,
-                    },
-                    {
-                         subject: "Social Studies",
-                         subjectCode: "212",
-                         date: "12/12/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 11,
-                    },
-               ],
-          },
-          {
-               examName: "Online Assessment Test (November)",
-               subjects: [
-                    {
-                         subject: "English",
-                         subjectCode: "210",
-                         date: "11/10/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 12,
-                    },
-                    {
-                         subject: "Social Studies",
-                         subjectCode: "212",
-                         date: "11/12/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 11,
-                    },
-                    {
-                         subject: "Science",
-                         subjectCode: "111",
-                         date: "11/15/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 12,
-                    },
-                    {
-                         subject: "Mathematics",
-                         subjectCode: "110",
-                         date: "11/18/2025",
-                         startTime: "09:00:00",
-                         duration: 90,
-                         roomNo: 11,
-                    },
-               ],
-          },
-     ];
+     const fetchData = async () => {
+          setIsLoading(true);
+          try {
+               const [examsRes, schedulesRes] = await Promise.all([
+                    fetch("/api/cbse-exams"),
+                    fetch("/api/cbse-exam-schedules")
+               ]);
+
+               if (examsRes.ok) setExams(await examsRes.json());
+               if (schedulesRes.ok) setSchedules(await schedulesRes.json());
+
+          } catch (error) {
+               console.error("Error fetching data:", error);
+               showNotification("Failed to load data", "error");
+          } finally {
+               setIsLoading(false);
+          }
+     };
+
+     useEffect(() => {
+          fetchData();
+     }, []);
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          if (!formData.exam || !formData.subject || !formData.date) return;
+
+          setIsSubmitting(true);
+          try {
+               const url = editingId ? `/api/cbse-exam-schedules/${editingId}` : "/api/cbse-exam-schedules";
+               const method = editingId ? "PUT" : "POST";
+
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+               });
+
+               if (res.ok) {
+                    setFormData({
+                         exam: "", subject: "", date: "", time: "", duration: "", roomNo: "", maxMarks: 100, minMarks: 33
+                    });
+                    setEditingId(null);
+                    fetchData();
+                    showNotification(editingId ? "Schedule updated!" : "Schedule added!", "success");
+               } else {
+                    const data = await res.json();
+                    showNotification(data.error || "Error saving schedule", "error");
+               }
+          } catch (error) {
+               console.error("Error saving schedule:", error);
+               showNotification("An error occurred", "error");
+          } finally {
+               setIsSubmitting(false);
+          }
+     };
+
+     const handleEdit = (schedule: IExamSchedule) => {
+          setEditingId(schedule._id);
+          setFormData({
+               exam: typeof schedule.exam === 'object' ? schedule.exam._id : schedule.exam,
+               subject: schedule.subject,
+               date: schedule.date,
+               time: schedule.time,
+               duration: schedule.duration,
+               roomNo: schedule.roomNo,
+               maxMarks: schedule.maxMarks,
+               minMarks: schedule.minMarks
+          });
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Delete this schedule?")) return;
+          try {
+               const res = await fetch(`/api/cbse-exam-schedules/${id}`, { method: "DELETE" });
+               if (res.ok) {
+                    fetchData();
+                    showNotification("Schedule deleted!", "success");
+               }
+          } catch (error) {
+               showNotification("Error deleting schedule", "error");
+          }
+     };
+
+     // Group schedules by Exam
+     const groupedSchedules = schedules.reduce((acc: { [key: string]: { name: string, items: IExamSchedule[] } }, item) => {
+          const exam = item.exam as IExam;
+          const examId = exam?._id || "Unknown";
+          const examName = exam?.name || "Unknown Exam";
+          
+          if (!acc[examId]) {
+               acc[examId] = { name: examName, items: [] };
+          }
+          acc[examId].items.push(item);
+          return acc;
+     }, {});
+
+     const filteredExamIds = Object.keys(groupedSchedules).filter(id => 
+          groupedSchedules[id].name.toLowerCase().includes(searchTerm.toLowerCase())
+     );
 
      return (
           <>
-               <div className="2xl:flex 2xl:space-x-[48px]">
-                    <section className="2xl:flex-1 2xl:mb-0 mb-6">
-                         <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
-                              <div className="flex flex-col space-y-5">
-                                   {/* Filters Row */}
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                                             <div className="flex w-full h-full items-center space-x-[15px]">
-                                                  <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            id="listSearch"
-                                                            placeholder="Search Exam..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                       />
-                                                  </label>
+               {notification && (
+                    <div className="fixed top-5 right-5 z-[100] animate-fade-in">
+                         <div className={`px-6 py-4 rounded-lg shadow-2xl border ${
+                              notification.type === "success" ? "bg-success-50 border-success-300 text-success-500" : "bg-red-50 border-red-300 text-red-500"
+                         }`}>
+                              <span className="font-bold text-sm">{notification.message}</span>
+                         </div>
+                    </div>
+               )}
+
+               <div className="2xl:flex 2xl:space-x-12">
+                    <section className="2xl:flex-1 2xl:mb-0 mb-6 group">
+                         <div className="flex flex-col lg:flex-row gap-6">
+                              {/* Left Column - Form */}
+                              <div className="w-full lg:max-w-[350px] p-6 rounded-lg bg-white dark:bg-darkblack-600">
+                                   <h3 className="text-xl font-bold text-bgray-900 dark:text-white mb-6">
+                                        {editingId ? "Edit Schedule" : "Add Schedule"}
+                                   </h3>
+                                   <form onSubmit={handleSubmit} className="space-y-4">
+                                        <div>
+                                             <label className="block text-sm font-medium mb-1">Exam *</label>
+                                             <select
+                                                  value={formData.exam}
+                                                  onChange={(e) => setFormData({ ...formData, exam: e.target.value })}
+                                                  required
+                                                  className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                             >
+                                                  <option value="">Select Exam</option>
+                                                  {exams.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
+                                             </select>
+                                        </div>
+                                        <div>
+                                             <label className="block text-sm font-medium mb-1">Subject *</label>
+                                             <input
+                                                  type="text"
+                                                  value={formData.subject}
+                                                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                                  required
+                                                  className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  placeholder="e.g. Mathematics"
+                                             />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Date *</label>
+                                                  <input
+                                                       type="date"
+                                                       value={formData.date}
+                                                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                                       required
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  />
+                                             </div>
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Time *</label>
+                                                  <input
+                                                       type="time"
+                                                       value={formData.time}
+                                                       onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                                                       required
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  />
                                              </div>
                                         </div>
-
-                                        {/* Class Filter */}
-                                        <div className="relative">
+                                        <div className="grid grid-cols-2 gap-4">
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Duration (min)</label>
+                                                  <input
+                                                       type="text"
+                                                       value={formData.duration}
+                                                       onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                       placeholder="90"
+                                                  />
+                                             </div>
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Room No.</label>
+                                                  <input
+                                                       type="text"
+                                                       value={formData.roomNo}
+                                                       onChange={(e) => setFormData({ ...formData, roomNo: e.target.value })}
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                       placeholder="101"
+                                                  />
+                                             </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Max Marks</label>
+                                                  <input
+                                                       type="number"
+                                                       value={formData.maxMarks}
+                                                       onChange={(e) => setFormData({ ...formData, maxMarks: parseInt(e.target.value) })}
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  />
+                                             </div>
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Min Marks</label>
+                                                  <input
+                                                       type="number"
+                                                       value={formData.minMarks}
+                                                       onChange={(e) => setFormData({ ...formData, minMarks: parseInt(e.target.value) })}
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  />
+                                             </div>
+                                        </div>
+                                        <div className="flex gap-3 pt-4">
+                                             {editingId && (
+                                                  <button
+                                                       type="button"
+                                                       onClick={() => { setEditingId(null); setFormData({ exam: "", subject: "", date: "", time: "", duration: "", roomNo: "", maxMarks: 100, minMarks: 33 }); }}
+                                                       className="w-full py-2.5 rounded-lg bg-bgray-200 dark:bg-darkblack-500 font-semibold"
+                                                  >
+                                                       Cancel
+                                                  </button>
+                                             )}
                                              <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("class")}
+                                                  type="submit"
+                                                  disabled={isSubmitting}
+                                                  className="w-full py-2.5 rounded-lg bg-success-300 text-white font-semibold disabled:opacity-50"
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select Class</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
+                                                  {isSubmitting ? "Saving..." : editingId ? "Update" : "Save"}
                                              </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${
-                                                       openFilter === "class" ? "block" : "hidden"
-                                                  }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            1st
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            2nd
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            3rd
-                                                       </li>
-                                                  </ul>
-                                             </div>
                                         </div>
+                                   </form>
+                              </div>
 
-                                        {/* Section Filter */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("section")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Select Section</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${
-                                                       openFilter === "section" ? "block" : "hidden"
-                                                  }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            A
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            B
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            C
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-
-                                        {/* Export Filter */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[120px]"
-                                                  onClick={() => toggleFilter("export")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${
-                                                       openFilter === "export" ? "block" : "hidden"
-                                                  }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Copy
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Excel
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            CSV
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            PDF
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Print
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
+                              {/* Right Column - List */}
+                              <div className="flex-1 p-6 rounded-lg bg-white dark:bg-darkblack-600">
+                                   <div className="mb-6">
+                                        <input
+                                             type="text"
+                                             placeholder="Search Exam..."
+                                             value={searchTerm}
+                                             onChange={(e) => setSearchTerm(e.target.value)}
+                                             className="w-full max-w-md p-2.5 rounded-lg bg-bgray-100 dark:bg-darkblack-500 border-none"
+                                        />
                                    </div>
 
-                                   {/* Exam Schedules */}
-                                   <div className="space-y-6">
-                                        {examSchedules.map((exam, examIndex) => (
-                                             <div
-                                                  key={examIndex}
-                                                  className="border border-bgray-300 dark:border-darkblack-400 rounded-lg overflow-hidden"
-                                             >
-                                                  {/* Exam Header */}
-                                                  <div className="bg-bgray-100 dark:bg-darkblack-500 py-4 px-6 flex justify-between items-center border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <h3 className="text-lg font-bold text-bgray-900 dark:text-white">
-                                                            {exam.examName}
-                                                       </h3>
-                                                       <button
-                                                            type="button"
-                                                            className="p-2 hover:bg-bgray-200 dark:hover:bg-darkblack-600 rounded-lg transition-colors"
-                                                            title="Print"
-                                                       >
-                                                            <svg
-                                                                 width="20"
-                                                                 height="20"
-                                                                 viewBox="0 0 20 20"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                                 className="stroke-bgray-900 dark:stroke-white"
-                                                            >
-                                                                 <path
-                                                                      d="M5 7V3C5 2.44772 5.44772 2 6 2H14C14.5523 2 15 2.44772 15 3V7"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                 />
-                                                                 <path
-                                                                      d="M5 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7H17C17.5523 7 18 7.44772 18 8V12C18 12.5523 17.5523 13 17 13H15"
-                                                                      strokeWidth="1.5"
-                                                                 />
-                                                                 <path
-                                                                      d="M5 11H15V17C15 17.5523 14.5523 18 14 18H6C5.44772 18 5 17.5523 5 17V11Z"
-                                                                      strokeWidth="1.5"
-                                                                 />
-                                                            </svg>
-                                                       </button>
-                                                  </div>
-
-                                                  {/* Subjects Table */}
-                                                  <div className="overflow-x-auto">
-                                                       <table className="w-full">
-                                                            <thead>
-                                                                 <tr className="bg-white dark:bg-darkblack-600 border-b border-bgray-300 dark:border-darkblack-400">
-                                                                      <th className="py-4 px-6 text-left">
-                                                                           <span className="text-base font-semibold text-bgray-900 dark:text-bgray-50">
-                                                                                Subject
-                                                                           </span>
-                                                                      </th>
-                                                                      <th className="py-4 px-6 text-left">
-                                                                           <span className="text-base font-semibold text-bgray-900 dark:text-bgray-50">
-                                                                                Date
-                                                                           </span>
-                                                                      </th>
-                                                                      <th className="py-4 px-6 text-left">
-                                                                           <span className="text-base font-semibold text-bgray-900 dark:text-bgray-50">
-                                                                                Start Time
-                                                                           </span>
-                                                                      </th>
-                                                                      <th className="py-4 px-6 text-left">
-                                                                           <span className="text-base font-semibold text-bgray-900 dark:text-bgray-50">
-                                                                                Duration (minute)
-                                                                           </span>
-                                                                      </th>
-                                                                      <th className="py-4 px-6 text-left">
-                                                                           <span className="text-base font-semibold text-bgray-900 dark:text-bgray-50">
-                                                                                Room No.
-                                                                           </span>
-                                                                      </th>
-                                                                 </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                 {exam.subjects.map((subject, subjectIndex) => (
-                                                                      <tr
-                                                                           key={subjectIndex}
-                                                                           className="border-b border-bgray-200 dark:border-darkblack-400 last:border-b-0 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors"
-                                                                      >
-                                                                           <td className="py-4 px-6">
-                                                                                <p className="text-base text-bgray-600 dark:text-bgray-300">
-                                                                                     {subject.subject} ({subject.subjectCode})
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-4 px-6">
-                                                                                <p className="text-base text-bgray-600 dark:text-bgray-300">
-                                                                                     {subject.date}
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-4 px-6">
-                                                                                <p className="text-base text-bgray-600 dark:text-bgray-300">
-                                                                                     {subject.startTime}
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-4 px-6">
-                                                                                <p className="text-base text-bgray-600 dark:text-bgray-300">
-                                                                                     {subject.duration}
-                                                                                </p>
-                                                                           </td>
-                                                                           <td className="py-4 px-6">
-                                                                                <p className="text-base text-bgray-600 dark:text-bgray-300">
-                                                                                     {subject.roomNo}
-                                                                                </p>
-                                                                           </td>
+                                   {isLoading ? (
+                                        <div className="py-10 text-center">Loading schedules...</div>
+                                   ) : filteredExamIds.length === 0 ? (
+                                        <div className="py-10 text-center text-bgray-500">No schedules found</div>
+                                   ) : (
+                                        <div className="space-y-8">
+                                             {filteredExamIds.map(examId => (
+                                                  <div key={examId} className="border border-bgray-200 dark:border-darkblack-400 rounded-xl overflow-hidden shadow-sm">
+                                                       <div className="bg-bgray-50 dark:bg-darkblack-500 py-3 px-6 flex justify-between items-center border-b border-bgray-200 dark:border-darkblack-400">
+                                                            <h4 className="font-bold text-lg text-bgray-900 dark:text-white uppercase tracking-tight">
+                                                                 {groupedSchedules[examId].name}
+                                                            </h4>
+                                                            <span className="text-xs font-semibold px-2 py-1 bg-success-100 text-success-600 rounded-full">
+                                                                 {groupedSchedules[examId].items.length} Subjects
+                                                            </span>
+                                                       </div>
+                                                       <div className="overflow-x-auto">
+                                                            <table className="w-full text-sm">
+                                                                 <thead>
+                                                                      <tr className="text-bgray-600 dark:text-bgray-300 border-b border-bgray-100 dark:border-darkblack-400">
+                                                                           <th className="py-3 px-6 text-left font-semibold">Subject</th>
+                                                                           <th className="py-3 px-6 text-left font-semibold">Date & Time</th>
+                                                                           <th className="py-3 px-6 text-left font-semibold">Duration</th>
+                                                                           <th className="py-3 px-6 text-left font-semibold">Marks</th>
+                                                                           <th className="py-3 px-6 text-right font-semibold">Action</th>
                                                                       </tr>
-                                                                 ))}
-                                                            </tbody>
-                                                       </table>
+                                                                 </thead>
+                                                                 <tbody>
+                                                                      {groupedSchedules[examId].items.map(item => (
+                                                                           <tr key={item._id} className="hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors border-b border-bgray-50 dark:border-darkblack-400 last:border-0 text-bgray-700 dark:text-bgray-200">
+                                                                                <td className="py-4 px-6 font-medium">{item.subject}</td>
+                                                                                <td className="py-4 px-6">
+                                                                                     <div className="flex flex-col">
+                                                                                          <span>{item.date}</span>
+                                                                                          <span className="text-xs text-bgray-500">{item.time}</span>
+                                                                                     </div>
+                                                                                </td>
+                                                                                <td className="py-4 px-6">{item.duration} min</td>
+                                                                                <td className="py-4 px-6">
+                                                                                     <div className="flex flex-col">
+                                                                                          <span className="text-xs">Max: <span className="font-semibold">{item.maxMarks}</span></span>
+                                                                                          <span className="text-xs text-bgray-500">Min: {item.minMarks}</span>
+                                                                                     </div>
+                                                                                </td>
+                                                                                <td className="py-4 px-6 text-right">
+                                                                                     <div className="flex justify-end space-x-2">
+                                                                                          <button onClick={() => handleEdit(item)} className="p-1.5 hover:bg-bgray-100 dark:hover:bg-darkblack-400 rounded text-success-300">
+                                                                                               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor"><path d="M9.16797 3.33334H3.33464C1.66797 3.33334 1.66797 5.00001 1.66797 5.00001V16.6667C1.66797 18.3333 3.33464 18.3333 3.33464 18.3333H15.0013C16.668 18.3333 16.668 16.6667 16.668 16.6667V10.8333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M15.418 2.08332L10.0013 12.5L6.66797 13.3333L7.5013 9.99999L15.418 2.08332Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                                                                          </button>
+                                                                                          <button onClick={() => handleDelete(item._id)} className="p-1.5 hover:bg-bgray-100 dark:hover:bg-darkblack-400 rounded text-error-300">
+                                                                                               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor"><path d="M15.8333 5L14.1667 15.8333C14.1667 17.5 12.5 17.5 7.5 17.5C5.83333 17.5 5.83333 15.8333 5.83333 15.8333L4.16667 5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 5H17.5" strokeWidth="1.5" strokeLinecap="round"/><path d="M7.5 5V3.33333C7.5 2.5 8.33333 2.5 8.33333 2.5H11.6667C12.5 2.5 12.5 3.33333 12.5 3.33333V5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                                                                          </button>
+                                                                                     </div>
+                                                                                </td>
+                                                                           </tr>
+                                                                      ))}
+                                                                 </tbody>
+                                                            </table>
+                                                       </div>
                                                   </div>
-                                             </div>
-                                        ))}
-                                   </div>
+                                             ))}
+                                        </div>
+                                   )}
                               </div>
                          </div>
                     </section>

@@ -1,928 +1,321 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+interface ITerm {
+    _id: string;
+    name: string;
+}
+
+interface IExamGrade {
+    _id: string;
+    name: string;
+}
+
+interface IAssessment {
+    _id: string;
+    name: string;
+}
+
+interface ICbseExam {
+    _id: string;
+    name: string;
+    term: ITerm | string;
+    examGrade: IExamGrade | string;
+    assessment: IAssessment | string;
+    description?: string;
+    created_at: string;
+}
 
 export default function ExamList() {
-     const [openFilter, setOpenFilter] = useState<"class" | "term" | "action" | "pagination" | "export" | null>(null);
+     const [exams, setExams] = useState<ICbseExam[]>([]);
+     const [terms, setTerms] = useState<ITerm[]>([]);
+     const [examGrades, setExamGrades] = useState<IExamGrade[]>([]);
+     const [assessments, setAssessments] = useState<IAssessment[]>([]);
+     const [isLoading, setIsLoading] = useState(true);
+     const [showForm, setShowForm] = useState(false);
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-     const toggleFilter = (type: "class" | "term" | "action" | "pagination" | "export") => {
-          setOpenFilter(openFilter === type ? null : type);
+     const [formData, setFormData] = useState({
+          name: "",
+          term: "",
+          examGrade: "",
+          assessment: "",
+          description: ""
+     });
+
+     useEffect(() => {
+          fetchData();
+          fetchDropdowns();
+     }, []);
+
+     const fetchData = async () => {
+          setIsLoading(true);
+          try {
+               const res = await fetch("/api/cbse-exams");
+               if (res.ok) {
+                    setExams(await res.json());
+               }
+          } catch (error) {
+               console.error("Error fetching exams:", error);
+          } finally {
+               setIsLoading(false);
+          }
      };
+
+     const fetchDropdowns = async () => {
+          try {
+               const [termsRes, gradesRes, assessmentsRes] = await Promise.all([
+                    fetch("/api/cbse-terms"),
+                    fetch("/api/cbse-exam-grades"),
+                    fetch("/api/cbse-assessments")
+               ]);
+               if (termsRes.ok) setTerms(await termsRes.json());
+               if (gradesRes.ok) setExamGrades(await gradesRes.json());
+               if (assessmentsRes.ok) setAssessments(await assessmentsRes.json());
+          } catch (error) {
+               console.error("Error fetching dropdowns:", error);
+          }
+     };
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setIsSubmitting(true);
+          try {
+               const url = editingId ? `/api/cbse-exams/${editingId}` : "/api/cbse-exams";
+               const method = editingId ? "PUT" : "POST";
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+               });
+
+               if (res.ok) {
+                    setMessage({ type: "success", text: `Exam ${editingId ? "updated" : "created"} successfully!` });
+                    setFormData({ name: "", term: "", examGrade: "", assessment: "", description: "" });
+                    setEditingId(null);
+                    setShowForm(false);
+                    fetchData();
+               } else {
+                    setMessage({ type: "error", text: "Failed to save exam" });
+               }
+          } catch (error) {
+               setMessage({ type: "error", text: "An error occurred" });
+          } finally {
+               setIsSubmitting(false);
+               setTimeout(() => setMessage(null), 3000);
+          }
+     };
+
+     const handleEdit = (item: ICbseExam) => {
+          setEditingId(item._id);
+          setFormData({
+               name: item.name,
+               term: typeof item.term === "object" ? item.term._id : item.term,
+               examGrade: typeof item.examGrade === "object" ? item.examGrade._id : item.examGrade,
+               assessment: typeof item.assessment === "object" ? item.assessment._id : item.assessment,
+               description: item.description || ""
+          });
+          setShowForm(true);
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure you want to delete this exam?")) return;
+          try {
+               const res = await fetch(`/api/cbse-exams/${id}`, { method: "DELETE" });
+               if (res.ok) {
+                    setMessage({ type: "success", text: "Exam deleted successfully!" });
+                    fetchData();
+               }
+          } catch (error) {
+               setMessage({ type: "error", text: "Failed to delete" });
+          } finally {
+               setTimeout(() => setMessage(null), 3000);
+          }
+     };
+
+     const filteredExams = exams.filter(item =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase())
+     );
 
      return (
           <>
+               {message && (
+                    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${message.type === "success" ? "bg-success-300" : "bg-error-300"}`}>
+                         {message.text}
+                    </div>
+               )}
+
                <div className="2xl:flex 2xl:space-x-[48px]">
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-                                   {/* Header with Title and Add Button */}
-                                   {/* Filters Row */}
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
+                                   <div className="w-full flex justify-between items-center space-x-4">
+                                        <div className="w-full border border-transparent focus-within:border-success-300 h-12 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
                                              <div className="flex w-full h-full items-center space-x-[15px]">
                                                   <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
+                                                       <svg className="stroke-bgray-900 dark:stroke-white" width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <circle cx="9.80204" cy="10.6761" r="8.98856" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                            <path d="M16.0537 17.3945L19.5777 20.9094" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                        </svg>
                                                   </span>
                                                   <label className="w-full">
                                                        <input
                                                             type="text"
-                                                            id="listSearch"
                                                             placeholder="Search..."
+                                                            value={searchTerm}
+                                                            onChange={(e) => setSearchTerm(e.target.value)}
                                                             className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                        />
                                                   </label>
                                              </div>
                                         </div>
 
-                                        {/* Class Filter */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("class")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Class (Sections)</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Class 1 (A, B, C, D)
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Class 2 (A, B, C, D)
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-
-                                        {/* Term Filter */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[120px]"
-                                                  onClick={() => toggleFilter("term")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Term</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "term" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Term 1
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Term 2
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-
-                                        {/* Export Filter */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[120px]"
-                                                  onClick={() => toggleFilter("export")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Copy
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Excel
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            CSV
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            PDF
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Print
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-
-
                                         <button
-                                             type="button"
-                                             className="px-6 py-3 text-nowrap rounded-lg bg-success-300 text-white font-semibold hover:bg-success-400 transition duration-300"
+                                             onClick={() => { setShowForm(!showForm); setEditingId(null); setFormData({ name: "", term: "", examGrade: "", assessment: "", description: "" }); }}
+                                             className="px-6 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 text-nowrap text-white font-semibold transition-colors"
                                         >
-                                             + Add
+                                             {showForm ? "View List" : "Add New"}
                                         </button>
                                    </div>
 
-                                   {/* Table */}
-                                   <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Exam Name
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Class (Sections)
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
-                                                                      Term
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Subjects Included
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Exam Published
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Published Result
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Description
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Created At
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Action
-                                                            </span>
-                                                       </td>
-                                                  </tr>
-                                             </thead>
-                                             <tbody>
-                                                  {/* Example Row 1 */}
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Weekly Test(December)
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Class 1 (A, B, C, D)
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Term 1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-success-50">
-                                                                 <svg
-                                                                      width="12"
-                                                                      height="12"
-                                                                      viewBox="0 0 12 12"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M10 3L4.5 8.5L2 6"
-                                                                           stroke="#22C55E"
-                                                                           strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-bgray-200 dark:bg-darkblack-500">
-                                                                 <svg
-                                                                      width="12"
-                                                                      height="12"
-                                                                      viewBox="0 0 12 12"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <circle
-                                                                           cx="6"
-                                                                           cy="6"
-                                                                           r="2"
-                                                                           fill="#A0AEC0"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 add two chapter
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 12/02/2025
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="relative">
-                                                                 <button
-                                                                      type="button"
-                                                                      onClick={() => toggleFilter("action")}
-                                                                 >
-                                                                      <svg
-                                                                           width="18"
-                                                                           height="4"
-                                                                           viewBox="0 0 18 4"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="2"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="2"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="2"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </button>
-
-                                                                 <div
-                                                                      className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-8 overflow-hidden transition-all ${openFilter === "action" ? "block" : "hidden"
-                                                                           }`}
-                                                                 >
-                                                                      <ul>
-                                                                           <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                                                View
-                                                                           </li>
-                                                                           <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                                                Edit
-                                                                           </li>
-                                                                           <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                                                Delete
-                                                                           </li>
-                                                                      </ul>
-                                                                 </div>
-                                                            </div>
-                                                       </td>
-                                                  </tr>
-
-                                                  {/* Example Row 2 */}
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Periodic Term-end Exams(December-2025)
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Class 1 (A, B, C, D)
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Term 1
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 4
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-success-50">
-                                                                 <svg
-                                                                      width="12"
-                                                                      height="12"
-                                                                      viewBox="0 0 12 12"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M10 3L4.5 8.5L2 6"
-                                                                           stroke="#22C55E"
-                                                                           strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-success-50">
-                                                                 <svg
-                                                                      width="12"
-                                                                      height="12"
-                                                                      viewBox="0 0 12 12"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M10 3L4.5 8.5L2 6"
-                                                                           stroke="#22C55E"
-                                                                           strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Periodic Term-end Exams
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 12/01/2025
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="relative">
-                                                                 <button type="button">
-                                                                      <svg
-                                                                           width="18"
-                                                                           height="4"
-                                                                           viewBox="0 0 18 4"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="2"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="2"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="2"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </button>
-                                                            </div>
-                                                       </td>
-                                                  </tr>
-                                             </tbody>
-                                        </table>
-                                   </div>
-
-                                   {/* Pagination */}
-                                   <div className="pagination-content w-full">
-                                        <div className="w-full flex lg:justify-between justify-center items-center">
-                                             <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">
-                                                       Show result:
-                                                  </span>
-                                                  <div className="relative">
-                                                       <button
-                                                            type="button"
-                                                            className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
-                                                            onClick={() => toggleFilter("pagination")}
-                                                       >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">
-                                                                 3
-                                                            </span>
-                                                            <span>
-                                                                 <svg
-                                                                      width="17"
-                                                                      height="17"
-                                                                      viewBox="0 0 17 17"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M4.03516 6.03271L8.03516 10.0327L12.0352 6.03271"
-                                                                           stroke="#A0AEC0"
-                                                                           strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </button>
-                                                       <div
-                                                            className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden ${openFilter === "pagination" ? "block" : "hidden"
-                                                                 }`}
-                                                       >
-                                                            <ul>
-                                                                 <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">
-                                                                      1
-                                                                 </li>
-                                                                 <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">
-                                                                      2
-                                                                 </li>
-                                                                 <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">
-                                                                      3
-                                                                 </li>
-                                                            </ul>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                             <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                       >
-                                                            1
-                                                       </button>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            2
-                                                       </button>
-                                                       <span className="text-bgray-500 text-sm">. . . .</span>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            20
-                                                       </button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                             </div>
+                                   {!showForm ? (
+                                        <div className="table-content w-full overflow-x-auto">
+                                             <table className="w-full">
+                                                  <thead>
+                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Exam</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Term</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Exam Grade</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Assessment</th>
+                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50">Action</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {isLoading ? (
+                                                            <tr><td colSpan={5} className="py-10 text-center text-bgray-500">Loading...</td></tr>
+                                                       ) : filteredExams.length === 0 ? (
+                                                            <tr><td colSpan={5} className="py-10 text-center text-bgray-500">No exams found</td></tr>
+                                                       ) : (
+                                                            filteredExams.map((item) => (
+                                                                 <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                      <td className="py-5 px-6">
+                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6">
+                                                                           <p className="text-bgray-700 dark:text-bgray-200">
+                                                                                {typeof item.term === "object" ? item.term.name : "N/A"}
+                                                                           </p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6">
+                                                                           <p className="text-bgray-700 dark:text-bgray-200">
+                                                                                {typeof item.examGrade === "object" ? item.examGrade.name : "N/A"}
+                                                                           </p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6">
+                                                                           <p className="text-bgray-700 dark:text-bgray-200">
+                                                                                {typeof item.assessment === "object" ? item.assessment.name : "N/A"}
+                                                                           </p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 text-right">
+                                                                           <div className="flex justify-end space-x-2">
+                                                                                <button onClick={() => handleEdit(item)} className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                                                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                                                </button>
+                                                                                <button onClick={() => handleDelete(item._id)} className="p-2 text-error-300 hover:bg-error-50 rounded-lg transition-colors">
+                                                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                                                                </button>
+                                                                           </div>
+                                                                      </td>
+                                                                 </tr>
+                                                            ))
+                                                       )}
+                                                  </tbody>
+                                             </table>
                                         </div>
-                                   </div>
+                                   ) : (
+                                        <form onSubmit={handleSubmit} className="space-y-6">
+                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                  <div>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Exam Name *</label>
+                                                       <input
+                                                            type="text"
+                                                            required
+                                                            value={formData.name}
+                                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                            placeholder="e.g., Annual Exam 2024"
+                                                            className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                                       />
+                                                  </div>
+                                                  <div>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Term *</label>
+                                                       <select
+                                                            required
+                                                            value={formData.term}
+                                                            onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                                                            className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                                       >
+                                                            <option value="">Select Term</option>
+                                                            {terms.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                                                       </select>
+                                                  </div>
+                                                  <div>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Exam Grade *</label>
+                                                       <select
+                                                            required
+                                                            value={formData.examGrade}
+                                                            onChange={(e) => setFormData({ ...formData, examGrade: e.target.value })}
+                                                            className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                                       >
+                                                            <option value="">Select Grade System</option>
+                                                            {examGrades.map(g => <option key={g._id} value={g._id}>{g.name}</option>)}
+                                                       </select>
+                                                  </div>
+                                                  <div>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Assessment *</label>
+                                                       <select
+                                                            required
+                                                            value={formData.assessment}
+                                                            onChange={(e) => setFormData({ ...formData, assessment: e.target.value })}
+                                                            className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                                       >
+                                                            <option value="">Select Assessment</option>
+                                                            {assessments.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
+                                                       </select>
+                                                  </div>
+                                             </div>
+
+                                             <div>
+                                                  <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Description</label>
+                                                  <textarea
+                                                       rows={4}
+                                                       value={formData.description}
+                                                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                       placeholder="Enter exam description..."
+                                                       className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                                  />
+                                             </div>
+
+                                             <div className="flex justify-end space-x-4">
+                                                  <button
+                                                       type="button"
+                                                       onClick={() => setShowForm(false)}
+                                                       className="px-6 py-2.5 rounded-lg border border-bgray-300 text-bgray-600 font-semibold hover:bg-bgray-50"
+                                                  >
+                                                       Cancel
+                                                  </button>
+                                                  <button
+                                                       type="submit"
+                                                       disabled={isSubmitting}
+                                                       className="px-6 py-2.5 rounded-lg bg-success-300 text-white font-semibold hover:bg-success-400 disabled:opacity-50"
+                                                  >
+                                                       {isSubmitting ? "Saving..." : editingId ? "Update Exam" : "Create Exam"}
+                                                  </button>
+                                             </div>
+                                        </form>
+                                   )}
                               </div>
                          </div>
                     </section>

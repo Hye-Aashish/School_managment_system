@@ -194,6 +194,7 @@ export default function AssignIncidentList() {
                     <BehaviourHistoryModal 
                         isOpen={isHistoryModalOpen} 
                         onClose={() => setIsHistoryModalOpen(false)} 
+                        onRefresh={fetchStudents}
                         studentId={selectedStudent.id} 
                         studentName={selectedStudent.name} 
                     />

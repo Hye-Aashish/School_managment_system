@@ -1,24 +1,281 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+interface IncomeHead {
+     _id: string;
+     name: string;
+}
+
+interface Income {
+     _id: string;
+     incomeHead: IncomeHead | string;
+     name: string;
+     invoiceNumber?: string;
+     date: string;
+     amount: number;
+     document?: string;
+     description?: string;
+}
 
 export default function StudentCategory() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "income_head" | null>(null);
+     const [incomes, setIncomes] = useState<Income[]>([]);
+     const [heads, setHeads] = useState<IncomeHead[]>([]);
+     const [isLoading, setIsLoading] = useState(true);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [formData, setFormData] = useState({
+          incomeHead: "",
+          name: "",
+          invoiceNumber: "",
+          date: new Date().toISOString().split("T")[0],
+          amount: "",
+          description: "",
+     });
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     const [notification, setNotification] = useState<{ message: string, type: "success" | "error" } | null>(null);
+
+     const showNotification = (message: string, type: "success" | "error") => {
+          setNotification({ message, type });
+          setTimeout(() => setNotification(null), 3000);
+     };
+
+     const fetchHeads = async () => {
+          try {
+               const res = await fetch("/api/income-heads");
+               const json = await res.json();
+               if (json.success) setHeads(json.data);
+          } catch (error) {
+               console.error("Error fetching heads:", error);
+          }
+     };
+
+     const fetchIncomes = async () => {
+          setIsLoading(true);
+          try {
+               const res = await fetch("/api/incomes");
+               const json = await res.json();
+               if (json.success) setIncomes(json.data);
+          } catch (error) {
+               console.error("Error fetching incomes:", error);
+          } finally {
+               setIsLoading(false);
+          }
+     };
+
+     useEffect(() => {
+          fetchHeads();
+          fetchIncomes();
+     }, []);
 
      const toggleFilter = (type: "action" | "pagination" | "income_head") => {
           setOpenFilter(openFilter === type ? null : type);
      };
 
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          if (!formData.incomeHead || !formData.name || !formData.date || !formData.amount) {
+               showNotification("Please fill all required fields", "error");
+               return;
+          }
+
+          setIsSubmitting(true);
+          try {
+               const url = editingId ? `/api/incomes/${editingId}` : "/api/incomes";
+               const method = editingId ? "PUT" : "POST";
+
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...formData, amount: Number(formData.amount) }),
+               });
+
+               const json = await res.json();
+               if (json.success) {
+                    setFormData({
+                         incomeHead: "",
+                         name: "",
+                         invoiceNumber: "",
+                         date: new Date().toISOString().split("T")[0],
+                         amount: "",
+                         description: "",
+                    });
+                    setEditingId(null);
+                    fetchIncomes();
+                    showNotification(editingId ? "Income record updated successfully!" : "Income record added successfully!", "success");
+               } else {
+                    showNotification(json.error || "Something went wrong", "error");
+               }
+          } catch (error) {
+               console.error("Error saving income:", error);
+               showNotification("An unexpected error occurred", "error");
+          } finally {
+               setIsSubmitting(false);
+          }
+     };
+
+     const handleEdit = (income: Income) => {
+          setEditingId(income._id);
+          setFormData({
+               incomeHead: typeof income.incomeHead === "object" ? income.incomeHead._id : income.incomeHead,
+               name: income.name,
+               invoiceNumber: income.invoiceNumber || "",
+               date: new Date(income.date).toISOString().split("T")[0],
+               amount: income.amount.toString(),
+               description: income.description || "",
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure?")) return;
+          try {
+               const res = await fetch(`/api/incomes/${id}`, { method: "DELETE" });
+               const json = await res.json();
+               if (json.success) {
+                    fetchIncomes();
+                    showNotification("Income record deleted successfully!", "success");
+               } else {
+                    showNotification(json.error || "Error deleting income record", "error");
+               }
+          } catch (error) {
+               console.error("Error deleting income:", error);
+               showNotification("An unexpected error occurred", "error");
+          }
+     };
+
+     const filteredIncomes = incomes.filter(i => 
+          i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (typeof i.incomeHead === "object" && i.incomeHead.name.toLowerCase().includes(searchTerm.toLowerCase()))
+     );
+
+     // Export Functions
+     const handleCopy = () => {
+          const headers = ["Income Head", "Name", "Invoice Number", "Date", "Amount"];
+          const data = filteredIncomes.map(income => [
+               typeof income.incomeHead === "object" ? income.incomeHead.name : "",
+               income.name,
+               income.invoiceNumber || "",
+               new Date(income.date).toLocaleDateString(),
+               `$${income.amount.toFixed(2)}`
+          ].join("\t"));
+
+          const textToCopy = [headers.join("\t"), ...data].join("\n");
+          navigator.clipboard.writeText(textToCopy).then(() => {
+               showNotification("Data copied to clipboard!", "success");
+          });
+     };
+
+     const handleExcel = () => {
+          const headers = ["Income Head", "Name", "Invoice Number", "Date", "Amount"];
+          const data = filteredIncomes.map(income => [
+               `"${typeof income.incomeHead === "object" ? income.incomeHead.name : ""}"`,
+               `"${income.name}"`,
+               `"${income.invoiceNumber || ""}"`,
+               `"${new Date(income.date).toLocaleDateString()}"`,
+               `"${income.amount.toFixed(2)}"`
+          ].join(","));
+
+          const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...data].join("\n");
+          const encodedUri = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", "income_list.csv");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          showNotification("CSV export started!", "success");
+     };
+
+     const handlePrint = () => {
+          const printContent = `
+               <html>
+                    <head>
+                         <title>Income List</title>
+                         <style>
+                              body { font-family: Arial, sans-serif; padding: 20px; }
+                              h2 { text-align: center; }
+                              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                              th { background-color: #f2f2f2; }
+                         </style>
+                    </head>
+                    <body>
+                         <h2>Income List</h2>
+                         <table>
+                              <thead>
+                                   <tr>
+                                        <th>Income Head</th>
+                                        <th>Name</th>
+                                        <th>Invoice Number</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                   </tr>
+                              </thead>
+                              <tbody>
+                                   ${filteredIncomes.map(income => `
+                                        <tr>
+                                             <td>${typeof income.incomeHead === "object" ? income.incomeHead.name : ""}</td>
+                                             <td>${income.name}</td>
+                                             <td>${income.invoiceNumber || ""}</td>
+                                             <td>${new Date(income.date).toLocaleDateString()}</td>
+                                             <td>$${income.amount.toFixed(2)}</td>
+                                        </tr>
+                                   `).join("")}
+                              </tbody>
+                         </table>
+                    </body>
+               </html>
+          `;
+
+          const printWindow = window.open("", "_blank");
+          if (printWindow) {
+               printWindow.document.write(printContent);
+               printWindow.document.close();
+               printWindow.focus();
+               setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+               }, 250);
+          }
+     };
+
      return (
           <>
+               {/* Notification Popup */}
+               {notification && (
+                    <div className={`fixed top-5 right-5 z-[100] transition-all transform animate-fade-in`}>
+                         <div className={`flex items-center space-x-3 px-6 py-4 rounded-lg shadow-2xl border ${
+                              notification.type === "success" 
+                                   ? "bg-success-50 border-success-300 text-success-500" 
+                                   : "bg-red-50 border-red-300 text-red-500"
+                         }`}>
+                              {notification.type === "success" ? (
+                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                   </svg>
+                              ) : (
+                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                   </svg>
+                              )}
+                              <span className="font-bold text-sm">{notification.message}</span>
+                         </div>
+                    </div>
+               )}
                <div className="2xl:flex 2xl:space-x-12">
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="flex items-start gap-6 lg:flex-row md:flex-row flex-col">
                               {/* Add Income Form */}
                               <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600 max-w-[420px]">
                                    <div className="flex flex-col space-y-5">
-                                        <h3 className="text-lg font-semibold text-bgray-900 dark:text-white">Add Income</h3>
+                                        <h3 className="text-lg font-semibold text-bgray-900 dark:text-white">
+                                             {editingId ? "Edit Income" : "Add Income"}
+                                        </h3>
 
-                                        <div className="w-full space-y-4">
+                                        <form onSubmit={handleSubmit} className="w-full space-y-4">
                                              {/* Income Head */}
                                              <div className="w-full">
                                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
@@ -30,43 +287,29 @@ export default function StudentCategory() {
                                                             className="w-full px-4 py-3 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border border-transparent focus:border-success-300 text-left text-sm text-bgray-500 dark:text-bgray-300 flex justify-between items-center"
                                                             onClick={() => toggleFilter("income_head")}
                                                        >
-                                                            <span>Select</span>
-                                                            <svg
-                                                                 width="12"
-                                                                 height="12"
-                                                                 viewBox="0 0 12 12"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M2.5 4.5L6 8L9.5 4.5"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
+                                                            <span>
+                                                                 {formData.incomeHead 
+                                                                      ? heads.find(h => h._id === formData.incomeHead)?.name 
+                                                                      : "Select"}
+                                                            </span>
+                                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                 <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                             </svg>
                                                        </button>
-                                                       <div
-                                                            className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "income_head" ? "block" : "hidden"
-                                                                 }`}
-                                                       >
+                                                       <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "income_head" ? "block" : "hidden"}`}>
                                                             <ul>
-                                                                 <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium">
-                                                                      Miscellaneous
-                                                                 </li>
-                                                                 <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium">
-                                                                      Rent
-                                                                 </li>
-                                                                 <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium">
-                                                                      Book Sale
-                                                                 </li>
-                                                                 <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium">
-                                                                      Donation
-                                                                 </li>
-                                                                 <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium">
-                                                                      Uniform Sale
-                                                                 </li>
+                                                                 {heads.map(head => (
+                                                                      <li 
+                                                                           key={head._id}
+                                                                           onClick={() => {
+                                                                                setFormData({ ...formData, incomeHead: head._id });
+                                                                                setOpenFilter(null);
+                                                                           }}
+                                                                           className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium"
+                                                                      >
+                                                                           {head.name}
+                                                                      </li>
+                                                                 ))}
                                                             </ul>
                                                        </div>
                                                   </div>
@@ -79,7 +322,10 @@ export default function StudentCategory() {
                                                   </label>
                                                   <input
                                                        type="text"
+                                                       value={formData.name}
+                                                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                        placeholder=""
+                                                       required
                                                        className="w-full px-4 py-3 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border border-transparent focus:border-success-300 focus:outline-none text-sm text-bgray-900 dark:text-white"
                                                   />
                                              </div>
@@ -91,6 +337,8 @@ export default function StudentCategory() {
                                                   </label>
                                                   <input
                                                        type="text"
+                                                       value={formData.invoiceNumber}
+                                                       onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
                                                        placeholder=""
                                                        className="w-full px-4 py-3 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border border-transparent focus:border-success-300 focus:outline-none text-sm text-bgray-900 dark:text-white"
                                                   />
@@ -103,6 +351,9 @@ export default function StudentCategory() {
                                                   </label>
                                                   <input
                                                        type="date"
+                                                       value={formData.date}
+                                                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                                       required
                                                        className="w-full px-4 py-3 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border border-transparent focus:border-success-300 focus:outline-none text-sm text-bgray-900 dark:text-white"
                                                   />
                                              </div>
@@ -113,8 +364,11 @@ export default function StudentCategory() {
                                                        Amount ($) <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
-                                                       type="text"
+                                                       type="number"
+                                                       value={formData.amount}
+                                                       onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                                        placeholder=""
+                                                       required
                                                        className="w-full px-4 py-3 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border border-transparent focus:border-success-300 focus:outline-none text-sm text-bgray-900 dark:text-white"
                                                   />
                                              </div>
@@ -168,19 +422,43 @@ export default function StudentCategory() {
                                                   </label>
                                                   <textarea
                                                        rows={4}
+                                                       value={formData.description}
+                                                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                        placeholder=""
                                                        className="w-full px-4 py-3 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border border-transparent focus:border-success-300 focus:outline-none text-sm text-bgray-900 dark:text-white resize-none"
                                                   />
                                              </div>
 
                                              {/* Save Button */}
-                                             <button
-                                                  type="button"
-                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
-                                             >
-                                                  Save
-                                             </button>
-                                        </div>
+                                             <div className="flex gap-3">
+                                                  {editingId && (
+                                                       <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                 setEditingId(null);
+                                                                 setFormData({
+                                                                      incomeHead: "",
+                                                                      name: "",
+                                                                      invoiceNumber: "",
+                                                                      date: new Date().toISOString().split("T")[0],
+                                                                      amount: "",
+                                                                      description: "",
+                                                                 });
+                                                            }}
+                                                            className="py-3.5 flex items-center justify-center text-bgray-900 dark:text-white font-bold bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 transition-all rounded-lg w-full"
+                                                       >
+                                                            Cancel
+                                                       </button>
+                                                  )}
+                                                  <button
+                                                       type="submit"
+                                                       disabled={isSubmitting}
+                                                       className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full disabled:opacity-50"
+                                                  >
+                                                       {isSubmitting ? "Saving..." : editingId ? "Update" : "Save"}
+                                                  </button>
+                                             </div>
+                                        </form>
                                    </div>
                               </div>
 
@@ -221,6 +499,8 @@ export default function StudentCategory() {
                                                             <input
                                                                  type="text"
                                                                  placeholder="Search..."
+                                                                 value={searchTerm}
+                                                                 onChange={(e) => setSearchTerm(e.target.value)}
                                                                  className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
                                                        </label>
@@ -228,13 +508,13 @@ export default function StudentCategory() {
                                              </div>
 
                                              {/* Action Icons */}
-                                             <button type="button" className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Copy">
+                                             <button type="button" onClick={handleCopy} className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Copy">
                                                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M8 17H16M8 17C8 18.1046 7.10457 19 6 19C4.89543 19 4 18.1046 4 17M8 17C8 15.8954 7.10457 15 6 15C4.89543 15 4 15.8954 4 17M16 17C16 18.1046 16.8954 19 18 19C19.1046 19 20 18.1046 20 17M16 17C16 15.8954 16.8954 15 18 15C19.1046 15 20 15.8954 20 17M4 17V6C4 5.44772 4.44772 5 5 5H19C19.5523 5 20 5.44772 20 6V17M9 10H15" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round"/>
                                                   </svg>
                                              </button>
 
-                                             <button type="button" className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Excel">
+                                             <button type="button" onClick={handleExcel} className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Excel/CSV">
                                                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M7 18H17V16H7V18Z" fill="#A0AEC0"/>
                                                        <path d="M17 14H7V12H17V14Z" fill="#A0AEC0"/>
@@ -243,19 +523,7 @@ export default function StudentCategory() {
                                                   </svg>
                                              </button>
 
-                                             <button type="button" className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="PDF">
-                                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M19.5 14.25V11.625C19.5 9.76104 17.989 8.25 16.125 8.25H14.625C14.0037 8.25 13.5 7.74632 13.5 7.125V5.625C13.5 3.76104 11.989 2.25 10.125 2.25H8.25M8.25 15H15.75M8.25 18H12M10.5 2.25H5.625C5.00368 2.25 4.5 2.75368 4.5 3.375V20.625C4.5 21.2463 5.00368 21.75 5.625 21.75H18.375C18.9963 21.75 19.5 21.2463 19.5 20.625V11.25C19.5 6.27944 15.4706 2.25 10.5 2.25Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                  </svg>
-                                             </button>
-
-                                             <button type="button" className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Notification">
-                                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M6.72 19.7C7.55 20.15 8.5 20.4 9.5 20.4H14.5C15.5 20.4 16.45 20.15 17.28 19.7M18 14V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 2.9 12.6 2 11.5 2C10.4 2 9.5 2.9 9.5 4V4.68C6.63 5.36 5 7.92 5 11V14L3 16V17H20V16L18 14ZM12 22C12.14 22 12.27 22 12.4 21.96C13.05 21.82 13.58 21.38 13.84 20.79C13.94 20.54 13.99 20.28 13.99 20H10C10 21.1 10.89 22 12 22Z" fill="#A0AEC0"/>
-                                                  </svg>
-                                             </button>
-
-                                             <button type="button" className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Print">
+                                             <button type="button" onClick={handlePrint} className="h-full px-4 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all" title="Print/PDF">
                                                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M6 9L6 2L18 2V9M6 9H4M6 9H18M18 9H20M4 9L2 21L5 22H19L22 21L20 9M9 19V14H15V19" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                   </svg>
@@ -374,238 +642,67 @@ export default function StudentCategory() {
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {/* Sample Data Row 1 */}
-                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      Happy Independence Day Celebration
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 max-w-xs">
-                                                                 <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300 line-clamp-2">
-                                                                      Happy Independence Day! Let's celebrate the freedom and unity of our nation, remembering the sacrifices of our heroes and striving for a better future.
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">3422</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">12/27/2025</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">Miscellaneous</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">$200.00</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex justify-center gap-2">
-                                                                      <button type="button" className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M3 6H5H21" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-
-                                                       {/* Sample Data Row 2 */}
-                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      Monthly Bus Rent
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 max-w-xs">
-                                                                 <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300 line-clamp-2">
-                                                                      The transporting students to and from school or school-related activities, often through a charter bus.
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">5234</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">12/22/2025</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">Rent</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">$150.00</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex justify-center gap-2">
-                                                                      <button type="button" className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M3 6H5H21" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-
-                                                       {/* Sample Data Row 3 */}
-                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      NCRT NEW Books Publisher
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 max-w-xs">
-                                                                 <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300 line-clamp-2">
-                                                                      NCRT Books are essential materials for students of all classes.
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">8794</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">12/17/2025</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">Book Sale</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">$150.00</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex justify-center gap-2">
-                                                                      <button type="button" className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M3 6H5H21" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
+                                                       {isLoading ? (
+                                                            <tr><td colSpan={7} className="py-10 text-center text-bgray-500">Loading...</td></tr>
+                                                       ) : filteredIncomes.length === 0 ? (
+                                                            <tr><td colSpan={7} className="py-10 text-center text-bgray-500">No records found</td></tr>
+                                                       ) : filteredIncomes.map((income) => (
+                                                            <tr key={income._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{income.name}</p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0 max-w-xs">
+                                                                      <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300 line-clamp-2">{income.description}</p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{income.invoiceNumber}</p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
+                                                                           {new Date(income.date).toLocaleDateString()}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
+                                                                           {typeof income.incomeHead === "object" ? income.incomeHead.name : ""}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">${income.amount.toFixed(2)}</p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <div className="flex justify-center gap-2">
+                                                                           <button 
+                                                                                onClick={() => handleEdit(income)}
+                                                                                type="button" 
+                                                                                className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all"
+                                                                           >
+                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                     <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                     <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                </svg>
+                                                                           </button>
+                                                                           <button 
+                                                                                onClick={() => handleDelete(income._id)}
+                                                                                type="button" 
+                                                                                className="p-2 hover:bg-bgray-100 dark:hover:bg-darkblack-500 rounded transition-all"
+                                                                           >
+                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                     <path d="M6 18L18 6M6 6L18 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                </svg>
+                                                                           </button>
+                                                                      </div>
+                                                                 </td>
+                                                            </tr>
+                                                       ))}
                                                   </tbody>
                                              </table>
                                         </div>
 
-                                        {/* Pagination - Original Style */}
-                                        <div className="pagination-content w-full">
-                                             <div className="w-full flex lg:justify-between justify-center items-center">
-                                                  <div className="lg:flex hidden space-x-4 items-center">
-                                                       <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Show result:</span>
-                                                       <div className="relative">
-                                                            <button
-                                                                 type="button"
-                                                                 className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
-                                                                 onClick={() => toggleFilter("pagination")}
-                                                            >
-                                                                 <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">10</span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="17"
-                                                                           height="17"
-                                                                           viewBox="0 0 17 17"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M4.03516 6.03271L8.03516 10.0327L12.0352 6.03271"
-                                                                                stroke="#A0AEC0"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </button>
-                                                            <div
-                                                                 className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden ${openFilter === "pagination" ? "block" : "hidden"}`}
-                                                            >
-                                                                 <ul>
-                                                                      <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">10</li>
-                                                                      <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">25</li>
-                                                                      <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">50</li>
-                                                                      <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">100</li>
-                                                                 </ul>
-                                                            </div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                                                       <button type="button">
-                                                            <span>
-                                                                 <svg
-                                                                      width="21"
-                                                                      height="21"
-                                                                      viewBox="0 0 21 21"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                           stroke="#A0AEC0"
-                                                                           strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </button>
-                                                       <div className="flex items-center">
-                                                            <button
-                                                                 type="button"
-                                                                 className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                            >
-                                                                 1
-                                                            </button>
-                                                            <button
-                                                                 type="button"
-                                                                 className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                            >
-                                                                 2
-                                                            </button>
-                                                            <span className="text-bgray-500 text-sm">. . . .</span>
-                                                            <button
-                                                                 type="button"
-                                                                 className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                            >
-                                                                 20
-                                                            </button>
-                                                       </div>
-                                                       <button type="button">
-                                                            <span>
-                                                                 <svg
-                                                                      width="21"
-                                                                      height="21"
-                                                                      viewBox="0 0 21 21"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                           stroke="#A0AEC0"
-                                                                           strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </button>
-                                                  </div>
+                                        {/* Pagination - Simplified */}
+                                        <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
+                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50 font-semibold">
+                                                  <span>Total Records: {filteredIncomes.length}</span>
                                              </div>
                                         </div>
                                    </div>

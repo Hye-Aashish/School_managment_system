@@ -1,11 +1,155 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+interface IncomeHead {
+     _id: string;
+     name: string;
+}
+
+interface Income {
+     _id: string;
+     incomeHead: IncomeHead | string;
+     name: string;
+     invoiceNumber?: string;
+     date: string;
+     amount: number;
+     description?: string;
+}
 
 export default function StudentCategory() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "income_head" | "search_type" | null>(null);
+     const [incomes, setIncomes] = useState<Income[]>([]);
+     const [isLoading, setIsLoading] = useState(true);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [searchType, setSearchType] = useState<"By Name" | "By Invoice" | "By Date" | "By Income Head">("By Name");
+
+     const fetchIncomes = async () => {
+          setIsLoading(true);
+          try {
+               const res = await fetch("/api/incomes");
+               const json = await res.json();
+               if (json.success) setIncomes(json.data);
+          } catch (error) {
+               console.error("Error fetching incomes:", error);
+          } finally {
+               setIsLoading(false);
+          }
+     };
+
+     useEffect(() => {
+          fetchIncomes();
+     }, []);
 
      const toggleFilter = (type: "action" | "pagination" | "income_head" | "search_type") => {
           setOpenFilter(openFilter === type ? null : type);
+     };
+
+     const filteredIncomes = incomes.filter(income => {
+          const term = searchTerm.toLowerCase();
+          if (!term) return true;
+
+          switch (searchType) {
+               case "By Name":
+                    return income.name.toLowerCase().includes(term);
+               case "By Invoice":
+                    return income.invoiceNumber?.toLowerCase().includes(term);
+               case "By Date":
+                    return new Date(income.date).toLocaleDateString().includes(term);
+               case "By Income Head":
+                    return typeof income.incomeHead === "object" && income.incomeHead.name.toLowerCase().includes(term);
+               default:
+                    return true;
+          }
+     });
+
+     // Export Functions
+     const handleCopy = () => {
+          const headers = ["Name", "Invoice Number", "Income Head", "Date", "Amount"];
+          const data = filteredIncomes.map(income => [
+               income.name,
+               income.invoiceNumber || "",
+               typeof income.incomeHead === "object" ? income.incomeHead.name : "",
+               new Date(income.date).toLocaleDateString(),
+               `$${income.amount.toFixed(2)}`
+          ].join("\t"));
+
+          const textToCopy = [headers.join("\t"), ...data].join("\n");
+          navigator.clipboard.writeText(textToCopy).then(() => {
+               alert("Data copied to clipboard!");
+          });
+     };
+
+     const handleExcel = () => {
+          const headers = ["Name", "Invoice Number", "Income Head", "Date", "Amount"];
+          const data = filteredIncomes.map(income => [
+               `"${income.name}"`,
+               `"${income.invoiceNumber || ""}"`,
+               `"${typeof income.incomeHead === "object" ? income.incomeHead.name : ""}"`,
+               `"${new Date(income.date).toLocaleDateString()}"`,
+               `"${income.amount.toFixed(2)}"`
+          ].join(","));
+
+          const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...data].join("\n");
+          const encodedUri = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", "search_income_list.csv");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+     };
+
+     const handlePrint = () => {
+          const printContent = `
+               <html>
+                    <head>
+                         <title>Search Income List</title>
+                         <style>
+                              body { font-family: Arial, sans-serif; padding: 20px; }
+                              h2 { text-align: center; }
+                              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                              th { background-color: #f2f2f2; }
+                         </style>
+                    </head>
+                    <body>
+                         <h2>Search Income List</h2>
+                         <table>
+                              <thead>
+                                   <tr>
+                                        <th>Name</th>
+                                        <th>Invoice Number</th>
+                                        <th>Income Head</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                   </tr>
+                              </thead>
+                              <tbody>
+                                   ${filteredIncomes.map(income => `
+                                        <tr>
+                                             <td>${income.name}</td>
+                                             <td>${income.invoiceNumber || ""}</td>
+                                             <td>${typeof income.incomeHead === "object" ? income.incomeHead.name : ""}</td>
+                                             <td>${new Date(income.date).toLocaleDateString()}</td>
+                                             <td>$${income.amount.toFixed(2)}</td>
+                                        </tr>
+                                   `).join("")}
+                              </tbody>
+                         </table>
+                    </body>
+               </html>
+          `;
+
+          const printWindow = window.open("", "_blank");
+          if (printWindow) {
+               printWindow.document.write(printContent);
+               printWindow.document.close();
+               printWindow.focus();
+               setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+               }, 250);
+          }
      };
 
      return (
@@ -47,6 +191,8 @@ export default function StudentCategory() {
                                                        <input
                                                             type="text"
                                                             placeholder="Search Income..."
+                                                            value={searchTerm}
+                                                            onChange={(e) => setSearchTerm(e.target.value)}
                                                             className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                        />
                                                   </label>
@@ -60,7 +206,7 @@ export default function StudentCategory() {
                                                   className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
                                                   onClick={() => toggleFilter("search_type")}
                                              >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Search Type</span>
+                                                  <span className="text-base text-bgray-500 text-nowrap">{searchType}</span>
                                                   <span>
                                                        <svg
                                                             width="21"
@@ -85,10 +231,18 @@ export default function StudentCategory() {
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">By Name</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">By Invoice</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">By Date</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">By Income Head</li>
+                                                       {["By Name", "By Invoice", "By Date", "By Income Head"].map((type) => (
+                                                            <li
+                                                                 key={type}
+                                                                 onClick={() => {
+                                                                      setSearchType(type as any);
+                                                                      setOpenFilter(null);
+                                                                 }}
+                                                                 className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold"
+                                                            >
+                                                                 {type}
+                                                            </li>
+                                                       ))}
                                                   </ul>
                                              </div>
                                         </div>
@@ -125,11 +279,9 @@ export default function StudentCategory() {
                                                        }`}
                                              >
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
+                                                       <li onClick={() => { handleCopy(); setOpenFilter(null); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
+                                                       <li onClick={() => { handleExcel(); setOpenFilter(null); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel/CSV</li>
+                                                       <li onClick={() => { handlePrint(); setOpenFilter(null); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print/PDF</li>
                                                   </ul>
                                              </div>
                                         </div>
@@ -208,169 +360,41 @@ export default function StudentCategory() {
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Happy Independence Day Celebration
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">3422</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">Miscellaneous</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">12/27/2025</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">$200.00</p>
-                                                       </td>
-                                                  </tr>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 Monthly Bus Rent
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">5234</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">Rent</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">12/22/2025</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">$150.00</p>
-                                                       </td>
-                                                  </tr>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 NCRT NEW Books Publisher
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">8794</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">Book Sale</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">12/17/2025</p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">$150.00</p>
-                                                       </td>
-                                                  </tr>
+                                                  {isLoading ? (
+                                                       <tr><td colSpan={5} className="py-10 text-center text-bgray-500 text-sm">Loading...</td></tr>
+                                                  ) : filteredIncomes.length === 0 ? (
+                                                       <tr><td colSpan={5} className="py-10 text-center text-bgray-500 text-sm">No records found</td></tr>
+                                                  ) : filteredIncomes.map((income) => (
+                                                       <tr key={income._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                            <td className="py-5 px-6 xl:px-0">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{income.name}</p>
+                                                            </td>
+                                                            <td className="py-5 px-6 xl:px-0">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{income.invoiceNumber}</p>
+                                                            </td>
+                                                            <td className="py-5 px-6 xl:px-0">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {typeof income.incomeHead === "object" ? income.incomeHead.name : ""}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6 xl:px-0">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      {new Date(income.date).toLocaleDateString()}
+                                                                 </p>
+                                                            </td>
+                                                            <td className="py-5 px-6 xl:px-0">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">${income.amount.toFixed(2)}</p>
+                                                            </td>
+                                                       </tr>
+                                                  ))}
                                              </tbody>
                                         </table>
                                    </div>
 
-                                   {/* Pagination */}
-                                   <div className="pagination-content w-full">
-                                        <div className="w-full flex lg:justify-between justify-center items-center">
-                                             <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Show result:</span>
-                                                  <div className="relative">
-                                                       <button
-                                                            type="button"
-                                                            className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
-                                                            onClick={() => toggleFilter("pagination")}
-                                                       >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">3</span>
-                                                            <span>
-                                                                 <svg
-                                                                      width="17"
-                                                                      height="17"
-                                                                      viewBox="0 0 17 17"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M4.03516 6.03271L8.03516 10.0327L12.0352 6.03271"
-                                                                           stroke="#A0AEC0"
-                                                                           strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </span>
-                                                       </button>
-                                                       <div
-                                                            className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden ${openFilter === "pagination" ? "block" : "hidden"}`}
-                                                       >
-                                                            <ul>
-                                                                 <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">1</li>
-                                                                 <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">2</li>
-                                                                 <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600">3</li>
-                                                            </ul>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                             <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                       >
-                                                            1
-                                                       </button>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            2
-                                                       </button>
-                                                       <span className="text-bgray-500 text-sm">. . . .</span>
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500"
-                                                       >
-                                                            20
-                                                       </button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                             </div>
+                                   {/* Total Records - Simplified */}
+                                   <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
+                                        <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50 font-semibold">
+                                             <span>Total Records: {filteredIncomes.length}</span>
                                         </div>
                                    </div>
                               </div>

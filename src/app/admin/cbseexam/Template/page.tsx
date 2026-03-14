@@ -1,228 +1,311 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+type IClass = string;
+type ISection = string;
+
+interface ITemplate {
+    _id: string;
+    name: string;
+    classSections: {
+        className: string;
+        sections: string[];
+    }[];
+    description?: string;
+}
 
 export default function TemplateList() {
-     const templateData = [
-          { template: "Monthly Test Template (Single exam without term )", classSections: "Class 1: A, B, C, D", description: "" },
-          { template: "Assessment Template (Single exam without term )", classSections: "Class 2: A, B, C, D", description: "" },
-          { template: "All Term Test Template", classSections: "Class 5: A, B, C, D", description: "" },
-          { template: "Periodic Singlewise Test Template", classSections: "Class 1: A, B, C, D", description: "" },
-          { template: "Subject Test Template (Single exam without term )", classSections: "Class 5: A, B, C, D", description: "" },
-          { template: "Assessment Template (multiple exams without term )", classSections: "Class 1: A, B, C, D", description: "" },
-          { template: "Subject wise template (Multiple exams without term )", classSections: "Class 5: A, B, C, D", description: "" },
-          { template: "Periodic Test Template (Single exam without term )", classSections: "Class 5: A, B, C, D", description: "" },
-          { template: "Assessment Test Template ( Term Wise exam )", classSections: "Class 1: A, B, C, D", description: "" },
-          { template: "Single Assessment Template (Single exam without term )", classSections: "Class 1: A, B, C, D", description: "" },
-          { template: "Online Test Template (Single exam without term )", classSections: "Class 2: A, B, C, D", description: "" },
-          { template: "Periodic Term-end Exams (Single exam without term )", classSections: "Class 1: A, B, C, D", description: "" },
-          { template: "Weekly Test", classSections: "Class 1: A", description: "" },
-          { template: "Template", classSections: "Class 1: A, B, C, D", description: "" }
-     ];
+     const [templates, setTemplates] = useState<ITemplate[]>([]);
+     const [classes, setClasses] = useState<IClass[]>([]);
+     const [sections, setSections] = useState<ISection[]>([]);
+     const [classSectionsMap, setClassSectionsMap] = useState<Record<string, string[]>>({});
+     const [isLoading, setIsLoading] = useState(true);
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [showForm, setShowForm] = useState(false);
+     const [notification, setNotification] = useState<{ message: string; type: "success" | "error" | null }>({ message: "", type: null });
+
+     const [formData, setFormData] = useState({
+          name: "",
+          classSections: [] as { className: string; sections: string[] }[],
+          description: ""
+     });
+
+     useEffect(() => {
+          fetchInitialData();
+     }, []);
+
+     const fetchInitialData = async () => {
+          setIsLoading(true);
+          try {
+               const [tempRes, classRes, secRes] = await Promise.all([
+                    fetch("/api/cbse-templates"),
+                    fetch("/api/classes"),
+                    fetch("/api/sections")
+               ]);
+               if (tempRes.ok) setTemplates(await tempRes.json());
+               if (classRes.ok) setClasses(await classRes.json());
+               if (secRes.ok) setSections(await secRes.json());
+          } catch (error) {
+               console.error("Error fetching data:", error);
+          } finally {
+               setIsLoading(false);
+          }
+     };
+
+     const handleAddClassSection = () => {
+          setFormData(prev => ({
+               ...prev,
+               classSections: [...prev.classSections, { className: "", sections: [] }]
+          }));
+     };
+
+     const handleRemoveClassSection = (index: number) => {
+          setFormData(prev => ({
+               ...prev,
+               classSections: prev.classSections.filter((_, i) => i !== index)
+          }));
+     };
+
+     const handleClassChange = async (index: number, className: string) => {
+          const newClassSections = [...formData.classSections];
+          newClassSections[index].className = className;
+          newClassSections[index].sections = []; // Reset sections when class changes
+          setFormData({ ...formData, classSections: newClassSections });
+
+          if (className && !classSectionsMap[className]) {
+               try {
+                    const res = await fetch(`/api/sections?class=${className}`);
+                    if (res.ok) {
+                         const data = await res.json();
+                         setClassSectionsMap(prev => ({ ...prev, [className]: data }));
+                    }
+               } catch (err) { console.error(err); }
+          }
+     };
+
+     const handleSectionToggle = (index: number, section: string) => {
+          const newClassSections = [...formData.classSections];
+          const sections = newClassSections[index].sections;
+          if (sections.includes(section)) {
+               newClassSections[index].sections = sections.filter(s => s !== section);
+          } else {
+               newClassSections[index].sections = [...sections, section];
+          }
+          setFormData({ ...formData, classSections: newClassSections });
+     };
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setIsSubmitting(true);
+          const method = editingId ? "PUT" : "POST";
+          const url = editingId ? `/api/cbse-templates/${editingId}` : "/api/cbse-templates";
+
+          try {
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+               });
+
+               if (res.ok) {
+                    setNotification({ message: `Template ${editingId ? "updated" : "added"} successfully!`, type: "success" });
+                    resetForm();
+                    fetchInitialData();
+               } else {
+                    setNotification({ message: "Error saving template.", type: "error" });
+               }
+          } catch (error) {
+               setNotification({ message: "Network error.", type: "error" });
+          } finally {
+               setIsSubmitting(false);
+          }
+     };
+
+     const handleEdit = (template: ITemplate) => {
+          setEditingId(template._id);
+          setFormData({
+               name: template.name,
+               classSections: template.classSections || [],
+               description: template.description || ""
+          });
+          setShowForm(true);
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure you want to delete this template?")) return;
+          try {
+               const res = await fetch(`/api/cbse-templates/${id}`, { method: "DELETE" });
+               if (res.ok) {
+                    setNotification({ message: "Template deleted!", type: "success" });
+                    fetchInitialData();
+               } else {
+                    setNotification({ message: "Error deleting template.", type: "error" });
+               }
+          } catch (error) {
+               setNotification({ message: "Network error.", type: "error" });
+          }
+     };
+
+     const resetForm = () => {
+          setFormData({ name: "", classSections: [], description: "" });
+          setEditingId(null);
+          setShowForm(false);
+     };
+
+     const filteredTemplates = templates.filter(t => 
+          t.name.toLowerCase().includes(searchTerm.toLowerCase())
+     );
 
      return (
           <>
+               {notification.type && (
+                    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${notification.type === "success" ? "bg-success-300" : "bg-error-300"}`}>
+                         {notification.message}
+                         <button onClick={() => setNotification({ message: "", type: null })} className="ml-4 font-bold">X</button>
+                    </div>
+               )}
+
                <div className="2xl:flex 2xl:space-x-[48px]">
-                    <section className="2xl:flex-1 2xl:mb-0 mb-6">
+                    <section className="2xl:flex-1 2xl:mb-0 mb-6 font-medium">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-
-                                   {/* Search Bar and Export Icons */}
-                                   <div className="w-full flex justify-between items-center space-x-4">
-                                        <div className="w-full border border-transparent focus-within:border-success-300 h-12 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                                             <div className="flex w-full h-full items-center space-x-[15px]">
-                                                  <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            placeholder="Search..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                       />
-                                                  </label>
-                                             </div>
-                                        </div>
-
-                                        {/* Export Icons */}
-                                        <div className="flex items-center space-x-3">
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Copy">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M13.3333 10.75V14.25C13.3333 14.6642 13.1577 15.0617 12.8452 15.3562C12.5326 15.6507 12.1087 15.8167 11.6667 15.8167H5.83333C5.39131 15.8167 4.96738 15.6507 4.65482 15.3562C4.34226 15.0617 4.16667 14.6642 4.16667 14.25V8.58333C4.16667 8.16922 4.34226 7.77174 4.65482 7.47731C4.96738 7.18288 5.39131 7.01667 5.83333 7.01667H9.16667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                       <path d="M11.668 4.18335H15.8346V8.25002" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                       <path d="M8.33203 11.5833L15.832 4.18335" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Excel">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M11.6654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V6.66667L11.6654 2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                       <path d="M11.668 2.5V6.66667H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="CSV">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M14.1654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V4.16667C15.832 3.24619 15.0859 2.5 14.1654 2.5Z" stroke="currentColor" strokeWidth="1.5"/>
-                                                       <path d="M7.5 7.5H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                       <path d="M7.5 10.8333H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="PDF">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M11.6654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V6.66667L11.6654 2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                       <path d="M11.668 2.5V6.66667H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Print">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M5 7.5V5.83333C5 5.39131 5.17559 4.96738 5.48816 4.65482C5.80072 4.34226 6.22464 4.16667 6.66667 4.16667H13.3333C13.7754 4.16667 14.1993 4.34226 14.5118 4.65482C14.8244 4.96738 15 5.39131 15 5.83333V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                       <path d="M5 12.5H3.33333C2.89131 12.5 2.46738 12.3244 2.15482 12.0118C1.84226 11.6993 1.66667 11.2754 1.66667 10.8333V8.33333C1.66667 7.89131 1.84226 7.46738 2.15482 7.15482C2.46738 6.84226 2.89131 6.66667 3.33333 6.66667H16.6667C17.1087 6.66667 17.5326 6.84226 17.8452 7.15482C18.1577 7.46738 18.3333 7.89131 18.3333 8.33333V10.8333C18.3333 11.2754 18.1577 11.6993 17.8452 12.0118C17.5326 12.3244 17.1087 12.5 16.6667 12.5H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                       <path d="M5 10H15V15.8333C15 16.0543 14.9122 16.2663 14.7559 16.4226C14.5996 16.5789 14.3877 16.6667 14.1667 16.6667H5.83333C5.61232 16.6667 5.40036 16.5789 5.24408 16.4226C5.0878 16.2663 5 16.0543 5 15.8333V10Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Columns">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M3.33203 3.33334H16.6654V16.6667H3.33203V3.33334Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                       <path d="M10 3.33334V16.6667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                  </svg>
-                                             </button>
+                                   <div className="flex justify-between items-center">
+                                        <div className="relative w-72">
+                                             <input
+                                                  type="text"
+                                                  placeholder="Search..."
+                                                  value={searchTerm}
+                                                  onChange={(e) => setSearchTerm(e.target.value)}
+                                                  className="w-full h-12 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-10 focus:ring-0 border-none text-sm"
+                                             />
+                                             <span className="absolute left-3 top-3.5">
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"><circle cx="9" cy="9" r="6" strokeWidth="1.5"/><path d="M14 14l4 4" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                                             </span>
                                         </div>
                                         <button
-                                             type="button"
-                                             className="px-6 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 dark:bg-success-300 text-nowrap dark:hover:bg-success-400 text-white font-semibold transition-colors"
+                                             onClick={() => { resetForm(); setShowForm(true); }}
+                                             className="px-6 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 text-white font-semibold transition-colors"
                                         >
                                              Add New
                                         </button>
                                    </div>
 
-                                   {/* Table */}
                                    <div className="table-content w-full overflow-x-auto">
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Template</span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Class Sections</span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Template Description</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0 text-right">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
-                                                       </td>
+                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-bgray-50">Template</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-bgray-50">Class Sections</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-bgray-50">Description</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-right font-medium text-bgray-600 dark:text-bgray-50">Action</th>
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  {templateData.map((item, index) => (
-                                                       <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.template}</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.classSections}</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300">{item.description}</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex justify-end space-x-2 items-center">
-                                                                      <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="View Details">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M2.5 5.83333H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                                                <path d="M2.5 10H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                                                <path d="M2.5 14.1667H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="View">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M1.66797 10C1.66797 10 4.16797 4.16666 10.0013 4.16666C15.8346 4.16666 18.3346 10 18.3346 10C18.3346 10 15.8346 15.8333 10.0013 15.8333C4.16797 15.8333 1.66797 10 1.66797 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-success-300 dark:hover:text-success-300 transition-colors" title="Edit">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M9.16797 3.33334H3.33464C2.89261 3.33334 2.46868 3.50894 2.15612 3.82149C1.84356 4.13405 1.66797 4.55798 1.66797 5.00001V16.6667C1.66797 17.1087 1.84356 17.5326 2.15612 17.8452C2.46868 18.1577 2.89261 18.3333 3.33464 18.3333H15.0013C15.4433 18.3333 15.8673 18.1577 16.1798 17.8452C16.4924 17.5326 16.668 17.1087 16.668 16.6667V10.8333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M15.418 2.08332C15.7495 1.75188 16.1991 1.56555 16.668 1.56555C17.1368 1.56555 17.5864 1.75188 17.918 2.08332C18.2494 2.41476 18.4357 2.86436 18.4357 3.33332C18.4357 3.80228 18.2494 4.25188 17.918 4.58332L10.0013 12.5L6.66797 13.3333L7.5013 9.99999L15.418 2.08332Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Copy">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M13.3333 10.75V14.25C13.3333 14.6642 13.1577 15.0617 12.8452 15.3562C12.5326 15.6507 12.1087 15.8167 11.6667 15.8167H5.83333C5.39131 15.8167 4.96738 15.6507 4.65482 15.3562C4.34226 15.0617 4.16667 14.6642 4.16667 14.25V8.58333C4.16667 8.16922 4.34226 7.77174 4.65482 7.47731C4.96738 7.18288 5.39131 7.01667 5.83333 7.01667H9.16667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M11.668 4.18335H15.8346V8.25002" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M8.33203 11.5833L15.832 4.18335" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-error-300 dark:hover:text-error-300 transition-colors" title="Delete">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M15.8333 5L14.1667 15.8333C14.1667 16.2754 13.9911 16.6993 13.6785 17.0118C13.366 17.3244 12.942 17.5 12.5 17.5H7.5C7.05797 17.5 6.63405 17.3244 6.32149 17.0118C6.00893 16.6993 5.83333 16.2754 5.83333 15.8333L4.16667 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M8.33203 9.16666V14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M11.668 9.16666V14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M2.5 5H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                                                <path d="M7.5 5V3.33333C7.5 3.11232 7.5878 2.90036 7.74408 2.74408C7.90036 2.5878 8.11232 2.5 8.33333 2.5H11.6667C11.8877 2.5 12.0996 2.5878 12.2559 2.74408C12.4122 2.90036 12.5 3.11232 12.5 3.33333V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-                                                  ))}
+                                                  {isLoading ? (
+                                                       <tr><td colSpan={4} className="py-20 text-center">Loading templates...</td></tr>
+                                                  ) : filteredTemplates.length === 0 ? (
+                                                       <tr><td colSpan={4} className="py-20 text-center text-bgray-500">No templates found.</td></tr>
+                                                  ) : (
+                                                       filteredTemplates.map((template) => (
+                                                            <tr key={template._id} className="border-b border-bgray-200 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500">
+                                                                 <td className="py-5 px-6 xl:px-0 text-bgray-900 dark:text-white font-medium">{template.name}</td>
+                                                                 <td className="py-5 px-6 xl:px-0 text-bgray-700 dark:text-bgray-300 text-sm">
+                                                                      {template.classSections.map((cs, i) => (
+                                                                           <div key={i}>{cs.className}: {cs.sections.join(", ")}</div>
+                                                                      ))}
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-400 text-sm max-w-xs truncate">{template.description || "-"}</td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <div className="flex justify-end space-x-3">
+                                                                           <button onClick={() => handleEdit(template)} className="text-bgray-500 hover:text-success-300"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                                                           <button onClick={() => handleDelete(template._id)} className="text-bgray-500 hover:text-error-300"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                                                                      </div>
+                                                                 </td>
+                                                            </tr>
+                                                       ))
+                                                  )}
                                              </tbody>
                                         </table>
-                                   </div>
-
-                                   {/* Pagination */}
-                                   <div className="pagination-content w-full">
-                                        <div className="w-full flex justify-between items-center">
-                                             <div className="text-sm text-bgray-600 dark:text-bgray-300">Records: 1 to 14 of 14</div>
-                                             <div className="flex items-center space-x-3">
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors">
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                       </svg>
-                                                  </button>
-                                                  <button type="button" className="rounded-lg text-white lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-300 hover:bg-success-400 transition-colors">1</button>
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors">
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                       </svg>
-                                                  </button>
-                                             </div>
-                                        </div>
                                    </div>
                               </div>
                          </div>
                     </section>
+
+                    {showForm && (
+                         <aside className="2xl:w-[400px] w-full bg-white dark:bg-darkblack-600 rounded-lg p-6 h-fit sticky top-6 shadow-xl border border-bgray-200 dark:border-darkblack-500 transition-all">
+                              <div className="flex justify-between items-center mb-6">
+                                   <h3 className="text-xl font-bold text-bgray-900 dark:text-white">{editingId ? "Edit Template" : "Add Template"}</h3>
+                                   <button onClick={resetForm} className="text-bgray-500 hover:text-bgray-900 border rounded p-1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                              </div>
+                              <form onSubmit={handleSubmit} className="space-y-4">
+                                   <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Template Name *</label>
+                                        <input
+                                             type="text"
+                                             required
+                                             value={formData.name}
+                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                             className="w-full h-11 bg-bgray-100 dark:bg-darkblack-500 rounded-lg px-4 focus:ring-2 focus:ring-success-300 border-none"
+                                        />
+                                   </div>
+
+                                   <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                             <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class & Sections *</label>
+                                             <button type="button" onClick={handleAddClassSection} className="text-xs text-success-300 hover:underline font-bold">+ Add Class</button>
+                                        </div>
+                                        {formData.classSections.map((cs, idx) => (
+                                             <div key={idx} className="p-3 bg-bgray-50 dark:bg-darkblack-700 rounded-lg space-y-3 relative group">
+                                                  <button type="button" onClick={() => handleRemoveClassSection(idx)} className="absolute -top-2 -right-2 bg-error-300 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">X</button>
+                                                  <select
+                                                       required
+                                                       value={cs.className}
+                                                       onChange={(e) => handleClassChange(idx, e.target.value)}
+                                                       className="w-full h-9 bg-white dark:bg-darkblack-500 rounded border-bgray-300 text-sm focus:ring-success-300"
+                                                  >
+                                                       <option value="">Select Class</option>
+                                                       {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                                                  </select>
+                                                   <div className="flex flex-wrap gap-2">
+                                                        {(classSectionsMap[cs.className] || sections).map(s => (
+                                                             <button
+                                                                  key={s}
+                                                                  type="button"
+                                                                  onClick={() => handleSectionToggle(idx, s)}
+                                                                  className={`px-2 py-1 rounded text-xs border transition-colors ${cs.sections.includes(s) ? "bg-success-300 border-success-300 text-white" : "border-bgray-300 hover:border-success-300"}`}
+                                                             >
+                                                                  {s}
+                                                             </button>
+                                                       ))}
+                                                       {cs.className && !classSectionsMap[cs.className] && (
+                                                            <span className="text-[10px] text-bgray-500 italic">Select class to view sections...</span>
+                                                       )}
+                                                  </div>
+                                             </div>
+                                        ))}
+                                   </div>
+
+                                   <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</label>
+                                        <textarea
+                                             value={formData.description}
+                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                             className="w-full h-24 bg-bgray-100 dark:bg-darkblack-500 rounded-lg p-4 focus:ring-2 focus:ring-success-300 border-none text-sm resize-none"
+                                        />
+                                   </div>
+
+                                   <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full h-12 bg-success-300 hover:bg-success-400 text-white font-bold rounded-lg transition-all disabled:opacity-50"
+                                   >
+                                        {isSubmitting ? "Saving..." : editingId ? "Update Template" : "Save Template"}
+                                   </button>
+                              </form>
+                         </aside>
+                    )}
                </div>
           </>
      );

@@ -40,9 +40,15 @@ export default function CreateStudent() {
           religion: "",
           admission_date: today
      });
-     const [isSubmitted, setIsSubmitted] = useState(false);
+     const [isSubmitting, setIsSubmitting] = useState(false);
      const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
      const [dynamicHouses, setDynamicHouses] = useState<string[]>([]);
+     const [notification, setNotification] = useState<{ message: string, type: "success" | "error" } | null>(null);
+
+     const showNotification = (message: string, type: "success" | "error") => {
+          setNotification({ message, type });
+          setTimeout(() => setNotification(null), 3000);
+     };
 
      // Sibling States
      const [siblingModalOpen, setSiblingModalOpen] = useState(false);
@@ -87,6 +93,17 @@ export default function CreateStudent() {
           setFormData(prev => ({ ...prev, [name]: value }));
      };
 
+     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0];
+          if (file) {
+               const reader = new FileReader();
+               reader.onloadend = () => {
+                    setFormData(prev => ({ ...prev, photo: reader.result as string }));
+               };
+               reader.readAsDataURL(file);
+          }
+     };
+
      const handleSelectSibling = (sibling: Student) => {
           setSelectedSibling(sibling);
           setFormData(prev => ({
@@ -123,6 +140,7 @@ export default function CreateStudent() {
                status: formData.status || "Active"
           } as Student;
 
+          setIsSubmitting(true);
           try {
                const res = await fetch("/api/students", {
                     method: "POST",
@@ -130,8 +148,9 @@ export default function CreateStudent() {
                     body: JSON.stringify(newStudent)
                });
 
-               if (res.ok) {
-                    setIsSubmitted(true);
+               const json = await res.json();
+               if (res.ok && json.success !== false) {
+                    showNotification("Student Admitted Successfully!", "success");
                     setFormData({
                          class: "",
                          section: "",
@@ -143,17 +162,14 @@ export default function CreateStudent() {
                          admission_date: today
                     });
                     setSelectedSibling(null);
-
-                    setTimeout(() => {
-                         setIsSubmitted(false);
-                    }, 5000);
                } else {
-                    const errorData = await res.json();
-                    alert("Failed to admit student: " + (errorData.error || "Please try again."));
+                    showNotification(json.error || "Failed to admit student. Please try again.", "error");
                }
           } catch (err) {
                console.error("Error admitting student:", err);
-               alert("An error occurred while admitting the student.");
+               showNotification("An error occurred while admitting the student.", "error");
+          } finally {
+               setIsSubmitting(false);
           }
      };
 
@@ -165,15 +181,34 @@ export default function CreateStudent() {
 
      return (
           <>
+               {/* Notification Popup */}
+               {notification && (
+                    <div className={`fixed top-5 right-5 z-[300] transition-all transform animate-fade-in`}>
+                         <div className={`flex items-center space-x-3 px-6 py-4 rounded-lg shadow-2xl border ${
+                              notification.type === "success" 
+                                   ? "bg-success-50 border-success-300 text-success-500" 
+                                   : "bg-red-50 border-red-300 text-red-500"
+                         }`}>
+                              {notification.type === "success" ? (
+                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                   </svg>
+                              ) : (
+                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                   </svg>
+                              )}
+                              <span className="font-bold text-sm">{notification.message}</span>
+                         </div>
+                    </div>
+               )}
+
                <div className="2xl:flex 2xl:space-x-[48px]">
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-                                   {isSubmitted && (
-                                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-                                             Student Admitted Successfully!
-                                        </div>
-                                   )}
                                    <form onSubmit={handleSubmit}>
                                         <div className="flex flex-col space-y-5">
                                              <h3 className="text-2xl font-bold pb-5 text-bgray-900 dark:text-white dark:border-darkblack-400 border-b border-bgray-200">
@@ -203,7 +238,24 @@ export default function CreateStudent() {
                                                        </div>
                                                   </div>
                                                   <div className="grid 2xl:grid-cols-4 md:grid-cols-3 grid-cols-1 gap-6">
-                                                       <Field label="Student Photo" name="photo" type="file" />
+                                                        <div className="flex flex-col gap-2">
+                                                             <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">Student Photo</label>
+                                                             <div className="flex items-center gap-4">
+                                                                  <div className="w-14 h-14 rounded-lg bg-bgray-50 dark:bg-darkblack-500 flex items-center justify-center text-bgray-400 overflow-hidden border border-success-300">
+                                                                       {formData.photo ? (
+                                                                            <img src={formData.photo} alt="Preview" className="w-full h-full object-cover" />
+                                                                       ) : (
+                                                                            <FontAwesomeIcon icon={faUserPlus} className="text-xl" />
+                                                                       )}
+                                                                  </div>
+                                                                  <input 
+                                                                       type="file" 
+                                                                       accept="image/*"
+                                                                       onChange={handleFileChange}
+                                                                       className="flex-1 text-sm text-bgray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-success-50 file:text-success-700 hover:file:bg-success-100" 
+                                                                  />
+                                                             </div>
+                                                        </div>
                                                        <SelectField label="Blood Group" name="blood_group" options={BLOOD_GROUPS} value={formData.blood_group} onChange={handleChange} />
                                                        <SelectField label="Student House" name="student_house" options={dynamicHouses.length > 0 ? dynamicHouses : STUDENT_HOUSES} value={formData.student_house} onChange={handleChange} />
                                                        <Field label="Admission Date" name="admission_date" type="date" value={formData.admission_date} onChange={handleChange} />
@@ -253,9 +305,10 @@ export default function CreateStudent() {
                                              <div className="flex justify-end">
                                                   <button
                                                        type="submit"
-                                                       className="bg-success-300 text-white px-10 py-4 rounded-lg font-bold hover:bg-success-400 transition-colors shadow-lg"
+                                                       disabled={isSubmitting}
+                                                       className="bg-success-300 text-white px-10 py-4 rounded-lg font-bold hover:bg-success-400 transition-colors shadow-lg disabled:opacity-50"
                                                   >
-                                                       Save Student
+                                                       {isSubmitting ? "Saving..." : "Save Student"}
                                                   </button>
                                              </div>
                                         </div>
@@ -304,8 +357,12 @@ export default function CreateStudent() {
                                                        className="flex items-center justify-between p-4 rounded-xl border border-bgray-200 dark:border-darkblack-400 hover:border-success-300 dark:hover:border-success-300 hover:bg-bgray-50 dark:hover:bg-darkblack-500 cursor-pointer transition-all group"
                                                   >
                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-12 h-12 rounded-full bg-bgray-200 dark:bg-darkblack-400 flex items-center justify-center text-bgray-600 dark:text-bgray-200 font-bold uppercase">
-                                                                 {s.fname[0]}{s.lname[0]}
+                                                            <div className="w-12 h-12 rounded-full bg-bgray-200 dark:bg-darkblack-400 flex items-center justify-center text-bgray-600 dark:text-bgray-200 font-bold uppercase overflow-hidden">
+                                                                 {s.photo ? (
+                                                                      <img src={s.photo} alt={s.fname} className="w-full h-full object-cover" />
+                                                                 ) : (
+                                                                      <span>{s.fname[0]}{s.lname ? s.lname[0] : ''}</span>
+                                                                 )}
                                                             </div>
                                                             <div>
                                                                  <h4 className="font-bold dark:text-white group-hover:text-success-300 transition-colors">{s.fname} {s.lname}</h4>

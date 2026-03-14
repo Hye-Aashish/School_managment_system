@@ -161,9 +161,9 @@ export const menu: MenuItem[] = [
         icon: <FileText size={20} className="text-[#0FCDE1]" />,
         dropdown: true,
         submenu: [
-            { title: "Add Expense", url: "/admin/income/addIncome" },
-            { title: "Search Expense", url: "/admin/income/searchIncome" },
-            { title: "Expense Head", url: "/admin/income/incomeHead" },
+            { title: "Add Expense", url: "/admin/expenses/addExpense" },
+            { title: "Search Expense", url: "/admin/expenses/searchExpense" },
+            { title: "Expense Head", url: "/admin/expenses/expenseHead" },
         ],
     },
     {

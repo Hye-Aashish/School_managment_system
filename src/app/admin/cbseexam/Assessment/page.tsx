@@ -1,283 +1,300 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+interface IAssessmentType {
+    name: string;
+    code: string;
+    maxMarks: number;
+}
+
+interface IAssessment {
+    _id: string;
+    name: string;
+    assessmentTypes: IAssessmentType[];
+    created_at: string;
+}
 
 export default function AssessmentList() {
-     const assessmentData = [
-          {
-               assessment: "Periodic Assessment",
-               description: "An examination is a formal test that you take to show your knowledge or ability in a particular subject, or to obtain a qualification. If you have a medical examination, a doctor looks at your body, feels it, or does simple tests in order to check how healthy you are.",
-               types: [
-                    {
-                         name: "Theory",
-                         code: "TH02",
-                         maxMarks: "100",
-                         passingPercentage: "35",
-                         description: "An examination is a formal test that you take to show your knowledge or ability in a particular subject, or to obtain a qualification. If you have a medical examination, a doctor looks at your body, feels it, or does simple tests in order to check how healthy you are."
-                    },
-                    {
-                         name: "Practical",
-                         code: "PC03",
-                         maxMarks: "75",
-                         passingPercentage: "25",
-                         description: "Practical exams test students' practical skills and techniques usually in laboratory, clinical or field settings"
-                    },
-                    {
-                         name: "Assignment",
-                         code: "AS05",
-                         maxMarks: "20",
-                         passingPercentage: "15",
-                         description: "An examination is a formal test that you take to show your knowledge or ability in a particular subject, or to obtain a qualification. If you have a medical examination, a doctor looks at your body, feels it, or does simple tests in order to check how healthy you are."
-                    }
-               ]
-          },
-          {
-               assessment: "Summative Assessment 1",
-               description: "An examination is a formal test that you take to show your knowledge or ability in a particular subject, or to obtain a qualification. If you have a medical examination, a doctor looks at your body, feels it, or does simple tests in order to check how healthy you are.",
-               types: [
-                    {
-                         name: "Theory",
-                         code: "TH02",
-                         maxMarks: "100",
-                         passingPercentage: "35",
-                         description: "An examination is a formal test that you take to show your knowledge or ability in a particular subject, or to obtain a qualification. If you have a medical examination, a doctor looks at your body, feels it, or does simple tests in order to check how healthy you are."
-                    },
-                    {
-                         name: "Practical",
-                         code: "PC03",
-                         maxMarks: "75",
-                         passingPercentage: "25",
-                         description: "Practical exams test students' practical skills and techniques usually in laboratory, clinical or field settings"
-                    }
-               ]
+     const [assessments, setAssessments] = useState<IAssessment[]>([]);
+     const [isLoading, setIsLoading] = useState(true);
+     const [showForm, setShowForm] = useState(false);
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+     const [formData, setFormData] = useState({
+          name: "",
+          assessmentTypes: [{ name: "", code: "", maxMarks: 0 }]
+     });
+
+     useEffect(() => {
+          fetchAssessments();
+     }, []);
+
+     const fetchAssessments = async () => {
+          setIsLoading(true);
+          try {
+               const res = await fetch("/api/cbse-assessments");
+               if (res.ok) {
+                    setAssessments(await res.json());
+               }
+          } catch (error) {
+               console.error("Error fetching assessments:", error);
+          } finally {
+               setIsLoading(false);
           }
-     ];
+     };
+
+     const handleAddType = () => {
+          setFormData({
+               ...formData,
+               assessmentTypes: [...formData.assessmentTypes, { name: "", code: "", maxMarks: 0 }]
+          });
+     };
+
+     const handleRemoveType = (index: number) => {
+          const newTypes = formData.assessmentTypes.filter((_, i) => i !== index);
+          setFormData({ ...formData, assessmentTypes: newTypes });
+     };
+
+     const handleTypeChange = (index: number, field: keyof IAssessmentType, value: string | number) => {
+          const newTypes = [...formData.assessmentTypes];
+          newTypes[index] = { ...newTypes[index], [field]: value };
+          setFormData({ ...formData, assessmentTypes: newTypes });
+     };
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setIsSubmitting(true);
+          try {
+               const url = editingId ? `/api/cbse-assessments/${editingId}` : "/api/cbse-assessments";
+               const method = editingId ? "PUT" : "POST";
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+               });
+
+               if (res.ok) {
+                    setMessage({ type: "success", text: `Assessment ${editingId ? "updated" : "created"} successfully!` });
+                    setFormData({ name: "", assessmentTypes: [{ name: "", code: "", maxMarks: 0 }] });
+                    setEditingId(null);
+                    setShowForm(false);
+                    fetchAssessments();
+               } else {
+                    setMessage({ type: "error", text: "Failed to save assessment" });
+               }
+          } catch (error) {
+               setMessage({ type: "error", text: "An error occurred" });
+          } finally {
+               setIsSubmitting(false);
+               setTimeout(() => setMessage(null), 3000);
+          }
+     };
+
+     const handleEdit = (item: IAssessment) => {
+          setEditingId(item._id);
+          setFormData({
+               name: item.name,
+               assessmentTypes: item.assessmentTypes.map(t => ({ ...t }))
+          });
+          setShowForm(true);
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure you want to delete this assessment?")) return;
+          try {
+               const res = await fetch(`/api/cbse-assessments/${id}`, { method: "DELETE" });
+               if (res.ok) {
+                    setMessage({ type: "success", text: "Assessment deleted successfully!" });
+                    fetchAssessments();
+               }
+          } catch (error) {
+               setMessage({ type: "error", text: "Failed to delete" });
+          } finally {
+               setTimeout(() => setMessage(null), 3000);
+          }
+     };
+
+     const filteredAssessments = assessments.filter(item =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase())
+     );
 
      return (
           <>
+               {message && (
+                    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${message.type === "success" ? "bg-success-300" : "bg-error-300"}`}>
+                         {message.text}
+                    </div>
+               )}
+
                <div className="2xl:flex 2xl:space-x-[48px]">
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-
-                                   {/* Search Bar and Export Icons */}
                                    <div className="w-full flex justify-between items-center space-x-4">
                                         <div className="w-full border border-transparent focus-within:border-success-300 h-12 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
                                              <div className="flex w-full h-full items-center space-x-[15px]">
                                                   <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
+                                                       <svg className="stroke-bgray-900 dark:stroke-white" width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <circle cx="9.80204" cy="10.6761" r="8.98856" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                            <path d="M16.0537 17.3945L19.5777 20.9094" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                        </svg>
                                                   </span>
                                                   <label className="w-full">
                                                        <input
                                                             type="text"
                                                             placeholder="Search..."
+                                                            value={searchTerm}
+                                                            onChange={(e) => setSearchTerm(e.target.value)}
                                                             className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                        />
                                                   </label>
                                              </div>
                                         </div>
 
-                                        {/* Export Icons */}
-                                        <div className="flex items-center space-x-3">
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Copy">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M13.3333 10.75V14.25C13.3333 14.6642 13.1577 15.0617 12.8452 15.3562C12.5326 15.6507 12.1087 15.8167 11.6667 15.8167H5.83333C5.39131 15.8167 4.96738 15.6507 4.65482 15.3562C4.34226 15.0617 4.16667 14.6642 4.16667 14.25V8.58333C4.16667 8.16922 4.34226 7.77174 4.65482 7.47731C4.96738 7.18288 5.39131 7.01667 5.83333 7.01667H9.16667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                       <path d="M11.668 4.18335H15.8346V8.25002" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                       <path d="M8.33203 11.5833L15.832 4.18335" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Excel">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M11.6654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V6.66667L11.6654 2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                                                       <path d="M11.668 2.5V6.66667H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="CSV">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M14.1654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V4.16667C15.832 3.24619 15.0859 2.5 14.1654 2.5Z" stroke="currentColor" strokeWidth="1.5" />
-                                                       <path d="M7.5 7.5H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                                       <path d="M7.5 10.8333H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="PDF">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M11.6654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V6.66667L11.6654 2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                                                       <path d="M11.668 2.5V6.66667H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Print">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M5 7.5V5.83333C5 5.39131 5.17559 4.96738 5.48816 4.65482C5.80072 4.34226 6.22464 4.16667 6.66667 4.16667H13.3333C13.7754 4.16667 14.1993 4.34226 14.5118 4.65482C14.8244 4.96738 15 5.39131 15 5.83333V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                       <path d="M5 12.5H3.33333C2.89131 12.5 2.46738 12.3244 2.15482 12.0118C1.84226 11.6993 1.66667 11.2754 1.66667 10.8333V8.33333C1.66667 7.89131 1.84226 7.46738 2.15482 7.15482C2.46738 6.84226 2.89131 6.66667 3.33333 6.66667H16.6667C17.1087 6.66667 17.5326 6.84226 17.8452 7.15482C18.1577 7.46738 18.3333 7.89131 18.3333 8.33333V10.8333C18.3333 11.2754 18.1577 11.6993 17.8452 12.0118C17.5326 12.3244 17.1087 12.5 16.6667 12.5H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                       <path d="M5 10H15V15.8333C15 16.0543 14.9122 16.2663 14.7559 16.4226C14.5996 16.5789 14.3877 16.6667 14.1667 16.6667H5.83333C5.61232 16.6667 5.40036 16.5789 5.24408 16.4226C5.0878 16.2663 5 16.0543 5 15.8333V10Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                             <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Columns">
-                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M3.33203 3.33334H16.6654V16.6667H3.33203V3.33334Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                                                       <path d="M10 3.33334V16.6667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                        </div>
-
                                         <button
-                                             type="button"
-                                             className="px-6 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 dark:bg-success-300 text-nowrap dark:hover:bg-success-400 text-white font-semibold transition-colors"
+                                             onClick={() => { setShowForm(!showForm); setEditingId(null); setFormData({ name: "", assessmentTypes: [{ name: "", code: "", maxMarks: 0 }] }); }}
+                                             className="px-6 py-2.5 rounded-lg bg-success-300 hover:bg-success-400 text-nowrap text-white font-semibold transition-colors"
                                         >
-                                             Add New
+                                             {showForm ? "View List" : "Add New"}
                                         </button>
                                    </div>
 
-                                   {/* Table */}
-                                   <div className="table-content w-full overflow-x-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Assessment</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Assessment Description</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Assessment Type</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0 text-right">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
-                                                       </td>
-                                                  </tr>
-                                             </thead>
-                                             <tbody>
-                                                  {assessmentData.map((item, index) => (
-                                                       <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0 align-top">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.assessment}</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 align-top">
-                                                                 <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300 max-w-md">{item.description}</p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 align-top">
-                                                                 {/* Nested Assessment Type Table */}
-                                                                 <div className="bg-bgray-100 dark:bg-darkblack-500 rounded-lg p-4">
-                                                                      <table className="w-full">
-                                                                           <thead>
-                                                                                <tr className="border-b border-bgray-200 dark:border-darkblack-400">
-                                                                                     <th className="text-left py-2 px-3 text-sm font-semibold text-bgray-700 dark:text-bgray-200">Name</th>
-                                                                                     <th className="text-left py-2 px-3 text-sm font-semibold text-bgray-700 dark:text-bgray-200">Code</th>
-                                                                                     <th className="text-left py-2 px-3 text-sm font-semibold text-bgray-700 dark:text-bgray-200">Maximum Marks</th>
-                                                                                     <th className="text-left py-2 px-3 text-sm font-semibold text-bgray-700 dark:text-bgray-200">Passing Percentage</th>
-                                                                                     <th className="text-left py-2 px-3 text-sm font-semibold text-bgray-700 dark:text-bgray-200">Description</th>
-                                                                                </tr>
-                                                                           </thead>
-                                                                           <tbody>
-                                                                                {item.types.map((type, typeIndex) => (
-                                                                                     <tr key={typeIndex} className="border-b border-bgray-200 dark:border-darkblack-400 last:border-0">
-                                                                                          <td className="py-2 px-3 text-sm text-bgray-900 dark:text-white">{type.name}</td>
-                                                                                          <td className="py-2 px-3 text-sm text-bgray-900 dark:text-white">{type.code}</td>
-                                                                                          <td className="py-2 px-3 text-sm text-bgray-900 dark:text-white">{type.maxMarks}</td>
-                                                                                          <td className="py-2 px-3 text-sm text-bgray-900 dark:text-white">{type.passingPercentage}</td>
-                                                                                          <td className="py-2 px-3 text-sm text-bgray-600 dark:text-bgray-300 max-w-xs">{type.description}</td>
-                                                                                     </tr>
-                                                                                ))}
-                                                                           </tbody>
-                                                                      </table>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 align-top">
-                                                                 <div className="flex justify-end space-x-3 items-center">
-                                                                      <button type="button" className="text-bgray-500 hover:text-success-300 dark:hover:text-success-300 transition-colors" title="Edit">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M9.16797 3.33334H3.33464C2.89261 3.33334 2.46868 3.50894 2.15612 3.82149C1.84356 4.13405 1.66797 4.55798 1.66797 5.00001V16.6667C1.66797 17.1087 1.84356 17.5326 2.15612 17.8452C2.46868 18.1577 2.89261 18.3333 3.33464 18.3333H15.0013C15.4433 18.3333 15.8673 18.1577 16.1798 17.8452C16.4924 17.5326 16.668 17.1087 16.668 16.6667V10.8333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M15.418 2.08332C15.7495 1.75188 16.1991 1.56555 16.668 1.56555C17.1368 1.56555 17.5864 1.75188 17.918 2.08332C18.2494 2.41476 18.4357 2.86436 18.4357 3.33332C18.4357 3.80228 18.2494 4.25188 17.918 4.58332L10.0013 12.5L6.66797 13.3333L7.5013 9.99999L15.418 2.08332Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-error-300 dark:hover:text-error-300 transition-colors" title="Delete">
-                                                                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M15.8333 5L14.1667 15.8333C14.1667 16.2754 13.9911 16.6993 13.6785 17.0118C13.366 17.3244 12.942 17.5 12.5 17.5H7.5C7.05797 17.5 6.63405 17.3244 6.32149 17.0118C6.00893 16.6993 5.83333 16.2754 5.83333 15.8333L4.16667 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M8.33203 9.16666V14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M11.668 9.16666V14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M2.5 5H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                                                                <path d="M7.5 5V3.33333C7.5 3.11232 7.5878 2.90036 7.74408 2.74408C7.90036 2.5878 8.11232 2.5 8.33333 2.5H11.6667C11.8877 2.5 12.0996 2.5878 12.2559 2.74408C12.4122 2.90036 12.5 3.11232 12.5 3.33333V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
+                                   {!showForm ? (
+                                        <div className="table-content w-full overflow-x-auto">
+                                             <table className="w-full">
+                                                  <thead>
+                                                       <tr className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Assessment</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Types</th>
+                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50">Action</th>
                                                        </tr>
-                                                  ))}
-                                             </tbody>
-                                        </table>
-                                   </div>
+                                                  </thead>
+                                                  <tbody>
+                                                       {isLoading ? (
+                                                            <tr><td colSpan={3} className="py-10 text-center text-bgray-500">Loading...</td></tr>
+                                                       ) : filteredAssessments.length === 0 ? (
+                                                            <tr><td colSpan={3} className="py-10 text-center text-bgray-500">No assessments found</td></tr>
+                                                       ) : (
+                                                            filteredAssessments.map((item) => (
+                                                                 <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                      <td className="py-5 px-6 align-top">
+                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6">
+                                                                           <div className="flex flex-wrap gap-2">
+                                                                                {item.assessmentTypes.map((type, idx) => (
+                                                                                     <span key={idx} className="px-3 py-1 bg-bgray-100 dark:bg-darkblack-500 rounded text-xs font-medium text-bgray-600 dark:text-bgray-300">
+                                                                                          {type.name} ({type.code}) - {type.maxMarks}
+                                                                                     </span>
+                                                                                ))}
+                                                                           </div>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 text-right">
+                                                                           <div className="flex justify-end space-x-2">
+                                                                                <button onClick={() => handleEdit(item)} className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
+                                                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                                                </button>
+                                                                                <button onClick={() => handleDelete(item._id)} className="p-2 text-error-300 hover:bg-error-50 rounded-lg transition-colors">
+                                                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                                                                </button>
+                                                                           </div>
+                                                                      </td>
+                                                                 </tr>
+                                                            ))
+                                                       )}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <form onSubmit={handleSubmit} className="space-y-6">
+                                             <div>
+                                                  <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Assessment Name *</label>
+                                                  <input
+                                                       type="text"
+                                                       required
+                                                       value={formData.name}
+                                                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                       placeholder="e.g., Periodic Assessment"
+                                                       className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300"
+                                                  />
+                                             </div>
 
-                                   {/* Pagination */}
-                                   <div className="pagination-content w-full">
-                                        <div className="w-full flex justify-between items-center">
-                                             <div className="text-sm text-bgray-600 dark:text-bgray-300">Records: 1 to 2 of 2</div>
-                                             <div className="flex items-center space-x-3">
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors">
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
+                                             <div className="space-y-4">
+                                                  <div className="flex justify-between items-center">
+                                                       <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Assessment Types</label>
+                                                       <button
+                                                            type="button"
+                                                            onClick={handleAddType}
+                                                            className="text-sm text-success-300 hover:text-success-400 font-bold"
+                                                       >
+                                                            + Add Type
+                                                       </button>
+                                                  </div>
+
+                                                  {formData.assessmentTypes.map((type, index) => (
+                                                       <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-bgray-200 dark:border-darkblack-400 rounded-lg relative">
+                                                            <div className="md:col-span-1">
+                                                                 <input
+                                                                      type="text"
+                                                                      required
+                                                                      placeholder="Name (e.g. Theory)"
+                                                                      value={type.name}
+                                                                      onChange={(e) => handleTypeChange(index, "name", e.target.value)}
+                                                                      className="w-full px-4 py-2 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm"
+                                                                 />
+                                                            </div>
+                                                            <div className="md:col-span-1">
+                                                                 <input
+                                                                      type="text"
+                                                                      required
+                                                                      placeholder="Code (e.g. TH02)"
+                                                                      value={type.code}
+                                                                      onChange={(e) => handleTypeChange(index, "code", e.target.value)}
+                                                                      className="w-full px-4 py-2 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm"
+                                                                 />
+                                                            </div>
+                                                            <div className="md:col-span-1">
+                                                                 <input
+                                                                      type="number"
+                                                                      required
+                                                                      placeholder="Max Marks"
+                                                                      value={type.maxMarks}
+                                                                      onChange={(e) => handleTypeChange(index, "maxMarks", parseInt(e.target.value))}
+                                                                      className="w-full px-4 py-2 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm"
+                                                                 />
+                                                            </div>
+                                                            <div className="flex items-center justify-center">
+                                                                 {formData.assessmentTypes.length > 1 && (
+                                                                      <button type="button" onClick={() => handleRemoveType(index)} className="text-error-300 hover:text-error-400">
+                                                                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                                                      </button>
+                                                                 )}
+                                                            </div>
+                                                       </div>
+                                                  ))}
+                                             </div>
+
+                                             <div className="flex justify-end space-x-4 pt-4">
+                                                  <button
+                                                       type="button"
+                                                       onClick={() => setShowForm(false)}
+                                                       className="px-6 py-2.5 rounded-lg border border-bgray-300 text-bgray-600 font-semibold hover:bg-bgray-50"
+                                                  >
+                                                       Cancel
                                                   </button>
-                                                  <button type="button" className="rounded-lg text-white lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-300 hover:bg-success-400 transition-colors">1</button>
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors">
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
+                                                  <button
+                                                       type="submit"
+                                                       disabled={isSubmitting}
+                                                       className="px-6 py-2.5 rounded-lg bg-success-300 text-white font-semibold hover:bg-success-400 disabled:opacity-50"
+                                                  >
+                                                       {isSubmitting ? "Saving..." : editingId ? "Update Assessment" : "Create Assessment"}
                                                   </button>
                                              </div>
-                                        </div>
-                                   </div>
+                                        </form>
+                                   )}
                               </div>
                          </div>
                     </section>

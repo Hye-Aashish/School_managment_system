@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import ViewReportModal from "./ViewReportModal";
 
 interface ReportEntry {
      _id: string;
      student: {
+          _id: string;
           fname: string;
           lname: string;
           admission_no: string;
@@ -27,6 +29,10 @@ export default function BehaviourReports() {
      const [selectedSection, setSelectedSection] = useState("All");
      const [dateFrom, setDateFrom] = useState("");
      const [dateTo, setDateTo] = useState("");
+     
+     // Modal state
+     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+     const [selectedStudent, setSelectedStudent] = useState<{id: string, name: string} | null>(null);
 
      const fetchReports = async () => {
           setIsLoading(true);
@@ -47,8 +53,8 @@ export default function BehaviourReports() {
           fetchReports();
      }, []);
 
-     const classList = ["All", "Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
-     const sectionList = ["All", "A", "B", "C", "D", "E"];
+     const classList = ["All", ...Array.from(new Set(reports.map(item => item.student?.class).filter(Boolean).sort()))];
+     const sectionList = ["All", ...Array.from(new Set(reports.map(item => item.student?.section).filter(Boolean).sort()))];
 
      const filteredData = reports.filter(item => {
           const matchesSearch = 
@@ -62,12 +68,28 @@ export default function BehaviourReports() {
           let matchesDate = true;
           if (dateFrom || dateTo) {
                const itemDate = new Date(item.date);
-               if (dateFrom && itemDate < new Date(dateFrom)) matchesDate = false;
-               if (dateTo && itemDate > new Date(dateTo)) matchesDate = false;
+               if (dateFrom) {
+                    const from = new Date(dateFrom);
+                    from.setHours(0, 0, 0, 0);
+                    if (itemDate < from) matchesDate = false;
+               }
+               if (dateTo) {
+                    const to = new Date(dateTo);
+                    to.setHours(23, 59, 59, 999);
+                    if (itemDate > to) matchesDate = false;
+               }
           }
 
           return matchesSearch && matchesClass && matchesSection && matchesDate;
      });
+
+     const handleView = (item: ReportEntry) => {
+          setSelectedStudent({
+               id: item.student?._id || "",
+               name: `${item.student?.fname} ${item.student?.lname}`
+          });
+          setIsViewModalOpen(true);
+     };
 
      return (
           <div className="p-6">
@@ -139,13 +161,14 @@ export default function BehaviourReports() {
                                              <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Points</td>
                                              <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Date</td>
                                              <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Assigned By</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium text-right">Action</td>
                                         </tr>
                                    </thead>
                                    <tbody>
                                         {isLoading ? (
-                                             <tr><td colSpan={7} className="text-center py-10">Loading...</td></tr>
+                                             <tr><td colSpan={8} className="text-center py-10 text-bgray-500">Loading...</td></tr>
                                         ) : filteredData.length === 0 ? (
-                                             <tr><td colSpan={7} className="text-center py-10">No reports found</td></tr>
+                                             <tr><td colSpan={8} className="text-center py-10 text-bgray-500">No reports found</td></tr>
                                         ) : filteredData.map((item) => (
                                              <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                   <td className="py-5 px-4 font-medium text-bgray-900 dark:text-bgray-50">
@@ -163,6 +186,18 @@ export default function BehaviourReports() {
                                                        {new Date(item.date).toLocaleDateString()}
                                                   </td>
                                                   <td className="py-5 px-4 text-bgray-900 dark:text-bgray-50">{item.assignedBy}</td>
+                                                  <td className="py-5 px-4 text-right">
+                                                       <button 
+                                                            onClick={() => handleView(item)}
+                                                            className="p-2 bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
+                                                            title="View Detailed Logs"
+                                                       >
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                                 <circle cx="12" cy="12" r="3"></circle>
+                                                            </svg>
+                                                       </button>
+                                                  </td>
                                              </tr>
                                         ))}
                                    </tbody>
@@ -170,6 +205,15 @@ export default function BehaviourReports() {
                          </div>
                     </div>
                </div>
+               
+               {selectedStudent && (
+                    <ViewReportModal 
+                         isOpen={isViewModalOpen}
+                         onClose={() => setIsViewModalOpen(false)}
+                         studentId={selectedStudent.id}
+                         studentName={selectedStudent.name}
+                    />
+               )}
           </div>
      );
 }
