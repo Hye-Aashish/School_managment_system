@@ -62,7 +62,10 @@ export default function Reports() {
                      setExams(data);
                      if (data.length > 0) setSelectedExam(data[0]._id);
                 }
-                if (classRes.ok) setClasses(await classRes.json());
+                if (classRes.ok) {
+                        const json = await classRes.json();
+                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                     }
            } catch (error) {
                 console.error("Error fetching initial data:", error);
            } finally {

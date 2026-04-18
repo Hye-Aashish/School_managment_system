@@ -1,578 +1,539 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 export default function QuestionBank() {
-     const [openFilter, setOpenFilter] = useState<"class" | "section" | "subject" | "questionType" | "questionLevel" | "createdBy" | "export" | null>(null);
+     const [openFilter, setOpenFilter] = useState<string | null>(null);
      const [searchQuery, setSearchQuery] = useState("");
+     const [questions, setQuestions] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
 
-     const toggleFilter = (type: "class" | "section" | "subject" | "questionType" | "questionLevel" | "createdBy" | "export") => {
+     // Dropdown data
+     const [classes, setClasses] = useState<any[]>([]);
+     const [sections, setSections] = useState<any[]>([]);
+     const [subjects] = useState<string[]>(["English", "Mathematics", "Science", "Hindi", "Social Science", "Sanskrit", "Computer", "General Knowledge"]);
+     
+     const [selectedClass, setSelectedClass] = useState("");
+     const [selectedSection, setSelectedSection] = useState("");
+     const [selectedSubject, setSelectedSubject] = useState("");
+     const [selectedType, setSelectedType] = useState("");
+     const [selectedLevel, setSelectedLevel] = useState("");
+
+     // Modal states
+     const [isModalOpen, setIsModalOpen] = useState(false);
+     const [isEditMode, setIsEditMode] = useState(false);
+     const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
+     
+     const [formData, setFormData] = useState({
+          question: "",
+          question_type: "Single Choice",
+          level: "Medium",
+          subject: "",
+          class: "",
+          section: "",
+          answer: "",
+          options: ["", "", "", ""]
+     });
+
+     useEffect(() => {
+          fetchInitialData();
+          fetchQuestions();
+     }, []);
+
+     const fetchInitialData = async () => {
+          try {
+               const classRes = await fetch("/api/classes");
+               const classData = await classRes.json();
+               if (classData.success) setClasses(classData.data);
+          } catch (error) {
+               console.error("Failed to fetch classes", error);
+          }
+     };
+
+     useEffect(() => {
+          if (selectedClass) {
+               fetch(`/api/sections?class=${selectedClass}`)
+                    .then(res => res.json())
+                    .then(data => {
+                         if (data.success) setSections(data.data);
+                    });
+          } else {
+               setSections([]);
+          }
+     }, [selectedClass]);
+
+     const fetchQuestions = async () => {
+          setLoading(true);
+          try {
+               const params = new URLSearchParams();
+               if (selectedClass) params.append("class", selectedClass);
+               if (selectedSection) params.append("section", selectedSection);
+               if (selectedSubject) params.append("subject", selectedSubject);
+               if (selectedType) params.append("questionType", selectedType);
+               if (selectedLevel) params.append("level", selectedLevel);
+
+               const response = await fetch(`/api/online-exams/questions?${params.toString()}`);
+               const data = await response.json();
+               if (data.success) {
+                    setQuestions(data.data);
+               }
+          } catch (error) {
+               console.error("Failed to fetch questions", error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     // Auto-refresh on filter change
+     useEffect(() => {
+          fetchQuestions();
+     }, [selectedClass, selectedSection, selectedSubject, selectedType, selectedLevel]);
+
+     const toggleFilter = (type: string | null) => {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     // Sample question data
-     const questionData = [
-          { id: 84, subject: "English (210)", questionType: "Single Choice", level: "Medium", question: "Robots get their power from: A. Battery B. Paper C. Plastic D. Water", createdBy: "Joe Black (9000)" },
-          { id: 83, subject: "Science (111)", questionType: "Descriptive", level: "Medium", question: "Write a yoga short essay?", createdBy: "Joe Black (9000)" },
-          { id: 73, subject: "Hindi (230)", questionType: "Single Choice", level: "Medium", question: "सूर्योदय का सही संधि-विच्छेद क्या है ?", createdBy: "Jason Sharlton (90006)" },
-          { id: 72, subject: "Science (111)", questionType: "Single Choice", level: "High", question: "How many water molecules does hydrated cal-cium sulphate contain?", createdBy: "Jason Sharlton (90006)" },
-          { id: 71, subject: "Science (111)", questionType: "Single Choice", level: "Medium", question: "Which one of the following is biotic resource?", createdBy: "Jason Sharlton (90006)" },
-          { id: 70, subject: "Mathematics (110)", questionType: "Multiple Choice", level: "Medium", question: "The number which comes between 512 and 514 is ____", createdBy: "Jason Sharlton (90006)" },
-          { id: 69, subject: "Mathematics (110)", questionType: "Single Choice", level: "Medium", question: "what comes after 328 ?", createdBy: "Shivam Verma (9002)" }
-     ];
+     const handleSaveQuestion = async (e: React.FormEvent) => {
+          e.preventDefault();
+          try {
+               const url = "/api/online-exams/questions" + (isEditMode ? `?id=${currentQuestionId}` : "");
+               const method = isEditMode ? "PUT" : "POST";
+               
+               const response = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+               });
+
+               const data = await response.json();
+               if (data.success) {
+                    setIsModalOpen(false);
+                    resetForm();
+                    fetchQuestions();
+               } else {
+                    alert(data.error || "Failed to save question");
+               }
+          } catch (error) {
+               console.error("Error saving question", error);
+          }
+     };
+
+     const resetForm = () => {
+          setFormData({
+               question: "",
+               question_type: "Single Choice",
+               level: "Medium",
+               subject: "",
+               class: "",
+               section: "",
+               answer: "",
+               options: ["", "", "", ""]
+          });
+          setIsEditMode(false);
+          setCurrentQuestionId(null);
+          setIsModalOpen(false);
+     };
+
+     const handleEditQuestion = (question: any) => {
+          setFormData({
+               question: question.question,
+               question_type: question.question_type,
+               level: question.level,
+               subject: question.subject,
+               class: question.class,
+               section: question.section,
+               answer: question.answer,
+               options: question.options && question.options.length > 0 ? question.options : ["", "", "", ""]
+          });
+          setCurrentQuestionId(question._id);
+          setIsEditMode(true);
+          setIsModalOpen(true);
+     };
+
+     const handleDeleteQuestion = async (id: string) => {
+          if (!window.confirm("Are you sure you want to delete this question?")) return;
+          try {
+               const response = await fetch(`/api/online-exams/questions?id=${id}`, { method: "DELETE" });
+               const data = await response.json();
+               if (data.success) fetchQuestions();
+          } catch (error) {
+               console.error("Failed to delete question", error);
+          }
+     };
+
+     const handleOptionChange = (index: number, value: string) => {
+          const newOptions = [...formData.options];
+          newOptions[index] = value;
+          setFormData({ ...formData, options: newOptions });
+     };
+
+     const filteredQuestions = useMemo(() => {
+          return questions.filter(q => 
+               q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               q.subject.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+     }, [questions, searchQuery]);
 
      return (
-          <>
+          <div className="flex flex-col space-y-6">
                <div className="2xl:flex 2xl:space-x-[48px]">
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
-                         <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
-                              <div className="flex flex-col space-y-5">
-                                   {/* Filters Row */}
-                                   <div className="w-full flex gap-4 justify-around">
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="h-14 w-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("class")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Class</span>
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 1</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 2</li>
-                                                  </ul>
-                                             </div>
+                         {/* Header Stats / Filters */}
+                         <div className="w-full py-6 px-6 rounded-2xl bg-white dark:bg-darkblack-600 shadow-sm border border-bgray-200 dark:border-darkblack-500 mb-6">
+                              <div className="flex flex-col space-y-6">
+                                   <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                        <div className="flex flex-col">
+                                             <h3 className="text-xl font-black uppercase text-bgray-900 dark:text-white tracking-tight">Question Repository</h3>
+                                             <p className="text-[10px] font-bold text-bgray-500 uppercase tracking-widest">Managing the central intellectual assets of the institution</p>
                                         </div>
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="h-14 w-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("section")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Section</span>
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"}`}>
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">A</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">B</li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="h-14 w-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("subject")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Subject</span>
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "subject" ? "block" : "hidden"}`}>
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">English</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Science</li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="h-14 w-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("questionType")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Question Type</span>
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "questionType" ? "block" : "hidden"}`}>
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Single Choice</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Multiple Choice</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Descriptive</li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="h-14 w-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("questionLevel")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Question Level</span>
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "questionLevel" ? "block" : "hidden"}`}>
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Easy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Medium</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Hard</li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="h-14 w-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500 min-w-[150px]"
-                                                  onClick={() => toggleFilter("createdBy")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Created By</span>
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "createdBy" ? "block" : "hidden"}`}>
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Joe Black (9000)</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Jason Sharlton (90006)</li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                        <div className="w-full relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                  onClick={() => toggleFilter("export")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
-                                                  </ul>
-                                             </div>
-                                        </div>
+                                        <button
+                                             type="button"
+                                             onClick={() => { resetForm(); setIsModalOpen(true); }}
+                                             className="px-8 h-12 rounded-xl bg-[#22C55E] hover:bg-[#16a34a] text-white font-black transition-all flex items-center justify-center space-x-2 shadow-lg shadow-green-100 dark:shadow-none uppercase tracking-widest text-xs"
+                                        >
+                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5V19M5 12H19" /></svg>
+                                             <span>New Question</span>
+                                        </button>
                                    </div>
 
-                                   {/* Search and Actions */}
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div
-                                             className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]"
-                                        >
-                                             <div
-                                                  className="flex w-full h-full items-center space-x-[15px]"
-                                             >
-                                                  <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            placeholder="Search..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                            value={searchQuery}
-                                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                                       />
-                                                  </label>
-                                             </div>
+                                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        {/* Class Filter */}
+                                        <div className="relative group">
+                                             <button onClick={() => toggleFilter("class")} className="h-12 w-full rounded-xl bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center transition-all border-2 border-transparent focus:border-success-300">
+                                                  <span className="text-xs font-bold text-bgray-600 dark:text-bgray-300 uppercase truncate">{selectedClass || "All Classes"}</span>
+                                                  <svg className={`transition-transform ${openFilter === 'class' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                                             </button>
+                                             {openFilter === "class" && (
+                                                  <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px]">
+                                                       <div onClick={() => { setSelectedClass(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Classes</div>
+                                                       {classes.map(c => (
+                                                            <div key={c._id} onClick={() => { setSelectedClass(c.className); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {c.className}
+                                                            </div>
+                                                       ))}
+                                                  </div>
+                                             )}
+                                        </div>
+
+                                        {/* Section Filter */}
+                                        <div className="relative group">
+                                             <button onClick={() => toggleFilter("section")} className="h-12 w-full rounded-xl bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center transition-all border-2 border-transparent focus:border-success-300">
+                                                  <span className="text-xs font-bold text-bgray-600 dark:text-bgray-300 uppercase truncate">{selectedSection || "Section"}</span>
+                                                  <svg className={`transition-transform ${openFilter === 'section' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                                             </button>
+                                             {openFilter === "section" && (
+                                                  <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px]">
+                                                       <div onClick={() => { setSelectedSection(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Sections</div>
+                                                       {sections.map(s => (
+                                                            <div key={s._id} onClick={() => { setSelectedSection(s.sectionName); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {s.sectionName}
+                                                            </div>
+                                                       ))}
+                                                  </div>
+                                             )}
+                                        </div>
+
+                                        {/* Subject Filter */}
+                                        <div className="relative group">
+                                             <button onClick={() => toggleFilter("subject")} className="h-12 w-full rounded-xl bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center transition-all border-2 border-transparent focus:border-success-300">
+                                                  <span className="text-xs font-bold text-bgray-600 dark:text-bgray-300 uppercase truncate">{selectedSubject || "Subject"}</span>
+                                                  <svg className={`transition-transform ${openFilter === 'subject' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                                             </button>
+                                             {openFilter === "subject" && (
+                                                  <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px] max-h-60 overflow-y-auto">
+                                                       <div onClick={() => { setSelectedSubject(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Subjects</div>
+                                                       {subjects.map(s => (
+                                                            <div key={s} onClick={() => { setSelectedSubject(s); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {s}
+                                                            </div>
+                                                       ))}
+                                                  </div>
+                                             )}
+                                        </div>
+
+                                        {/* Type Filter */}
+                                        <div className="relative group">
+                                             <button onClick={() => toggleFilter("type")} className="h-12 w-full rounded-xl bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center transition-all border-2 border-transparent focus:border-success-300">
+                                                  <span className="text-xs font-bold text-bgray-600 dark:text-bgray-300 uppercase truncate">{selectedType || "Type"}</span>
+                                                  <svg className={`transition-transform ${openFilter === 'type' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                                             </button>
+                                             {openFilter === "type" && (
+                                                  <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px]">
+                                                       <div onClick={() => { setSelectedType(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Types</div>
+                                                       {["Single Choice", "Multiple Choice", "True/False", "Descriptive"].map(t => (
+                                                            <div key={t} onClick={() => { setSelectedType(t); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {t}
+                                                            </div>
+                                                       ))}
+                                                  </div>
+                                             )}
+                                        </div>
+
+                                        {/* Level Filter */}
+                                        <div className="relative group">
+                                             <button onClick={() => toggleFilter("level")} className="h-12 w-full rounded-xl bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center transition-all border-2 border-transparent focus:border-success-300">
+                                                  <span className="text-xs font-bold text-bgray-600 dark:text-bgray-300 uppercase truncate">{selectedLevel || "Level"}</span>
+                                                  <svg className={`transition-transform ${openFilter === 'level' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                                             </button>
+                                             {openFilter === "level" && (
+                                                  <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px]">
+                                                       <div onClick={() => { setSelectedLevel(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Levels</div>
+                                                       {["Low", "Medium", "High"].map(l => (
+                                                            <div key={l} onClick={() => { setSelectedLevel(l); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {l}
+                                                            </div>
+                                                       ))}
+                                                  </div>
+                                             )}
                                         </div>
 
                                         <button
                                              type="button"
-                                             className="px-6 py-3 rounded-lg bg-success-300 hover:bg-success-400 text-white font-bold transition-all flex items-center space-x-2"
+                                             onClick={() => {
+                                                  setSelectedClass("");
+                                                  setSelectedSection("");
+                                                  setSelectedSubject("");
+                                                  setSelectedType("");
+                                                  setSelectedLevel("");
+                                             }}
+                                             className="h-12 w-full rounded-xl bg-bgray-900 dark:bg-darkblack-500 text-white font-black hover:bg-black transition-all uppercase tracking-widest text-[9px]"
                                         >
-                                             <svg
-                                                  width="18"
-                                                  height="18"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  className="stroke-white"
-                                             >
-                                                  <circle
-                                                       cx="12"
-                                                       cy="12"
-                                                       r="9"
-                                                       strokeWidth="1.5"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                       d="M12 8V16"
-                                                       strokeWidth="1.5"
-                                                       strokeLinecap="round"
-                                                  />
-                                                  <path
-                                                       d="M8 12H16"
-                                                       strokeWidth="1.5"
-                                                       strokeLinecap="round"
-                                                  />
-                                             </svg>
-                                             <span>Add</span>
-                                        </button><button
-                                             type="button"
-                                             className="px-6 py-3 rounded-lg !bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all flex items-center space-x-2"
-                                        >
-                                             <svg
-                                                  width="18"
-                                                  height="18"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  className="stroke-white"
-                                             >
-                                                  <path
-                                                       d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                       d="M17 8L12 3L7 8"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                       d="M12 3V15"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                             </svg>
-                                             <span>Import</span>
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="px-6 py-3 rounded-lg !bg-red-500 !hover:bg-red-600 text-white font-bold transition-all flex items-center space-x-2"
-                                        >
-                                             <svg
-                                                  width="18"
-                                                  height="18"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  className="stroke-white"
-                                             >
-                                                  <path
-                                                       d="M3 6H5H21"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                       d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                       d="M10 11V17"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                       d="M14 11V17"
-                                                       strokeWidth="2"
-                                                       strokeLinecap="round"
-                                                       strokeLinejoin="round"
-                                                  />
-                                             </svg>
-                                             <span>Delete</span>
+                                             Wipe Static
                                         </button>
                                    </div>
+                              </div>
+                         </div>
 
-                                   {/* Table */}
-                                   <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                                        <table className="w-full">
+                         {/* Results Table */}
+                         <div className="w-full py-8 px-6 rounded-2xl bg-white dark:bg-darkblack-600 shadow-sm border border-bgray-200 dark:border-darkblack-500 hover:border-success-300/30 transition-all">
+                              <div className="flex flex-col space-y-6">
+                                   <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                                        <div className="w-full md:w-96 h-12 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-4 flex items-center space-x-3 focus-within:ring-2 focus:ring-success-300 font-bold transition-all border-none">
+                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#718096" strokeWidth="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                             <input 
+                                                  type="text" 
+                                                  placeholder="FILTER BY KEYWORD..." 
+                                                  value={searchQuery} 
+                                                  onChange={(e) => setSearchQuery(e.target.value)} 
+                                                  className="bg-transparent border-none w-full text-xs dark:text-white placeholder:text-bgray-400 placeholder:font-black tracking-widest focus:ring-0 uppercase" 
+                                             />
+                                        </div>
+                                        <div className="text-[10px] font-black text-bgray-400 uppercase tracking-widest bg-bgray-50 dark:bg-darkblack-400/20 px-4 py-2 rounded-lg border border-bgray-100">
+                                             Inventory Count: <span className="text-success-300">{filteredQuestions.length} Items</span>
+                                        </div>
+                                   </div>
+
+                                   <div className="w-full overflow-x-auto scrollbar-hide">
+                                        <table className="w-full min-w-[1000px]">
                                              <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="">
-                                                            <label className="text-center">
-                                                                 <input
-                                                                      type="checkbox"
-                                                                      className="focus:outline-none focus:ring-0 rounded-full border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 dark:bg-darkblack-600 dark:border-darkblack-400"
-                                                                 />
-                                                            </label>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0 w-[250px] lg:w-auto inline-block">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Q. ID</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Subject</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">Question Type</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Level</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Question</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Created By</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
-                                                       </td>
+                                                  <tr className="border-b-2 border-bgray-100 dark:border-darkblack-500">
+                                                       <th className="py-4 text-left text-[10px] font-black text-bgray-500 uppercase tracking-widest px-2">#</th>
+                                                       <th className="py-4 text-left text-[10px] font-black text-bgray-500 uppercase tracking-widest px-4">Subject & Demographics</th>
+                                                       <th className="py-4 text-left text-[10px] font-black text-bgray-500 uppercase tracking-widest px-4">Type & Complexity</th>
+                                                       <th className="py-4 text-left text-[10px] font-black text-bgray-500 uppercase tracking-widest px-4">Intellectual Asset</th>
+                                                       <th className="py-4 text-right text-[10px] font-black text-bgray-500 uppercase tracking-widest px-4">Operations</th>
                                                   </tr>
                                              </thead>
-                                             <tbody>
-                                                  {questionData.map((question) => (
-                                                       <tr key={question.id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="">
-                                                                 <label className="text-center">
-                                                                      <input
-                                                                           type="checkbox"
-                                                                           className="focus:outline-none focus:ring-0 rounded-full border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 dark:bg-darkblack-600 dark:border-darkblack-400"
-                                                                      />
-                                                                 </label>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.id}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.subject}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.questionType}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.level}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0 max-w-md">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.question}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {question.createdBy}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex items-center space-x-2">
-                                                                      <button type="button" className="text-bgray-500 hover:text-success-300 transition-colors">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-current">
-                                                                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <circle cx="12" cy="12" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-success-300 transition-colors">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-current">
-                                                                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button type="button" className="text-bgray-500 hover:text-red-500 transition-colors">
-                                                                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-current">
-                                                                                <path d="M18 6L6 18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M6 6L18 18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-                                                  ))}
+                                             <tbody className="divide-y divide-bgray-100 dark:divide-darkblack-500 font-bold uppercase tracking-tight">
+                                                  {loading ? (
+                                                       <tr><td colSpan={5} className="py-24 text-center">
+                                                            <div className="flex flex-col items-center space-y-4">
+                                                                 <div className="w-12 h-12 border-4 border-success-300 border-t-transparent rounded-full animate-spin"></div>
+                                                                 <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest animate-pulse">Syncing Question Bank...</span>
+                                                            </div>
+                                                       </td></tr>
+                                                  ) : filteredQuestions.length > 0 ? (
+                                                       filteredQuestions.map((q, i) => (
+                                                            <tr key={q._id} className="group hover:bg-bgray-50 dark:hover:bg-darkblack-500/50 transition-all cursor-default">
+                                                                 <td className="py-6 px-2 text-[10px] text-bgray-400">{(i+1).toString().padStart(2, '0')}</td>
+                                                                 <td className="py-6 px-4">
+                                                                      <div className="flex flex-col">
+                                                                           <span className="text-xs text-bgray-900 dark:text-white font-black">{q.subject}</span>
+                                                                           <div className="flex space-x-2 mt-1">
+                                                                                <span className="text-[9px] font-black text-success-600 dark:text-success-300 bg-success-50 dark:bg-success-900/20 px-1.5 rounded uppercase tracking-tighter">Class {q.class}</span>
+                                                                                <span className="text-[9px] text-bgray-400">SEC: {q.section}</span>
+                                                                           </div>
+                                                                      </div>
+                                                                 </td>
+                                                                 <td className="py-6 px-4">
+                                                                      <div className="flex flex-col">
+                                                                           <span className="text-[10px] text-bgray-600 dark:text-bgray-200">{q.question_type}</span>
+                                                                           <span className={`text-[9px] font-black mt-1 ${
+                                                                                q.level === "High" ? "text-red-600 bg-red-50 dark:bg-red-900/10" :
+                                                                                q.level === "Medium" ? "text-orange-600 bg-orange-50 dark:bg-orange-900/10" :
+                                                                                "text-success-600 bg-success-50 dark:bg-success-900/10"
+                                                                           } px-2 py-0.5 rounded w-fit`}>{q.level?.toUpperCase()}</span>
+                                                                      </div>
+                                                                 </td>
+                                                                 <td className="py-6 px-4">
+                                                                      <p className="text-[11px] text-bgray-900 dark:text-white normal-case font-bold max-w-md truncate group-hover:overflow-visible group-hover:whitespace-normal transition-all">{q.question}</p>
+                                                                 </td>
+                                                                 <td className="py-6 px-4">
+                                                                      <div className="flex justify-end space-x-2">
+                                                                           <button onClick={() => handleEditQuestion(q)} className="p-2.5 bg-bgray-100 dark:bg-darkblack-500 text-bgray-600 hover:text-success-300 hover:bg-white dark:hover:bg-darkblack-400 rounded-xl transition-all shadow-sm group/btn" title="Modify Asset">
+                                                                                <svg className="transition-transform group-hover/btn:scale-110" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                                                                           </button>
+                                                                           <button onClick={() => handleDeleteQuestion(q._id)} className="p-2.5 bg-bgray-100 dark:bg-darkblack-500 text-bgray-600 hover:text-red-500 hover:bg-white rounded-xl transition-all shadow-sm group/del" title="Erase Record">
+                                                                                <svg className="transition-transform group-hover/del:scale-110" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                           </button>
+                                                                      </div>
+                                                                 </td>
+                                                            </tr>
+                                                       ))
+                                                  ) : (
+                                                       <tr><td colSpan={5} className="py-32 text-center text-bgray-400 font-black uppercase tracking-widest text-[10px]">Null results found for specified parameters.</td></tr>
+                                                  )}
                                              </tbody>
                                         </table>
-                                   </div>
-
-                                   {/* Pagination */}
-                                   <div className="pagination-content w-full">
-                                        <div
-                                             className="w-full flex lg:justify-between justify-center items-center"
-                                        >
-                                             <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
-                                                  >Records: 1 to 7 of 7</span
-                                                  >
-                                             </div>
-                                             <div
-                                                  className="flex sm:space-x-[35px] space-x-5 items-center"
-                                             >
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                       >
-                                                            1
-                                                       </button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                             </div>
-                                        </div>
                                    </div>
                               </div>
                          </div>
                     </section>
                </div>
-          </>
+
+               {/* Modal */}
+               {isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col my-8">
+                              <div className="flex items-center justify-between p-6 bg-bgray-50 dark:bg-darkblack-500 border-b border-bgray-200 dark:border-darkblack-400">
+                                   <div className="flex flex-col">
+                                        <h3 className="text-lg font-black dark:text-white uppercase tracking-tighter">{isEditMode ? "Modify Intellectual Asset" : "Register New Question Entry"}</h3>
+                                        <p className="text-[10px] font-bold text-bgray-500 uppercase tracking-widest">Ensuring data integrity in central repository</p>
+                                   </div>
+                                   <button onClick={resetForm} className="p-2 hover:bg-white dark:hover:bg-darkblack-400 rounded-full transition-all">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6L18 18"/></svg>
+                                   </button>
+                              </div>
+
+                              <form onSubmit={handleSaveQuestion} className="p-8 space-y-8 overflow-y-auto font-bold uppercase tracking-tight">
+                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-bgray-500 uppercase">Primary Subject <span className="text-red-500">*</span></label>
+                                             <select 
+                                                  className="w-full h-12 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-4 dark:text-white border-none focus:ring-2 focus:ring-success-300 font-black text-xs uppercase"
+                                                  value={formData.subject}
+                                                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                                                  required
+                                             >
+                                                  <option value="">Select Domain</option>
+                                                  {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                                             </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-bgray-500 uppercase">Target Class <span className="text-red-500">*</span></label>
+                                             <select 
+                                                  className="w-full h-12 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-4 dark:text-white border-none focus:ring-2 focus:ring-success-300 font-black text-xs uppercase"
+                                                  value={formData.class}
+                                                  onChange={(e) => setFormData({...formData, class: e.target.value})}
+                                                  required
+                                             >
+                                                  <option value="">Select Category</option>
+                                                  {classes.map(c => <option key={c._id} value={c.className}>{c.className}</option>)}
+                                             </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-bgray-500 uppercase">Target Section <span className="text-red-500">*</span></label>
+                                             <select 
+                                                  className="w-full h-12 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-4 dark:text-white border-none focus:ring-2 focus:ring-success-300 font-black text-xs uppercase"
+                                                  value={formData.section}
+                                                  onChange={(e) => setFormData({...formData, section: e.target.value})}
+                                                  required
+                                             >
+                                                  <option value="">All Regions</option>
+                                                  {sections.map(s => <option key={s._id} value={s.sectionName}>{s.sectionName}</option>)}
+                                             </select>
+                                        </div>
+                                   </div>
+
+                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-bgray-500 uppercase">Logical Type <span className="text-red-500">*</span></label>
+                                             <select 
+                                                  className="w-full h-12 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-4 dark:text-white border-none focus:ring-2 focus:ring-success-300 font-black text-xs uppercase"
+                                                  value={formData.question_type}
+                                                  onChange={(e) => setFormData({...formData, question_type: e.target.value})}
+                                             >
+                                                  {["Single Choice", "Multiple Choice", "True/False", "Descriptive"].map(t => <option key={t} value={t}>{t}</option>)}
+                                             </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-bgray-500 uppercase">Complexity Level</label>
+                                             <select 
+                                                  className="w-full h-12 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-4 dark:text-white border-none focus:ring-2 focus:ring-success-300 font-black text-xs uppercase"
+                                                  value={formData.level}
+                                                  onChange={(e) => setFormData({...formData, level: e.target.value})}
+                                             >
+                                                  {["Low", "Medium", "High"].map(l => <option key={l} value={l}>{l}</option>)}
+                                             </select>
+                                        </div>
+                                   </div>
+
+                                   <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-bgray-500 uppercase">Question Content <span className="text-red-500">*</span></label>
+                                        <textarea 
+                                             className="w-full bg-bgray-100 dark:bg-darkblack-500 rounded-2xl p-6 min-h-[140px] dark:text-white border-none focus:ring-2 focus:ring-success-300 transition-all font-bold normal-case text-base"
+                                             placeholder="Define the problem statement clearly..."
+                                             value={formData.question}
+                                             onChange={(e) => setFormData({...formData, question: e.target.value})}
+                                             required
+                                        />
+                                   </div>
+
+                                   {formData.question_type !== "Descriptive" && (
+                                        <div className="space-y-6 bg-success-50/30 dark:bg-success-900/5 p-8 rounded-3xl border-2 border-dashed border-success-200 dark:border-success-500/20">
+                                             <div className="flex justify-between items-center">
+                                                  <label className="text-[10px] font-black text-success-600 dark:text-success-300 uppercase tracking-[0.2em]">Response Matrix (Options)</label>
+                                                  <span className="text-[8px] bg-white dark:bg-success-900 px-2 py-1 rounded-full text-success-400">Binary + Supported</span>
+                                             </div>
+                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                  {formData.options.map((option, idx) => (
+                                                       <div key={idx} className="flex items-center space-x-4 bg-white dark:bg-darkblack-600 p-2 rounded-2xl shadow-sm border border-bgray-100 dark:border-darkblack-400">
+                                                            <div className="w-10 h-10 rounded-xl bg-bgray-50 dark:bg-darkblack-500 flex items-center justify-center font-black text-xs text-bgray-400 border border-bgray-200 dark:border-darkblack-400">{String.fromCharCode(65 + idx)}</div>
+                                                            <input 
+                                                                 type="text"
+                                                                 className="flex-1 h-10 bg-transparent border-none focus:ring-0 text-xs dark:text-white lowercase italic"
+                                                                 placeholder="..."
+                                                                 value={option}
+                                                                 onChange={(e) => handleOptionChange(idx, e.target.value)}
+                                                                 required={idx < 2}
+                                                            />
+                                                       </div>
+                                                  ))}
+                                             </div>
+                                        </div>
+                                   )}
+
+                                   <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-bgray-500 uppercase tracking-widest">Master Key / Canonical Answer <span className="text-red-500">*</span></label>
+                                        <input 
+                                             type="text"
+                                             className="w-full h-14 bg-bgray-100 dark:bg-darkblack-500 rounded-xl px-5 dark:text-white border-none focus:ring-2 focus:ring-success-300 font-black text-sm uppercase tracking-widest placeholder:text-bgray-300"
+                                             placeholder={formData.question_type === "Descriptive" ? "CRITERIA..." : "INDEX (E.G. 'A', 'B' OR 'TRUE')"}
+                                             value={formData.answer}
+                                             onChange={(e) => setFormData({...formData, answer: e.target.value})}
+                                             required
+                                        />
+                                   </div>
+
+                                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-8">
+                                        <button 
+                                             type="submit"
+                                             className="flex-[2] h-16 bg-[#22C55E] hover:bg-[#16a34a] text-white font-black rounded-2xl shadow-xl shadow-green-100 dark:shadow-none transition-all flex items-center justify-center uppercase tracking-widest text-sm"
+                                        >
+                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="mr-3"><path d="M5 13l4 4L19 7" /></svg>
+                                             {isEditMode ? "Commit Updates" : "Finalize Asset"}
+                                        </button>
+                                        <button 
+                                             type="button" 
+                                             onClick={resetForm}
+                                             className="flex-1 h-16 bg-bgray-200 dark:bg-darkblack-500 text-bgray-900 dark:text-white font-black rounded-2xl hover:bg-bgray-300 transition-all uppercase tracking-widest text-sm"
+                                        >
+                                             Abort
+                                        </button>
+                                   </div>
+                              </form>
+                         </div>
+                    </div>
+               )}
+          </div>
      );
 }

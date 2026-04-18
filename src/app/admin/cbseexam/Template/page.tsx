@@ -45,7 +45,10 @@ export default function TemplateList() {
                     fetch("/api/sections")
                ]);
                if (tempRes.ok) setTemplates(await tempRes.json());
-               if (classRes.ok) setClasses(await classRes.json());
+               if (classRes.ok) {
+                        const json = await classRes.json();
+                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                     }
                if (secRes.ok) setSections(await secRes.json());
           } catch (error) {
                console.error("Error fetching data:", error);

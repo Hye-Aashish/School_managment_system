@@ -75,7 +75,7 @@ export default function CreateStudent() {
                     }
                     if (studentsRes.ok) {
                          const result = await studentsRes.json();
-                         setAllStudents(result.data || []);
+                         setAllStudents(result.data.students || []);
                     }
                } catch (err) {
                     console.error("Error fetching dropdown data:", err);

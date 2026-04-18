@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function StudentMembersList() {
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
@@ -19,6 +20,21 @@ export default function StudentMembersList() {
           { memberId: "", cardNo: "", admissionNo: "2002", name: "Anubhav Sharma", class: "Class 1(A)", fatherName: "Jay kumar", dob: "12/11/2020", gender: "Male", mobile: "9826456678", actionType: "plus" },
           { memberId: "", cardNo: "", admissionNo: "19001", name: "Edward Thomas", class: "Class 1(A)", fatherName: "Olivier Thomas", dob: "11/03/2014", gender: "Male", mobile: "8233366613", actionType: "plus" },
      ];
+
+     const onExport = (type: ExportType) => {
+          const exportData = studentsData.map(s => ({
+               "Member ID": s.memberId,
+               "Library Card": s.cardNo,
+               "Admission No": s.admissionNo,
+               "Name": s.name,
+               "Class": s.class,
+               "Father Name": s.fatherName,
+               "DOB": s.dob,
+               "Gender": s.gender,
+               "Mobile": s.mobile
+          }));
+          handleExport(type, exportData, "Library_Members");
+     };
 
      return (
           <>
@@ -157,31 +173,31 @@ export default function StudentMembersList() {
 
                                         {/* Export Icons */}
                                         <div className="flex space-x-2">
-                                             <button type="button" className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="Copy">
+                                             <button type="button" onClick={() => onExport("Copy")} className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="Copy">
                                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <rect x="9" y="9" width="13" height="13" rx="2" stroke="#718096" strokeWidth="2" fill="none"/>
                                                        <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="#718096" strokeWidth="2"/>
                                                   </svg>
                                              </button>
-                                             <button type="button" className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="Excel">
+                                             <button type="button" onClick={() => onExport("Excel")} className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="Excel">
                                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#718096" strokeWidth="2"/>
                                                        <path d="M14 2V8H20" stroke="#718096" strokeWidth="2"/>
                                                   </svg>
                                              </button>
-                                             <button type="button" className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="CSV">
+                                             <button type="button" onClick={() => onExport("CSV")} className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="CSV">
                                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#718096" strokeWidth="2"/>
                                                        <path d="M14 2V8H20" stroke="#718096" strokeWidth="2"/>
                                                   </svg>
                                              </button>
-                                             <button type="button" className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="PDF">
+                                             <button type="button" onClick={() => onExport("PDF")} className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="PDF">
                                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#718096" strokeWidth="2"/>
                                                        <path d="M14 2V8H20" stroke="#718096" strokeWidth="2"/>
                                                   </svg>
                                              </button>
-                                             <button type="button" className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="Print">
+                                             <button type="button" onClick={() => onExport("Print")} className="h-full w-12 rounded-lg bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition flex items-center justify-center" title="Print">
                                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                        <path d="M6 9V2H18V9" stroke="#718096" strokeWidth="2"/>
                                                        <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="#718096" strokeWidth="2"/>

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Pagination from "../../components/Pagination";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function BulkStudents() {
      const [students, setStudents] = useState<any[]>([]);
@@ -31,9 +32,9 @@ export default function BulkStudents() {
 
                const res = await fetch(url);
                const result = await res.json();
-               setStudents(result.data || []);
-               setTotalPages(result.totalPages || 0);
-               setTotalEntries(result.totalEntries || 0);
+               setStudents(result.data.students || []);
+               setTotalPages(result.data.totalPages || 0);
+               setTotalEntries(result.data.totalEntries || 0);
           } catch (error) {
                console.error("Error fetching students:", error);
           } finally {
@@ -88,43 +89,18 @@ export default function BulkStudents() {
           setOpenFilter(null);
      };
 
-     const handleCopy = () => {
-          const tableData = students.map(s =>
-               `${s.admission_no}\t${s.fname} ${s.lname}\t${s.class}\t${s.dob}\t${s.gender}\t${s.category}\t${s.mobile}`
-          ).join("\n");
-          const header = "Admission No\tStudent Name\tClass\tDate Of Birth\tGender\tCategory\tMobile Number\n";
-          navigator.clipboard.writeText(header + tableData);
-          alert("Copied to clipboard!");
-          setOpenFilter(null);
-     };
-
-     const handleExportCSV = () => {
-          const header = ["Admission No", "Student Name", "Class", "Date Of Birth", "Gender", "Category", "Mobile Number"];
-          const rows = students.map(s => [
-               s.admission_no,
-               `${s.fname} ${s.lname}`,
-               s.class,
-               s.dob,
-               s.gender,
-               s.category,
-               s.mobile
-          ]);
-
-          const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
-          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute("download", "students_export.csv");
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setOpenFilter(null);
-     };
-
-     const handlePrint = () => {
-          window.print();
+     const onExport = (type: ExportType) => {
+          const exportData = students.map((s, idx) => ({
+               "No": idx + 1,
+               "Admission No": s.admission_no,
+               "Student Name": `${s.fname} ${s.lname}`,
+               "Class": s.class,
+               "Date Of Birth": s.dob,
+               "Gender": s.gender,
+               "Category": s.category,
+               "Mobile Number": s.mobile
+          }));
+          handleExport(type, exportData, "Bulk_Students_Export");
           setOpenFilter(null);
      };
 
@@ -279,7 +255,11 @@ export default function BulkStudents() {
                                                   className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
                                                        }`}
                                              >
-                                                  <ul><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handleCopy}>Coppy</li><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handleExportCSV}>Excel</li><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handleExportCSV}>CSV</li><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handlePrint}>PDF</li><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handlePrint}>Print</li></ul>
+                                                  <ul>
+                                                       {["Copy", "Excel", "CSV", "PDF", "Print"].map(type => (
+                                                            <li key={type} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport(type as ExportType)}>{type}</li>
+                                                       ))}
+                                                  </ul>
                                              </div>
                                         </div>
 

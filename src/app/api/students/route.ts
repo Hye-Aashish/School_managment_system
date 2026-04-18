@@ -2,30 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import dbConnect from "@/lib/mongodb";
 import Student from "@/models/Student";
+import { apiResponse } from "@/lib/response";
 
 export async function GET(req: NextRequest) {
-    await dbConnect();
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
-    const className = searchParams.get("class");
-    const section = searchParams.get("section");
-    const search = searchParams.get("search");
-
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "100"); // Increased limit for bulk operations
-    const skip = (page - 1) * limit;
-
     try {
+        await dbConnect();
+        const { searchParams } = new URL(req.url);
+        const status = searchParams.get("status");
+        const className = searchParams.get("class");
+        const section = searchParams.get("section");
+        const search = searchParams.get("search");
+
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "100");
+        const skip = (page - 1) * limit;
+
         let query: any = {};
-        if (status) {
-            query.status = status;
-        }
-        if (className) {
-            query.class = className;
-        }
-        if (section) {
-            query.section = section;
-        }
+        if (status) query.status = status;
+        if (className) query.class = className;
+        if (section) query.section = section;
         if (search) {
             const searchRegex = { $regex: search, $options: "i" };
             query.$or = [
@@ -40,52 +35,62 @@ export async function GET(req: NextRequest) {
             Student.countDocuments(query)
         ]);
 
-        return NextResponse.json({
-            data: students,
+        return apiResponse.success({
+            students,
             totalEntries,
             totalPages: Math.ceil(totalEntries / limit),
             currentPage: page
         });
-    } catch (error) {
-        console.error("API Error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    } catch (error: any) {
+        console.error("Critical API Error (Students GET):", error);
+        return apiResponse.error("Failed to retrieve student records", 500, error.message);
     }
 }
 
 export async function POST(req: NextRequest) {
-    await dbConnect();
     try {
+        await dbConnect();
         const body = await req.json();
+
+        // Basic validation
+        if (!body.fname || !body.class) {
+            return apiResponse.badRequest("Missing required student fields (fname, class)");
+        }
+
         const newStudent = await Student.create({
             ...body,
             admission_no: body.admission_no || `ADM${Date.now()}`,
-            status: "Active"
+            status: body.status || "Active"
         });
-        return NextResponse.json(newStudent, { status: 201 });
+
+        return apiResponse.success(newStudent, 201);
     } catch (error: any) {
         if (error.code === 11000) {
-            return NextResponse.json({ error: "Admission number already exists" }, { status: 400 });
+            return apiResponse.error("Admission number already exists in the system", 400);
         }
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("Critical API Error (Students POST):", error);
+        return apiResponse.error("Failed to create student record", 500, error.message);
     }
 }
 
 export async function PUT(req: NextRequest) {
-    await dbConnect();
     try {
-        const body = await req.json(); // Array of { id, balance }
+        await dbConnect();
+        const body = await req.json();
+
         if (!Array.isArray(body)) {
-            return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
+            return apiResponse.badRequest("Bulk update expects an array of records");
         }
 
-        const updatePromises = body.map((item: any) => 
-            Student.findByIdAndUpdate(item.id, { previous_balance: item.balance })
-        );
-        await Promise.all(updatePromises);
+        const updatePromises = body.map((item: any) => {
+            if (!item.id) throw new Error("Missing ID in bulk update record");
+            return Student.findByIdAndUpdate(item.id, { ...item }, { new: true });
+        });
 
-        return NextResponse.json({ message: "Balances updated successfully" });
+        await Promise.all(updatePromises);
+        return apiResponse.success({ message: "Bulk update completed successfully" });
     } catch (error: any) {
-        console.error("API Error (Student PUT):", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("Critical API Error (Students PUT):", error);
+        return apiResponse.error("Bulk update operation failed", 500, error.message);
     }
 }

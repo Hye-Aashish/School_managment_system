@@ -1,217 +1,160 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function VehicleList() {
-     const [searchTerm, setSearchTerm] = useState("");
-     const [openFilter, setOpenFilter] = useState<"action" | "export" | null>(null);
+export default function TransportVehicles() {
+     const [vehicles, setVehicles] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
+     const [isModalOpen, setIsModalOpen] = useState(false);
+     
+     const [formData, setFormData] = useState({
+          vehicleNo: "", model: "", yearMade: "", registrationNo: "",
+          driverName: "", driverLicence: "", driverPhone: ""
+     });
 
-     const toggleFilter = (type: "action" | "export") => {
-          setOpenFilter(openFilter === type ? null : type);
+     const fetchVehicles = async () => {
+          setLoading(true);
+          const res = await fetch("/api/transport/core?type=vehicle");
+          const data = await res.json();
+          if (data.success) setVehicles(data.data);
+          setLoading(false);
      };
-     const vehicleData = [
-          {
-               vehicleNumber: "VH4584",
-               vehicleModel: "Ford CAB",
-               yearMade: "2015",
-               registrationNumber: "FFG-765756767887",
-               chassisNumber: "523422",
-               maxSeating: "50",
-               driverName: "Jasper",
-               driverLicence: "25871454S",
-               driverContact: "8521479630"
-          },
-          {
-               vehicleNumber: "VH5645",
-               vehicleModel: "Volvo Bus",
-               yearMade: "2018",
-               registrationNumber: "BGBFDF787987956",
-               chassisNumber: "45433",
-               maxSeating: "50",
-               driverName: "Maximus",
-               driverLicence: "545645666776",
-               driverContact: "885456456"
-          },
-          {
-               vehicleNumber: "VH1001",
-               vehicleModel: "Volvo Bus",
-               yearMade: "2017",
-               registrationNumber: "FVFF-08797865",
-               chassisNumber: "45453",
-               maxSeating: "50",
-               driverName: "Michel",
-               driverLicence: "R534534",
-               driverContact: "8667777869"
-          }
-     ];
 
-     const filteredVehicles = vehicleData.filter((vehicle) =>
-          vehicle.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          vehicle.vehicleModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          vehicle.driverName.toLowerCase().includes(searchTerm.toLowerCase())
-     );
+     useEffect(() => { fetchVehicles(); }, []);
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          await fetch("/api/transport/core", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({ type: "vehicle", ...formData })
+          });
+          setIsModalOpen(false);
+          setFormData({ vehicleNo: "", model: "", yearMade: "", registrationNo: "", driverName: "", driverLicence: "", driverPhone: "" });
+          fetchVehicles();
+     };
+
+     const deleteVehicle = async (id: string) => {
+          if (!confirm("Remove this vehicle from fleet?")) return;
+          await fetch(`/api/transport/core?type=vehicle&id=${id}`, { method: "DELETE" });
+          fetchVehicles();
+     };
 
      return (
-          <>
-               <div className="2xl:flex 2xl:space-x-12">
-                    <section className="2xl:flex-1 2xl:mb-0 mb-6">
-                         <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600">
-                              <div className="flex flex-col space-y-5">
-                                   <div className="flex items-center justify-between mb-0">
-                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Vehicle List</h3>
+          <div className="flex flex-col space-y-6 px-1">
+               {/* Fleet Controls */}
+               <section className="bg-white dark:bg-darkblack-600 rounded-3xl p-8 shadow-sm border border-bgray-200 dark:border-darkblack-400">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+                         <div className="flex flex-col">
+                              <h3 className="text-xl font-bold dark:text-white flex items-center gap-3 uppercase tracking-tighter">
+                                   <div className="w-1.5 h-6 bg-success-300 rounded-full"></div>
+                                   Institutional Fleet Manifest
+                              </h3>
+                              <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">Surgical monitoring of institutional mobile assets and personnel</p>
+                         </div>
+                         <button 
+                              onClick={() => setIsModalOpen(true)}
+                              className="px-8 h-12 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 transition-all shadow-lg shadow-success-300/20 flex items-center gap-2 shrink-0 uppercase tracking-widest text-[10px]"
+                         >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                              REGISTER FLEET UNIT
+                         </button>
+                    </div>
+               </section>
 
+               {/* Fleet Grid */}
+               <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {loading ? (
+                         <div className="col-span-full py-24 text-center"><div className="w-10 h-10 mx-auto border-4 border-success-300/20 border-t-success-300 rounded-full animate-spin"></div></div>
+                    ) : vehicles.length > 0 ? (
+                         vehicles.map((v) => (
+                              <div key={v._id} className="bg-white dark:bg-darkblack-600 rounded-[40px] p-8 shadow-sm border border-bgray-200 dark:border-darkblack-400 hover:shadow-2xl hover:shadow-success-300/10 transition-all group border-t-[8px] border-t-success-300 relative overflow-hidden">
+                                   <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="3" width="22" height="13" rx="2" ry="2"></rect><path d="M7 21a2 2 0 1 0 4 0 2 2 0 1 0-4 0"></path><path d="M13 21a2 2 0 1 0 4 0 2 2 0 1 0-4 0"></path></svg>
                                    </div>
-
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div className="w-full me-0 sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                                             <div className="flex w-full h-full items-center space-x-[15px]">
-                                                  <span>
-                                                       <svg className="stroke-bgray-900 dark:stroke-white" width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <circle cx="9.80204" cy="10.6761" r="8.98856" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                            <path d="M16.0537 17.3945L19.5777 20.9094" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            placeholder="Search..."
-                                                            value={searchTerm}
-                                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                       />
-                                                  </label>
-                                             </div>
+                                   <div className="flex justify-between items-start mb-8">
+                                        <div className="w-16 h-16 bg-success-300/10 rounded-2xl flex items-center justify-center text-success-300">
+                                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="1" y="3" width="22" height="13" rx="2" ry="2"></rect><path d="M7 21a2 2 0 1 0 4 0 2 2 0 1 0-4 0"></path><path d="M13 21a2 2 0 1 0 4 0 2 2 0 1 0-4 0"></path></svg>
                                         </div>
-
-                                        {/* Export Dropdown */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                  onClick={() => toggleFilter("export")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Copy
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Excel
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            CSV
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            PDF
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Print
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-
-                                        <button
-                                             type="button"
-                                             className="py-2.5 text-nowrap px-5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg"
-                                        >
-                                             + Add
+                                        <button onClick={() => deleteVehicle(v._id)} className="text-bgray-300 hover:text-red-500 transition-colors">
+                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
                                    </div>
-
-                                   <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Vehicle Number</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Vehicle Model</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-gray-50">Year Made</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Registration Number</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Chassis Number</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Max Seating Capacity</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Driver Name</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Driver Licence</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><div className="w-full flex space-x-2.5 items-center"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Driver Contact</span><span><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></div></td>
-                                                       <td className="py-5 px-6 xl:px-0"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span></td>
-                                                  </tr>
-                                             </thead>
-                                             <tbody>
-                                                  {filteredVehicles.map((vehicle, index) => (
-                                                       <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.vehicleNumber}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.vehicleModel}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.yearMade}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.registrationNumber}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.chassisNumber}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.maxSeating}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.driverName}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.driverLicence}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{vehicle.driverContact}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex items-center space-x-2">
-                                                                      <button type="button" className="hover:opacity-70 transition" title="View"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 3.75C5.25 3.75 2.0475 6.0075 0.75 9.375C2.0475 12.7425 5.25 15 9 15C12.75 15 15.9525 12.7425 17.25 9.375C15.9525 6.0075 12.75 3.75 9 3.75Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M9 12C10.6569 12 12 10.6569 12 9C12 7.34315 10.6569 6 9 6C7.34315 6 6 7.34315 6 9C6 10.6569 7.34315 12 9 12Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-                                                                      <button type="button" className="hover:opacity-70 transition" title="Edit"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.25 3H3C2.175 3 1.5 3.675 1.5 4.5V15C1.5 15.825 2.175 16.5 3 16.5H13.5C14.325 16.5 15 15.825 15 15V9.75" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M13.875 1.875C14.325 1.425 15.075 1.425 15.525 1.875C15.975 2.325 15.975 3.075 15.525 3.525L8.25 10.8L5.25 11.625L6.075 8.625L13.875 1.875Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-                                                                      <button type="button" className="hover:opacity-70 transition" title="Delete"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.25 4.5H3.75H15.75" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M6 4.5V3C6 2.175 6.675 1.5 7.5 1.5H10.5C11.325 1.5 12 2.175 12 3V4.5M14.25 4.5V15C14.25 15.825 13.575 16.5 12.75 16.5H5.25C4.425 16.5 3.75 15.825 3.75 15V4.5H14.25Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-                                                  ))}
-                                             </tbody>
-                                        </table>
-                                   </div>
-
-                                   <div className="pagination-content w-full">
-                                        <div className="w-full flex lg:justify-between justify-center items-center">
-                                             <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Records: 1 to 3 of 3</span>
+                                   <div className="space-y-6">
+                                        <div>
+                                             <h4 className="text-xl font-black dark:text-white uppercase tracking-tighter">{v.vehicleNo}</h4>
+                                             <p className="text-[10px] font-black text-bgray-400 uppercase tracking-widest mt-1">{v.model} | {v.yearMade}</p>
+                                        </div>
+                                        <div className="pt-6 border-t border-dashed border-bgray-100 dark:border-darkblack-400 grid grid-cols-2 gap-4">
+                                             <div className="flex flex-col">
+                                                  <span className="text-[8px] font-black text-bgray-300 uppercase tracking-widest">Driver Assignment</span>
+                                                  <span className="text-[11px] font-black dark:text-white uppercase tracking-tighter mt-1">{v.driverName || "Unassigned"}</span>
                                              </div>
-                                             <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">1</button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
+                                             <div className="flex flex-col text-right">
+                                                  <span className="text-[8px] font-black text-bgray-300 uppercase tracking-widest">Emergency Contact</span>
+                                                  <span className="text-[11px] font-black text-success-300 uppercase tracking-tighter mt-1">{v.driverPhone || "N/A"}</span>
                                              </div>
                                         </div>
                                    </div>
                               </div>
+                         ))
+                    ) : (
+                         <div className="col-span-full py-32 text-center opacity-10">
+                              <p className="text-[12px] font-black uppercase tracking-[0.3em]">Fleet manifest empty</p>
                          </div>
-                    </section>
-               </div>
-          </>
+                    )}
+               </section>
+
+               {/* Fleet Modal */}
+               {isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                         <div className="absolute inset-0 bg-bgray-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+                         <div className="relative bg-white dark:bg-darkblack-600 rounded-[40px] w-full max-w-4xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-success-300/20">
+                              <div className="p-8 border-b border-bgray-100 dark:border-darkblack-400 bg-bgray-50/50">
+                                   <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">Fleet unit onboarding</h3>
+                                   <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">Integrating new mobile asset to institutional logistical framework</p>
+                              </div>
+                              <form onSubmit={handleSubmit} className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                   <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Vehicle Tag *</label>
+                                             <input required value={formData.vehicleNo} onChange={e => setFormData({...formData, vehicleNo: e.target.value})} className="w-full h-14 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-6 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="e.g. BUS-01" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Model / Specs</label>
+                                             <input value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} className="w-full h-14 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-6 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="e.g. Tata Marcopolo" />
+                                        </div>
+                                   </div>
+                                   <div className="grid grid-cols-2 gap-8 pb-8 border-b border-dashed border-bgray-100 dark:border-darkblack-400">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Fabrication Year</label>
+                                             <input value={formData.yearMade} onChange={e => setFormData({...formData, yearMade: e.target.value})} className="w-full h-14 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-6 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="2023" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Legal Registration CODE</label>
+                                             <input value={formData.registrationNo} onChange={e => setFormData({...formData, registrationNo: e.target.value})} className="w-full h-14 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-6 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black text-success-300" placeholder="DL-01-XX-0000" />
+                                        </div>
+                                   </div>
+                                   <div className="space-y-1.5">
+                                        <label className="text-[11px] font-black text-bgray-900 dark:text-white uppercase tracking-[0.2em] block mb-4">Personnel Assignment</label>
+                                        <div className="grid grid-cols-2 gap-8">
+                                             <div className="space-y-1.5">
+                                                  <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Driver Nomenclature</label>
+                                                  <input value={formData.driverName} onChange={e => setFormData({...formData, driverName: e.target.value})} className="w-full h-12 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                             </div>
+                                             <div className="space-y-1.5">
+                                                  <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Driver Contact Matrix</label>
+                                                  <input value={formData.driverPhone} onChange={e => setFormData({...formData, driverPhone: e.target.value})} className="w-full h-12 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                             </div>
+                                        </div>
+                                   </div>
+                                    <div className="flex justify-end gap-3 pt-6 border-t border-bgray-100 dark:border-darkblack-400 mt-6">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 h-14 bg-bgray-50 dark:bg-darkblack-500 text-bgray-500 font-black rounded-[20px] hover:bg-bgray-100 transition-all uppercase tracking-widest text-[10px]">Discard</button>
+                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-[20px] hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">Commit Fleet unit</button>
+                                   </div>
+                              </form>
+                         </div>
+                    </div>
+               )}
+          </div>
      );
 }

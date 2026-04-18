@@ -42,7 +42,10 @@ export default function StudentDetails() {
                           fetch("/api/classes"),
                           fetch("/api/cbse-templates")
                      ]);
-                     if (classRes.ok) setClasses(await classRes.json());
+                     if (classRes.ok) {
+                        const json = await classRes.json();
+                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                     }
                      if (templateRes.ok) setTemplates(await templateRes.json());
                } catch (error) {
                     console.error("Error fetching initial data:", error);

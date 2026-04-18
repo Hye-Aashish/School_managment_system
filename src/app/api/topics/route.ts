@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
+import dbConnect from "@/lib/mongodb";
+import Topic from "@/models/Topic";
+
+export async function GET(req: NextRequest) {
+    await dbConnect();
+    try {
+        const { searchParams } = new URL(req.url);
+        const className = searchParams.get("class");
+        const section = searchParams.get("section");
+        const lesson = searchParams.get("lesson");
+
+        let query: any = {};
+        if (className) query.class = className;
+        if (section) query.section = section;
+        if (lesson) query.lesson = lesson;
+
+        const topics = await Topic.find(query).sort({ created_at: -1 }).lean();
+        return NextResponse.json({ success: true, data: topics });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+export async function POST(req: NextRequest) {
+    await dbConnect();
+    try {
+        const body = await req.json();
+        if (Array.isArray(body)) {
+            const topics = await Topic.insertMany(body);
+            return NextResponse.json({ success: true, data: topics });
+        } else {
+            const topic = await Topic.create(body);
+            return NextResponse.json({ success: true, data: topic });
+        }
+    } catch (error) {
+        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    await dbConnect();
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+        if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+        await Topic.findByIdAndDelete(id);
+        return NextResponse.json({ success: true, message: "Deleted successfully" });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    }
+}

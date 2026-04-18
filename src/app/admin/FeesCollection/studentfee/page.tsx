@@ -26,7 +26,8 @@ export default function StudentFee() {
                 const res = await fetch(url);
                 if (res.ok) {
                      const result = await res.json();
-                     setStudents(result.data || []);
+                     setStudents(result.data.students || []);
+                     setFilteredStudents(result.data.students || []);
                 }
            } catch (err) {
                 setError("Failed to fetch students");

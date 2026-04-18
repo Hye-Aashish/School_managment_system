@@ -4,15 +4,20 @@ import React, { useEffect, useState } from "react";
 export default function StudentCategory() {
      const [reasons, setReasons] = useState<any[]>([]);
      const [newReason, setNewReason] = useState("");
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [editValue, setEditValue] = useState("");
      const [openFilter, setOpenFilter] = useState<string | null>(null);
+
+     const fetchReasons = async () => {
+          const res = await fetch("/api/disable-reasons");
+          if (res.ok) setReasons(await res.json());
+     };
 
      const handleDelete = async (reason: string) => {
           if (confirm("Are you sure you want to delete this reason?")) {
                try {
                     await fetch(`/api/disable-reasons/${encodeURIComponent(reason)}`, { method: "DELETE" });
-                    const res = await fetch("/api/disable-reasons");
-                    const data = await res.json();
-                    setReasons(data);
+                    fetchReasons();
                } catch (error) {
                     console.error("Error deleting reason:", error);
                }
@@ -24,12 +29,36 @@ export default function StudentCategory() {
      };
 
      useEffect(() => {
-          const fetchReasons = async () => {
-               const res = await fetch("/api/disable-reasons");
-               if (res.ok) setReasons(await res.json());
-          };
           fetchReasons();
      }, []);
+
+     const handleEditClick = (r: any) => {
+          setEditingId(r._id);
+          setEditValue(r.reason);
+          setOpenFilter(null);
+     };
+
+     const handleUpdateReason = async () => {
+          if (!editingId || !editValue) return;
+          const originalReason = reasons.find(r => r._id === editingId)?.reason;
+          try {
+               const res = await fetch(`/api/disable-reasons/${encodeURIComponent(originalReason)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reason: editValue })
+               });
+               if (res.ok) {
+                    setEditingId(null);
+                    setEditValue("");
+                    fetchReasons();
+               } else {
+                    const errData = await res.json();
+                    alert(errData.error || "Failed to update reason");
+               }
+          } catch (error) {
+               console.error("Error updating reason:", error);
+          }
+     };
 
      const [adding, setAdding] = useState(false);
 
@@ -109,20 +138,31 @@ export default function StudentCategory() {
                                                                  type="text"
                                                                  id="listSearch"
                                                                  placeholder="Add Disable Reason"
-                                                                 value={newReason}
-                                                                 onChange={(e) => setNewReason(e.target.value)}
+                                                                 value={editingId ? editValue : newReason}
+                                                                 onChange={(e) => editingId ? setEditValue(e.target.value) : setNewReason(e.target.value)}
                                                                  className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
                                                        </label>
                                                   </div>
                                              </div>
-                                             <button
-                                                  type="button"
-                                                  onClick={handleAddReason}
-                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
-                                             >
-                                                  Add Reason
-                                             </button>
+                                             <div className="flex gap-2">
+                                                  {editingId && (
+                                                       <button
+                                                            type="button"
+                                                            onClick={() => { setEditingId(null); setEditValue(""); }}
+                                                            className="py-3 px-4 flex items-center justify-center text-bgray-600 font-bold bg-bgray-100 hover:bg-bgray-200 transition-all rounded-lg w-full"
+                                                       >
+                                                            Cancel
+                                                       </button>
+                                                  )}
+                                                  <button
+                                                       type="button"
+                                                       onClick={editingId ? handleUpdateReason : handleAddReason}
+                                                       className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
+                                                  >
+                                                       {editingId ? "Update" : "Add Reason"}
+                                                  </button>
+                                             </div>
                                         </div>
                                    </div>
                               </div>
@@ -325,7 +365,7 @@ export default function StudentCategory() {
                                                                            >
                                                                                 <ul>
                                                                                      <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">View</li>
-                                                                                     <li className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">Edit</li>
+                                                                                     <li onClick={() => handleEditClick(r)} className="text-nowrap text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left">Edit</li>
                                                                                      <li
                                                                                           onClick={() => handleDelete(r.reason)}
                                                                                           className="text-nowrap text-sm text-red-500 cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold text-left"

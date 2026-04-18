@@ -1,36 +1,105 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function MarkRegister() {
-     const [openFilter, setOpenFilter] = useState<"examGroup" | "exam" | "session" | "class" | "section" | null>(null);
-     const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
-     const [selectAll, setSelectAll] = useState(false);
+export default function PrintAdmitCard() {
+     const [openFilter, setOpenFilter] = useState<string | null>(null);
+     const [examGroups, setExamGroups] = useState<any[]>([]);
+     const [exams, setExams] = useState<any[]>([]);
+     const [classes, setClasses] = useState<any[]>([]);
+     const [sections, setSections] = useState<any[]>([]);
+     const [templates, setTemplates] = useState<any[]>([]);
+     
+     const [selectedGroup, setSelectedGroup] = useState<any>(null);
+     const [selectedExam, setSelectedExam] = useState<any>(null);
+     const [selectedClass, setSelectedClass] = useState<any>(null);
+     const [selectedSection, setSelectedSection] = useState<any>(null);
+     const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+     const [selectedSession, setSelectedSession] = useState("2025-26");
 
-     const toggleFilter = (type: "examGroup" | "exam" | "session" | "class" | "section") => {
-          setOpenFilter(openFilter === type ? null : type);
+     const [students, setStudents] = useState<any[]>([]);
+     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+     const [loading, setLoading] = useState(false);
+
+     useEffect(() => {
+          fetchExamGroups();
+          fetchClasses();
+          fetchTemplates();
+     }, []);
+
+     const fetchExamGroups = async () => {
+          const res = await fetch("/api/exam-groups");
+          const data = await res.json();
+          if (data.success) setExamGroups(data.data);
      };
 
-     const studentData = [
-          { id: 1, admissionNo: "101224", studentName: "Amit Singh", fatherName: "Pratap Singh", dob: "21-12-1999", gender: "Male", category: "OBC", mobile: "+91-9876543210" },
-          { id: 2, admissionNo: "101225", studentName: "Priya Sharma", fatherName: "Rajesh Sharma", dob: "15-08-2000", gender: "Female", category: "General", mobile: "+91-9876543211" },
-          { id: 3, admissionNo: "101226", studentName: "Rahul Kumar", fatherName: "Suresh Kumar", dob: "10-03-1999", gender: "Male", category: "SC", mobile: "+91-9876543212" },
-     ];
+     const fetchClasses = async () => {
+          const res = await fetch("/api/classes");
+          const data = await res.json();
+          if (data.success) setClasses(data.data);
+     };
 
-     const handleSelectAll = () => {
-          if (selectAll) {
-               setSelectedStudents([]);
-          } else {
-               setSelectedStudents(studentData.map(student => student.id));
+     const fetchSections = async (className: string) => {
+          const res = await fetch(`/api/sections?class=${className}`);
+          const data = await res.json();
+          if (data.success) setSections(data.data);
+     };
+
+     const fetchExams = async (groupId: string) => {
+          const res = await fetch(`/api/exams?groupId=${groupId}`);
+          const data = await res.json();
+          if (data.success) setExams(data.data);
+     };
+
+     const fetchTemplates = async () => {
+          const res = await fetch("/api/admit-card-templates");
+          const data = await res.json();
+          if (data.success) setTemplates(data.data);
+     };
+
+     const handleSearch = async () => {
+          if (!selectedClass || !selectedSection) {
+               alert("Please select Class and Section");
+               return;
           }
-          setSelectAll(!selectAll);
+          setLoading(true);
+          try {
+               const res = await fetch(`/api/students?class=${selectedClass.className}&section=${selectedSection.sectionName}`);
+               const data = await res.json();
+               if (data.data) setStudents(data.data);
+          } catch (error) {
+               console.error("Error fetching students:", error);
+          } finally {
+               setLoading(false);
+          }
      };
 
-     const handleSelectStudent = (id: number) => {
+     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+          if (e.target.checked) {
+               setSelectedStudents(students.map(s => s._id));
+          } else {
+               setSelectedStudents([]);
+          }
+     };
+
+     const handleSelectStudent = (id: string) => {
           if (selectedStudents.includes(id)) {
-               setSelectedStudents(selectedStudents.filter(studentId => studentId !== id));
+               setSelectedStudents(selectedStudents.filter(sId => sId !== id));
           } else {
                setSelectedStudents([...selectedStudents, id]);
           }
+     };
+
+     const toggleFilter = (type: string) => {
+          setOpenFilter(openFilter === type ? null : type);
+     };
+
+     const handleGenerate = () => {
+          if (selectedStudents.length === 0 || !selectedTemplate || !selectedExam) {
+               alert("Please select Students, Template and Exam");
+               return;
+          }
+          alert(`Generating Admit Cards for ${selectedStudents.length} students using template: ${selectedTemplate.templateName}`);
+          // Logic to open Print view
      };
 
      return (
@@ -39,390 +108,95 @@ export default function MarkRegister() {
                     <section className="2xl:flex-1 2xl:mb-0 mb-6">
                          <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-5">
-                                   {/* Select Criteria Section */}
-                                   <div className="w-full">
-                                        <h3 className="text-xl font-semibold text-bgray-900 dark:text-white mb-4">
-                                             Select Criteria
-                                        </h3>
-                                        <div className="w-full flex h-14 space-x-4">
-                                             <div className="relative flex-1">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                       onClick={() => toggleFilter("examGroup")}
-                                                  >
-                                                       <div className="flex flex-col items-start">
-                                                            <span className="text-xs text-bgray-500">Exam Group <span className="text-red-500">*</span></span>
-                                                            <span className="text-sm text-bgray-900 dark:text-white text-nowrap">General Exam (Pass / Fail)</span>
-                                                       </div>
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-
-                                                  <div
-                                                       className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "examGroup" ? "block" : "hidden"
-                                                            }`}
-                                                  >
-                                                       <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">General Exam (Pass / Fail)</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Annual Exam</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Mid-Term Exam</li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-
-                                             <div className="relative flex-1">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                       onClick={() => toggleFilter("exam")}
-                                                  >
-                                                       <div className="flex flex-col items-start">
-                                                            <span className="text-xs text-bgray-500">Exam <span className="text-red-500">*</span></span>
-                                                            <span className="text-sm text-bgray-900 dark:text-white text-nowrap">Half Yearly Exam(December-2025)</span>
-                                                       </div>
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-
-                                                  <div
-                                                       className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "exam" ? "block" : "hidden"
-                                                            }`}
-                                                  >
-                                                       <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Half Yearly Exam(December-2025)</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">First Term Exam(March-2025)</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Final Exam(June-2025)</li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-
-                                             <div className="relative flex-1">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                       onClick={() => toggleFilter("session")}
-                                                  >
-                                                       <div className="flex flex-col items-start">
-                                                            <span className="text-xs text-bgray-500">Session <span className="text-red-500">*</span></span>
-                                                            <span className="text-sm text-bgray-900 dark:text-white text-nowrap">2020-21</span>
-                                                       </div>
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-
-                                                  <div
-                                                       className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "session" ? "block" : "hidden"
-                                                            }`}
-                                                  >
-                                                       <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">2018-19</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">2019-20</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">2020-21</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">2021-22</li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-
-                                             <div className="relative flex-1">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                       onClick={() => toggleFilter("class")}
-                                                  >
-                                                       <div className="flex flex-col items-start">
-                                                            <span className="text-xs text-bgray-500">Class <span className="text-red-500">*</span></span>
-                                                            <span className="text-sm text-bgray-900 dark:text-white text-nowrap">Class 1</span>
-                                                       </div>
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-
-                                                  <div
-                                                       className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"
-                                                            }`}
-                                                  >
-                                                       <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 1</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 2</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 3</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 4</li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-
-                                             <div className="relative flex-1">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                                                       onClick={() => toggleFilter("section")}
-                                                  >
-                                                       <div className="flex flex-col items-start">
-                                                            <span className="text-xs text-bgray-500">Section <span className="text-red-500">*</span></span>
-                                                            <span className="text-sm text-bgray-900 dark:text-white text-nowrap">B</span>
-                                                       </div>
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-
-                                                  <div
-                                                       className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"
-                                                            }`}
-                                                  >
-                                                       <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">A</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">B</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">C</li>
-                                                       </ul>
-                                                  </div>
+                                   <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        {/* Dropdowns for Group, Exam, Session, Class, Section, Template */}
+                                        {/* Group */}
+                                        <div className="relative">
+                                             <button type="button" onClick={() => toggleFilter("group")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Group</span><span className="text-sm dark:text-white truncate">{selectedGroup ? selectedGroup.name : "Select"}</span></div>
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                             </button>
+                                             <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "group" ? "block" : "hidden"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">{examGroups.map(g => (<li key={g._id} onClick={() => { setSelectedGroup(g); fetchExams(g._id); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{g.name}</li>))}</ul>
                                              </div>
                                         </div>
+                                        {/* Exam */}
+                                        <div className="relative">
+                                             <button type="button" onClick={() => toggleFilter("exam")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Exam</span><span className="text-sm dark:text-white truncate">{selectedExam ? selectedExam.name : "Select"}</span></div>
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                             </button>
+                                             <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "exam" ? "block" : "hidden"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">{exams.map(e => (<li key={e._id} onClick={() => { setSelectedExam(e); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{e.name}</li>))}</ul>
+                                             </div>
+                                        </div>
+                                        {/* Template */}
+                                        <div className="relative">
+                                             <button type="button" onClick={() => toggleFilter("template")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Template</span><span className="text-sm dark:text-white truncate">{selectedTemplate ? selectedTemplate.templateName : "Select"}</span></div>
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                             </button>
+                                             <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "template" ? "block" : "hidden"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">{templates.map(t => (<li key={t._id} onClick={() => { setSelectedTemplate(t); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{t.templateName}</li>))}</ul>
+                                             </div>
+                                        </div>
+                                        {/* Class */}
+                                        <div className="relative">
+                                             <button type="button" onClick={() => toggleFilter("class")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Class</span><span className="text-sm dark:text-white truncate">{selectedClass ? selectedClass.className : "Select"}</span></div>
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                             </button>
+                                             <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "class" ? "block" : "hidden"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">{classes.map(c => (<li key={c._id} onClick={() => { setSelectedClass(c); fetchSections(c.className); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{c.className}</li>))}</ul>
+                                             </div>
+                                        </div>
+                                        {/* Section */}
+                                        <div className="relative">
+                                             <button type="button" onClick={() => toggleFilter("section")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Section</span><span className="text-sm dark:text-white truncate">{selectedSection ? selectedSection.sectionName : "Select"}</span></div>
+                                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                             </button>
+                                             <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "section" ? "block" : "hidden"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">{sections.map(s => (<li key={s._id} onClick={() => { setSelectedSection(s); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{s.sectionName}</li>))}</ul>
+                                             </div>
+                                        </div>
+
+                                        <button type="button" onClick={handleSearch} className="h-14 rounded-lg bg-bgray-900 text-white font-bold flex items-center justify-center hover:bg-bgray-800 transition-colors">Search</button>
                                    </div>
 
-                                   {/* Student List Section */}
                                    <div className="w-full">
                                         <div className="flex justify-between items-center mb-4">
-                                             <h3 className="text-xl font-semibold text-bgray-600 dark:text-white">
-                                                  Student List
-                                             </h3>
-                                             <button
-                                                  type="button"
-                                                  className="px-6 py-2.5 rounded-lg bg-bgray-600 hover:bg-bgray-700 dark:bg-bgray-700 dark:hover:bg-bgray-800 text-white font-semibold transition-colors"
-                                             >
-                                                  Generate
-                                             </button>
+                                             <h3 className="text-xl font-bold dark:text-white">Student List</h3>
+                                             <button onClick={handleGenerate} className="px-6 py-2 bg-success-300 text-white font-bold rounded-lg hover:bg-success-400 transition-colors">Generate</button>
                                         </div>
 
-                                        <div className="table-content w-full min-h-[52vh] overflow-x-auto">
+                                        <div className="table-content w-full overflow-x-auto min-h-[400px]">
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <label className="text-center">
-                                                                      <input
-                                                                           type="checkbox"
-                                                                           checked={selectAll}
-                                                                           onChange={handleSelectAll}
-                                                                           className="focus:outline-none focus:ring-0 rounded border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 dark:bg-darkblack-600 dark:border-darkblack-400"
-                                                                      />
-                                                                 </label>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Admission No</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-gray-50">Student Name</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Father Name</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Date Of Birth</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Gender</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Category</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Mobile Number</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           </svg>
-                                                                      </span>
-                                                                 </div>
-                                                            </td>
+                                                            <td className="py-4 px-4"><input type="checkbox" onChange={handleSelectAll} checked={students.length > 0 && selectedStudents.length === students.length} className="w-5 h-5 cursor-pointer"/></td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Admission No</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Student Name</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Class/Section</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Father Name</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">DOB</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Gender</td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {studentData.map((student) => (
-                                                            <tr key={student.id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <label className="text-center">
-                                                                           <input
-                                                                                type="checkbox"
-                                                                                checked={selectedStudents.includes(student.id)}
-                                                                                onChange={() => handleSelectStudent(student.id)}
-                                                                                className="focus:outline-none focus:ring-0 rounded border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 dark:bg-darkblack-600 dark:border-darkblack-400"
-                                                                           />
-                                                                      </label>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.admissionNo}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.studentName}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.fatherName}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.dob}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.gender}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.category}
-                                                                      </p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {student.mobile}
-                                                                      </p>
-                                                                 </td>
+                                                       {loading ? (
+                                                            <tr><td colSpan={7} className="py-20 text-center text-bgray-500 dark:text-bgray-300">Loading students...</td></tr>
+                                                       ) : students.length === 0 ? (
+                                                            <tr><td colSpan={7} className="py-20 text-center text-bgray-500 dark:text-bgray-300">No students found</td></tr>
+                                                       ) : students.map(s => (
+                                                            <tr key={s._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                 <td className="py-4 px-4"><input type="checkbox" checked={selectedStudents.includes(s._id)} onChange={() => handleSelectStudent(s._id)} className="w-5 h-5 cursor-pointer"/></td>
+                                                                 <td className="py-4 px-4 text-sm dark:text-white">{s.admission_no}</td>
+                                                                 <td className="py-4 px-4 text-sm dark:text-white font-medium">{s.fname} {s.lname}</td>
+                                                                 <td className="py-4 px-4 text-sm dark:text-white">{s.class} ({s.section})</td>
+                                                                 <td className="py-4 px-4 text-sm dark:text-white">{s.father_name}</td>
+                                                                 <td className="py-4 px-4 text-sm dark:text-white">{s.dob}</td>
+                                                                 <td className="py-4 px-4 text-sm dark:text-white">{s.gender}</td>
                                                             </tr>
                                                        ))}
                                                   </tbody>

@@ -1,28 +1,30 @@
 import React from "react";
 import {
-    LayoutDashboard,
-    User,
-    CreditCard,
-    GraduationCap,
-    Building2,
+    LayoutGrid,
+    UserCog,
+    CircleDollarSign,
+    Laptop,
+    GitBranch,
+    Presentation,
     Video,
-    Shield,
-    DollarSign,
-    FileText,
-    ClipboardCheck,
-    CalendarCheck,
-    Monitor,
-    BookOpen,
-    Calendar,
-    FileEdit,
-    Users,
-    MessageSquare,
-    Download,
-    BookMarked,
-    Library,
-    Package,
-    FileUser,
-    Bus
+    ShieldAlert,
+    TrendingUp,
+    TrendingDown,
+    GraduationCap,
+    FileCheck,
+    CalendarDays,
+    MonitorPlay,
+    PencilRuler,
+    CalendarRange,
+    FileSignature,
+    Users2,
+    MessagesSquare,
+    CloudDownload,
+    BookText,
+    LibraryBig,
+    Box,
+    Contact,
+    Truck
 } from "lucide-react";
 
 export interface SubMenuItem {
@@ -42,14 +44,14 @@ export const menu: MenuItem[] = [
     {
         title: "Dashboard",
         url: "/admin/dashboard",
-        icon: <LayoutDashboard size={20} className="text-[#0FCDE1]" />,
+        icon: <LayoutGrid size={20} />,
         dropdown: false,
         submenu: [],
     },
     {
-        title: "Student Information",
+        title: "Students",
         url: "",
-        icon: <User size={20} className="text-[#0FCDE1]" />,
+        icon: <UserCog size={20} />,
         dropdown: true,
         submenu: [
             { title: "Student Details", url: "/admin/Students/StudentDetails" },
@@ -63,9 +65,9 @@ export const menu: MenuItem[] = [
         ],
     },
     {
-        title: "Fee Collection",
+        title: "Fees",
         url: "",
-        icon: <CreditCard size={20} className="text-[#0FCDE1]" />,
+        icon: <CircleDollarSign size={20} />,
         dropdown: true,
         submenu: [
             { title: "Collect Fees", url: "/admin/FeesCollection/studentfee" },
@@ -84,10 +86,10 @@ export const menu: MenuItem[] = [
     {
         title: "Online Course",
         url: "",
-        icon: <GraduationCap size={20} className="text-[#0FCDE1]" />,
+        icon: <Laptop size={20} />,
         dropdown: true,
         submenu: [
-            { title: "Online Course", url: "/income/add" },
+            { title: "Online Course", url: "/admin/onlinecourse/course" },
             { title: "Offline Payment", url: "/admin/onlinecourse/offlinepayment" },
             { title: "Course Category", url: "/admin/onlinecourse/coursecategory" },
             { title: "Question Bank", url: "/admin/onlinecourse/courseexamquestion" },
@@ -98,7 +100,7 @@ export const menu: MenuItem[] = [
     {
         title: "Multi Branch",
         url: "",
-        icon: <Building2 size={20} className="text-[#0FCDE1]" />,
+        icon: <GitBranch size={20} />,
         dropdown: true,
         submenu: [
             { title: "Overview", url: "/admin/multibranch/overview" },
@@ -109,7 +111,7 @@ export const menu: MenuItem[] = [
     {
         title: "Gmeet Live Classes",
         url: "",
-        icon: <Video size={20} className="text-[#0FCDE1]" />,
+        icon: <Presentation size={20} />,
         dropdown: true,
         submenu: [
             { title: "Live Classes", url: "/admin/GmeetLiveClasses/liveClasses" },
@@ -122,7 +124,7 @@ export const menu: MenuItem[] = [
     {
         title: "Zoom Live Class",
         url: "",
-        icon: <Monitor size={20} className="text-[#0FCDE1]" />,
+        icon: <Video size={20} />,
         dropdown: true,
         submenu: [
             { title: "Live Classes", url: "/admin/ZoomLiveClasses/liveClasses" },
@@ -133,9 +135,9 @@ export const menu: MenuItem[] = [
         ],
     },
     {
-        title: "Behaviour Records",
+        title: "Behaviour",
         url: "",
-        icon: <Shield size={20} className="text-[#0FCDE1]" />,
+        icon: <ShieldAlert size={20} />,
         dropdown: true,
         submenu: [
             { title: "Assign Incident", url: "/admin/behaviourRecords/AssignIncident" },
@@ -147,7 +149,7 @@ export const menu: MenuItem[] = [
     {
         title: "Income",
         url: "",
-        icon: <DollarSign size={20} className="text-[#0FCDE1]" />,
+        icon: <TrendingUp size={20} />,
         dropdown: true,
         submenu: [
             { title: "Add Income", url: "/admin/income/addIncome" },
@@ -158,7 +160,7 @@ export const menu: MenuItem[] = [
     {
         title: "Expenses",
         url: "",
-        icon: <FileText size={20} className="text-[#0FCDE1]" />,
+        icon: <TrendingDown size={20} />,
         dropdown: true,
         submenu: [
             { title: "Add Expense", url: "/admin/expenses/addExpense" },
@@ -169,7 +171,7 @@ export const menu: MenuItem[] = [
     {
         title: "CBSE Examination",
         url: "",
-        icon: <ClipboardCheck size={20} className="text-[#0FCDE1]" />,
+        icon: <GraduationCap size={20} />,
         dropdown: true,
         submenu: [
             { title: "Exam", url: "/admin/cbseexam/Exam" },
@@ -189,7 +191,7 @@ export const menu: MenuItem[] = [
     {
         title: "Examinations",
         url: "",
-        icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
+        icon: <FileCheck size={20} />,
         dropdown: true,
         submenu: [
             { title: "Exam Group", url: "/admin/Examinations/ExamGroup" },
@@ -206,7 +208,7 @@ export const menu: MenuItem[] = [
     {
         title: "Attendance",
         url: "",
-        icon: <CalendarCheck size={20} className="text-[#0FCDE1]" />,
+        icon: <CalendarDays size={20} />,
         dropdown: true,
         submenu: [
             { title: "Student Attendance", url: "/admin/Attendance/StudentAttendance" },
@@ -217,7 +219,7 @@ export const menu: MenuItem[] = [
     {
         title: "Online Examinations",
         url: "",
-        icon: <Monitor size={20} className="text-[#0FCDE1]" />,
+        icon: <MonitorPlay size={20} />,
         dropdown: true,
         submenu: [
             { title: "Online Exam", url: "/admin/OnlineExaminations/OnlineExam" },
@@ -227,7 +229,7 @@ export const menu: MenuItem[] = [
     {
         title: "Academics",
         url: "",
-        icon: <BookOpen size={20} className="text-[#0FCDE1]" />,
+        icon: <PencilRuler size={20} />,
         dropdown: true,
         submenu: [
             { title: "Class Timetable", url: "/admin/Academics/ClassTimetable" },
@@ -243,7 +245,7 @@ export const menu: MenuItem[] = [
     {
         title: "Annual Calendar",
         url: "",
-        icon: <Calendar size={20} className="text-[#0FCDE1]" />,
+        icon: <CalendarRange size={20} />,
         dropdown: true,
         submenu: [
             { title: "Annual Calendar", url: "/admin/AnnualCalendar" },
@@ -253,7 +255,7 @@ export const menu: MenuItem[] = [
     {
         title: "Lesson Plan",
         url: "",
-        icon: <FileEdit size={20} className="text-[#0FCDE1]" />,
+        icon: <FileSignature size={20} />,
         dropdown: true,
         submenu: [
             { title: "Copy Old Lessons", url: "/admin/LessonPlan/CopyOldLessons" },
@@ -264,9 +266,9 @@ export const menu: MenuItem[] = [
         ],
     },
     {
-        title: "Human Resource",
+        title: "HR",
         url: "",
-        icon: <Users size={20} className="text-[#0FCDE1]" />,
+        icon: <Users2 size={20} />,
         dropdown: true,
         submenu: [
             { title: "Staff Directory", url: "/admin/hr/staffDirectory" },
@@ -282,9 +284,9 @@ export const menu: MenuItem[] = [
         ],
     },
     {
-        title: "Communicate",
+        title: "Communication",
         url: "",
-        icon: <MessageSquare size={20} className="text-[#0FCDE1]" />,
+        icon: <MessagesSquare size={20} />,
         dropdown: true,
         submenu: [
             { title: "Notice Board", url: "/admin/Communicate/NoticeBoard" },
@@ -300,7 +302,7 @@ export const menu: MenuItem[] = [
     {
         title: "Download Center",
         url: "",
-        icon: <Download size={20} className="text-[#0FCDE1]" />,
+        icon: <CloudDownload size={20} />,
         dropdown: true,
         submenu: [
             { title: "Content Type", url: "/admin/DownloadCenter/ContentType" },
@@ -312,7 +314,7 @@ export const menu: MenuItem[] = [
     {
         title: "Homework",
         url: "",
-        icon: <BookMarked size={20} className="text-[#0FCDE1]" />,
+        icon: <BookText size={20} />,
         dropdown: true,
         submenu: [
             { title: "Add Homework", url: "/admin/Homework/AddHomework" },
@@ -322,7 +324,7 @@ export const menu: MenuItem[] = [
     {
         title: "Library",
         url: "",
-        icon: <Library size={20} className="text-[#0FCDE1]" />,
+        icon: <LibraryBig size={20} />,
         dropdown: true,
         submenu: [
             { title: "Book List", url: "/admin/Library/BookList" },
@@ -334,7 +336,7 @@ export const menu: MenuItem[] = [
     {
         title: "Inventory",
         url: "",
-        icon: <Package size={20} className="text-[#0FCDE1]" />,
+        icon: <Box size={20} />,
         dropdown: true,
         submenu: [
             { title: "Issue Item", url: "/admin/Inventory/IssueItem" },
@@ -348,7 +350,7 @@ export const menu: MenuItem[] = [
     {
         title: "Student CV",
         url: "",
-        icon: <FileUser size={20} className="text-[#0FCDE1]" />,
+        icon: <Contact size={20} />,
         dropdown: true,
         submenu: [
             { title: "Build CV", url: "/admin/StudentCV/BuildCV" },
@@ -358,7 +360,7 @@ export const menu: MenuItem[] = [
     {
         title: "Transport",
         url: "",
-        icon: <Bus size={20} className="text-[#0FCDE1]" />,
+        icon: <Truck size={20} />,
         dropdown: true,
         submenu: [
             { title: "Fees Master", url: "/admin/Transport/FeesMaster" },
@@ -367,7 +369,7 @@ export const menu: MenuItem[] = [
             { title: "Vehicles", url: "/admin/Transport/Vehicles" },
             { title: "Assign Vehicle", url: "/admin/Transport/AssignVehicle" },
             { title: "Route Pickup Point", url: "/admin/Transport/RoutePickupPoint" },
-            { title: "Student Transport Fees", url: "/admin/StudentCV/StudentTransportFees" },
+            { title: "Student Transport Fees", url: "/admin/Transport/StudentTransportFees" },
         ],
     },
 ];

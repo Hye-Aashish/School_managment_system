@@ -1,0 +1,20 @@
+const { MongoClient } = require('mongodb');
+
+async function main() {
+    const uri = "mongodb://aashishofficial123_db_user:AV445S3k0brlHEPu@ac-791ijbv-shard-00-00.q0seg1w.mongodb.net:27017,ac-791ijbv-shard-00-01.q0seg1w.mongodb.net:27017,ac-791ijbv-shard-00-02.q0seg1w.mongodb.net:27017/?ssl=true&replicaSet=atlas-uhm015-shard-0&authSource=admin&retryWrites=true&w=majority";
+    const client = new MongoClient(uri);
+
+    try {
+        await client.connect();
+        console.log("Connected to MongoDB");
+        const admin = client.db().admin();
+        const dbs = await admin.listDatabases();
+        console.log("Databases:", dbs.databases.map(d => d.name));
+    } catch (e) {
+        console.error(e);
+    } finally {
+        await client.close();
+    }
+}
+
+main();

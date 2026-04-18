@@ -8,71 +8,78 @@ export default function PieChart() {
      const chartInstance = useRef(null);
 
      useEffect(() => {
+          const fetchData = async () => {
+               let active = 60, disabled = 20, admissions = 20;
 
-          if (chartInstance.current) {
-               chartInstance.current.destroy();
-          }
+               try {
+                    const res = await fetch("/api/stats");
+                    if (res.ok) {
+                         const stats = await res.json();
+                         const total = stats.totalStudents + stats.onlineAdmissions;
+                         if (total > 0) {
+                              active = Math.round((stats.activeStudents / total) * 100);
+                              disabled = Math.round((stats.disabledStudents / total) * 100);
+                              admissions = Math.round((stats.onlineAdmissions / total) * 100);
+                         }
+                    }
+               } catch (err) {
+                    console.error("Error fetching pie stats:", err);
+               }
 
-          const pieChart = chartRef.current.getContext("2d");
+               if (chartInstance.current) {
+                    chartInstance.current.destroy();
+               }
+               if (!chartRef.current) return;
+               const pieChart = chartRef.current.getContext("2d");
 
-          const data = {
-               labels: [10, 20, 30],
-               datasets: [
-                    {
-                         label: "My First Dataset",
-                         data: [15, 20, 35, 40],
-                         backgroundColor: ["#1A202C", "#61C660", "#F8CC4B", "#EDF2F7"],
-                         borderColor: ["#ffffff", "#ffffff", "#ffffff", "#1A202C"],
-                         hoverOffset: 18,
-                         borderWidth: 0,
+               const data = {
+                    labels: ["Active", "Disabled", "Admissions", "Other"],
+                    datasets: [
+                         {
+                              label: "Student Breakdown",
+                              data: [active, disabled, admissions, Math.max(0, 100 - (active + disabled + admissions))],
+                              backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#64748b"],
+                              borderColor: "#ffffff",
+                              hoverOffset: 18,
+                              borderWidth: 4,
+                         },
+                    ],
+               };
+
+               const customDatalabels = {
+                    id: "customDatalabels",
+                    afterDatasetsDraw(chart) {
+                         const { ctx, data } = chart;
+                         ctx.save();
+                         data.datasets[0].data.forEach((value, index) => {
+                              if (value <= 0) return;
+                              const pos = chart.getDatasetMeta(0).data[index].tooltipPosition();
+                              ctx.font = "bold 10px sans-serif";
+                              ctx.fillStyle = "#1A202C";
+                              ctx.textAlign = "center";
+                              ctx.textBaseline = "middle";
+                              ctx.fillText(`${value}%`, pos.x, pos.y);
+                         });
                     },
-               ],
+               };
+
+               chartInstance.current = new Chart(pieChart, {
+                    type: "doughnut",
+                    data,
+                    options: {
+                         maintainAspectRatio: false,
+                         layout: { padding: 10 },
+                         plugins: { legend: { display: false } },
+                    },
+                    plugins: [customDatalabels],
+               });
           };
 
-          // Custom plugin for labels inside slices
-          const customDatalabels = {
-               id: "customDatalabels",
-               afterDatasetsDraw(chart) {
-                    const { ctx, data } = chart;
-                    ctx.save();
-
-                    data.datasets[0].data.forEach((value, index) => {
-                         const pos = chart.getDatasetMeta(0).data[index].tooltipPosition();
-
-                         ctx.font = "bold 12px sans-serif";
-                         ctx.fillStyle = data.datasets[0].borderColor[index];
-                         ctx.textAlign = "center";
-                         ctx.textBaseline = "middle";
-                         ctx.fillText(`${value}%`, pos.x, pos.y);
-                    });
-               },
-          };
-
-          chartInstance.current = new Chart(pieChart, {
-               type: "doughnut",
-               data,
-               options: {
-                    maintainAspectRatio: false,
-                    layout: {
-                         padding: {
-                              left: 10,
-                              right: 10,
-                              top: 10,
-                              bottom: 10,
-                         },
-                    },
-                    plugins: {
-                         legend: {
-                              display: false,
-                         },
-                    },
-               },
-               plugins: [customDatalabels],
-          });
+          fetchData();
      }, []);
 
      return (
-          <div style={{ width: "230px", height: "168px" }}>
+          <div className="w-full h-full">
                <canvas ref={chartRef} id="pie_chart"></canvas>
           </div>
      );

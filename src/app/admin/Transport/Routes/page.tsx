@@ -1,249 +1,101 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function RouteManagement() {
-  const [openFilter, setOpenFilter] = useState<"action" | "export" | null>(null);
-  const [routeTitle, setRouteTitle] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+export default function TransportRoutes() {
+     const [routes, setRoutes] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
+     const [name, setName] = useState("");
 
-  const toggleFilter = (type: "action" | "export") => {
-    setOpenFilter(openFilter === type ? null : type);
-  };
+     const fetchRoutes = async () => {
+          setLoading(true);
+          const res = await fetch("/api/transport/core?type=route");
+          const data = await res.json();
+          if (data.success) setRoutes(data.data);
+          setLoading(false);
+     };
 
-  const routeData = [
-    { title: "Brooklyn Central" },
-    { title: "Brooklyn East" },
-    { title: "Brooklyn West" },
-    { title: "Brooklyn South" },
-    { title: "Brooklyn North" },
-    { title: "Railway station" },
-    { title: "High Court" },
-    { title: "Vijay Nagar" },
-    { title: "Civil Line" },
-    { title: "Dindayal Chowk" },
-    { title: "Ranitaal" },
-  ];
+     useEffect(() => { fetchRoutes(); }, []);
 
-  const filteredRoutes = routeData.filter((route) =>
-    route.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+     const handleSave = async (e: React.FormEvent) => {
+          e.preventDefault();
+          if (!name) return;
+          await fetch("/api/transport/core", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({ type: "route", name })
+          });
+          setName("");
+          fetchRoutes();
+     };
 
-  return (
-    <>
-      <div className="2xl:flex 2xl:space-x-12">
-        <section className="2xl:flex-1 2xl:mb-0 mb-6">
-          <div className="flex items-start gap-6 lg:flex-row md:flex-row flex-col">
-            {/* Create Route Section */}
-            <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600 max-w-[320px]">
-              <div className="flex flex-col space-y-5">
-                <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Create Route</h3>
-                <div className="w-full space-y-4">
-                  <div className="w-full">
-                    <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
-                      Route Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={routeTitle}
-                      onChange={(e) => setRouteTitle(e.target.value)}
-                      className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-white focus:outline-none focus:border-success-300"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    className="py-3.5 flex items-center justify-center text-white font-bold !bg-gray-900 !hover:bg-gray-800 dark:bg-darkblack-500 dark:hover:bg-darkblack-400 transition-all rounded-lg w-full"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
+     const deleteRoute = async (id: string) => {
+          if (!confirm("Delete this transport route?")) return;
+          await fetch(`/api/transport/core?type=route&id=${id}`, { method: "DELETE" });
+          fetchRoutes();
+     };
 
-            {/* Route List Section */}
-            <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600">
-              <div className="flex flex-col space-y-5">
-                <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Route List</h3>
-                
-                <div className="w-full flex h-14 space-x-4">
-                  <div className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                    <div className="flex w-full h-full items-center space-x-[15px]">
-                      <span>
-                        <svg
-                          className="stroke-bgray-900 dark:stroke-white"
-                          width="21"
-                          height="22"
-                          viewBox="0 0 21 22"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <circle
-                            cx="9.80204"
-                            cy="10.6761"
-                            r="8.98856"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M16.0537 17.3945L19.5777 20.9094"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </span>
-                      <label className="w-full">
-                        <input
-                          type="text"
-                          placeholder="Search..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                        />
-                      </label>
-                    </div>
-                  </div>
+     return (
+          <div className="flex flex-col space-y-6 px-1">
+               <div className="2xl:flex 2xl:space-x-8">
+                    {/* Add Section */}
+                    <section className="2xl:w-[400px] shrink-0">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-[32px] p-8 shadow-sm border border-bgray-200 dark:border-darkblack-400">
+                              <h3 className="text-xl font-bold dark:text-white mb-8 uppercase tracking-tighter flex items-center gap-2">
+                                   <div className="w-1.5 h-6 bg-success-300 rounded-full"></div>
+                                   Logistical Protocol
+                              </h3>
+                              <form onSubmit={handleSave} className="space-y-6">
+                                   <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Route Name *</label>
+                                        <input required value={name} onChange={e => setName(e.target.value)} className="w-full h-12 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="e.g. North Sector A" />
+                                   </div>
+                                   <button type="submit" className="w-full h-14 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">REGISTER ROUTE</button>
+                                   <div className="pt-4 text-center">
+                                        <p className="text-[9px] font-bold text-bgray-300 uppercase tracking-tighter">Unified Transport Deployment Active</p>
+                                   </div>
+                              </form>
+                         </div>
+                    </section>
 
-                  {/* Export Dropdown */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
-                      onClick={() => toggleFilter("export")}
-                    >
-                      <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                      <span>
-                        <svg
-                          width="21"
-                          height="21"
-                          viewBox="0 0 21 21"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                            stroke="#A0AEC0"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </span>
-                    </button>
-
-                    <div
-                      className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${
-                        openFilter === "export" ? "block" : "hidden"
-                      }`}
-                    >
-                      <ul>
-                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                          Copy
-                        </li>
-                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                          Excel
-                        </li>
-                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                          CSV
-                        </li>
-                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                          PDF
-                        </li>
-                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                          Print
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Table */}
-                <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                        <td className="py-5 px-6 xl:px-0">
-                          <div className="w-full flex space-x-2.5 items-center">
-                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Route Title</span>
-                            <span>
-                              <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-6 xl:px-0">
-                          <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
-                        </td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRoutes.map((route, index) => (
-                        <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
-                          <td className="py-5 px-6 xl:px-0">
-                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{route.title}</p>
-                          </td>
-                          <td className="py-5 px-6 xl:px-0">
-                            <div className="flex items-center space-x-2">
-                              <button type="button" className="hover:opacity-70 transition" title="Edit">
-                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M8.25 3H3C2.175 3 1.5 3.675 1.5 4.5V15C1.5 15.825 2.175 16.5 3 16.5H13.5C14.325 16.5 15 15.825 15 15V9.75" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                  <path d="M13.875 1.875C14.325 1.425 15.075 1.425 15.525 1.875C15.975 2.325 15.975 3.075 15.525 3.525L8.25 10.8L5.25 11.625L6.075 8.625L13.875 1.875Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </button>
-                              <button type="button" className="hover:opacity-70 transition" title="Delete">
-                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M2.25 4.5H3.75H15.75" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                  <path d="M6 4.5V3C6 2.175 6.675 1.5 7.5 1.5H10.5C11.325 1.5 12 2.175 12 3V4.5M14.25 4.5V15C14.25 15.825 13.575 16.5 12.75 16.5H5.25C4.425 16.5 3.75 15.825 3.75 15V4.5H14.25Z" stroke="#A0AEC0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="pagination-content w-full">
-                  <div className="w-full flex lg:justify-between justify-center items-center">
-                    <div className="lg:flex hidden space-x-4 items-center">
-                      <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">
-                        Records: 1 to 11 of 11
-                      </span>
-                    </div>
-                    <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                      <button type="button">
-                        <span>
-                          <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                      </button>
-                      <div className="flex items-center">
-                        <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">
-                          1
-                        </button>
-                      </div>
-                      <button type="button">
-                        <span>
-                          <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    {/* Table Section */}
+                    <section className="flex-1 mt-8 2xl:mt-0">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-[32px] shadow-sm border border-bgray-200 dark:border-darkblack-400 overflow-hidden min-h-[500px]">
+                              <table className="w-full text-left">
+                                   <thead>
+                                        <tr className="bg-bgray-50 dark:bg-darkblack-500/30 text-[10px] font-black text-bgray-500 uppercase tracking-widest">
+                                             <th className="px-8 py-5">Active deployment routes</th>
+                                             <th className="px-8 py-5 text-right">Administrative</th>
+                                        </tr>
+                                   </thead>
+                                   <tbody className="divide-y divide-bgray-100 dark:divide-darkblack-400">
+                                        {loading ? (
+                                             <tr><td colSpan={2} className="py-24 text-center"><div className="w-10 h-10 mx-auto border-4 border-success-300/20 border-t-success-300 rounded-full animate-spin"></div></td></tr>
+                                        ) : routes.length > 0 ? (
+                                             routes.map((r) => (
+                                                  <tr key={r._id} className="hover:bg-bgray-50/50 transition-colors group">
+                                                       <td className="px-8 py-7 border-l-4 border-transparent hover:border-success-300 transition-all">
+                                                            <div className="flex items-center gap-4">
+                                                                 <div className="w-10 h-10 bg-success-300/10 rounded-xl flex items-center justify-center text-success-300">
+                                                                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                                                 </div>
+                                                                 <span className="text-sm font-black text-bgray-900 dark:text-white uppercase tracking-tighter">{r.name}</span>
+                                                            </div>
+                                                       </td>
+                                                       <td className="px-8 py-7 text-right">
+                                                            <button onClick={() => deleteRoute(r._id)} className="p-3 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-bgray-400 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
+                                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                            </button>
+                                                       </td>
+                                                  </tr>
+                                             ))
+                                        ) : (
+                                             <tr><td colSpan={2} className="py-32 text-center opacity-10 font-black uppercase text-xs tracking-[0.3em]">Logistical route manifest empty</td></tr>
+                                        )}
+                                   </tbody>
+                              </table>
+                         </div>
+                    </section>
+               </div>
           </div>
-        </section>
-      </div>
-    </>
-  );
+     );
 }

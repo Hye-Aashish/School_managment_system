@@ -1,825 +1,218 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 export default function StaffDirectory() {
-     const [activeView, setActiveView] = useState<"card" | "list">("card");
-     const [openFilter, setOpenFilter] = useState<"export" | "pagination" | null>(null);
+     const [staff, setStaff] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
+     const [isModalOpen, setIsModalOpen] = useState(false);
+     const [searchQuery, setSearchQuery] = useState("");
+     const [roleFilter, setRoleFilter] = useState("All");
+     
+     const [formData, setFormData] = useState({
+          staffId: "", role: "Teacher", designation: "", department: "",
+          firstName: "", lastName: "", fatherName: "", motherName: "",
+          email: "", gender: "Male", dob: "", dateOfJoining: "",
+          phone: "", emergencyContact: "", maritalStatus: "Single",
+          currentAddress: "", permanentAddress: "", qualification: "",
+          workExperience: ""
+     });
 
-     const toggleFilter = (type: "export" | "pagination") => {
-          setOpenFilter(openFilter === type ? null : type);
+     const fetchStaff = async () => {
+          setLoading(true);
+          const res = await fetch("/api/staff");
+          const data = await res.json();
+          if (data.success) setStaff(data.data);
+          setLoading(false);
      };
 
-     const staffData = [
-          {
-               id: 1,
-               name: "Joe Black",
-               staffId: "9000",
-               phone: "6545645645",
-               location: "Ground Floor, Admin",
-               roles: ["Super Admin", "Technical Head"],
-               role: "Super Admin",
-               department: "Admin",
-               designation: "Technical Head",
-               panNumber: "ALWPG5809L",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 2,
-               name: "Shivam Verma",
-               staffId: "9002",
-               phone: "9552654564",
-               location: "1st Floor, Academic",
-               roles: ["Teacher", "Faculty"],
-               role: "Teacher",
-               department: "Academic",
-               designation: "Faculty",
-               panNumber: "RLWEG5809L",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 3,
-               name: "Brandon Heart",
-               staffId: "9006",
-               phone: "34564654",
-               location: "2nd Floor, Library",
-               roles: ["Librarian", "Librarian"],
-               role: "Librarian",
-               department: "Library",
-               designation: "Librarian",
-               panNumber: "ALWPG5825H",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 4,
-               name: "William Abbot",
-               staffId: "9003",
-               phone: "56465465",
-               location: "Ground Floor, Admin",
-               roles: ["Admin", "Principal"],
-               role: "Admin",
-               department: "Admin",
-               designation: "Principal",
-               panNumber: "ERTPG5809L",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 5,
-               name: "Jason Sharlton",
-               staffId: "90006",
-               phone: "46546654564",
-               location: "Ground Floor, Academic",
-               roles: ["Teacher", "Faculty"],
-               role: "Teacher",
-               department: "Academic",
-               designation: "Faculty",
-               panNumber: "UIYEG5809L",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 6,
-               name: "James Deckar",
-               staffId: "9004",
-               phone: "79786546463",
-               location: "Ground Floor, Finance",
-               roles: ["Accountant", "Accountant"],
-               role: "Accountant",
-               department: "Finance",
-               designation: "Accountant",
-               panNumber: "OLUOPG5809",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 7,
-               name: "Maria Ford",
-               staffId: "9005",
-               phone: "8521479630",
-               location: "Ground Floor, Academic",
-               roles: ["Receptionist", "Receptionist"],
-               role: "Receptionist",
-               department: "Academic",
-               designation: "Receptionist",
-               panNumber: "QTWPG5809L",
-               image: "/placeholder-female.jpg",
-          },
-          {
-               id: 8,
-               name: "Albert Thomas",
-               staffId: "54545454",
-               phone: "9522369875",
-               location: "Mumbai, Maths",
-               roles: ["Teacher", "Faculty"],
-               role: "Teacher",
-               department: "Maths",
-               designation: "Faculty",
-               panNumber: "AMB14ER",
-               image: "/placeholder-male.jpg",
-          },
-          {
-               id: 9,
-               name: "Jonathan Wood",
-               staffId: "6332",
-               phone: "",
-               location: "Academic",
-               roles: ["Teacher", "Faculty"],
-               role: "Teacher",
-               department: "Academic",
-               designation: "Faculty",
-               panNumber: "234234",
-               image: "/placeholder-avatar.jpg",
-          },
-          {
-               id: 10,
-               name: "Nishant Khare",
-               staffId: "1002",
-               phone: "9865757657",
-               location: "",
-               roles: ["Teacher"],
-               role: "Teacher",
-               department: "",
-               designation: "",
-               panNumber: "PAN5585789",
-               image: "/placeholder-male.jpg",
-          },
-     ];
+     useEffect(() => { fetchStaff(); }, []);
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          const res = await fetch("/api/staff", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify(formData)
+          });
+          if (res.ok) {
+               setIsModalOpen(false);
+               fetchStaff();
+          }
+     };
+
+     const filteredStaff = useMemo(() => {
+          return staff.filter(s => {
+               const matchesSearch = `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                   s.staffId.toLowerCase().includes(searchQuery.toLowerCase());
+               const matchesRole = roleFilter === "All" || s.role === roleFilter;
+               return matchesSearch && matchesRole;
+          });
+     }, [staff, searchQuery, roleFilter]);
 
      return (
-          <>
-               <div className="w-full space-y-6">
-                    {/* Select Criteria Section */}
-                    <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
-                         <div className="flex gap-4">
-                              <div className="w-full">
-                                   <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                        <option value="">Select Role</option>
-                                        <option value="teacher">Teacher</option>
-                                        <option value="admin">Admin</option>
-                                        <option value="librarian">Librarian</option>
-                                   </select>
-                              </div>
-                              <div className="w-full">
-                                   <input
-                                        type="text"
-                                        placeholder="Search By Staff ID, Name, Role etc..."
-                                        className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+          <div className="flex flex-col space-y-6 px-1">
+               {/* Controls */}
+               <section className="bg-white dark:bg-darkblack-600 rounded-2xl p-6 shadow-sm border border-bgray-200 dark:border-darkblack-400">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+                         <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+                              <h3 className="text-xl font-bold dark:text-white flex items-center gap-3 shrink-0 mr-4 uppercase tracking-tighter">
+                                   <div className="w-1.5 h-6 bg-success-300 rounded-full"></div>
+                                   Staff Repository
+                              </h3>
+                              <div className="relative w-full lg:w-96">
+                                   <input 
+                                        type="text" 
+                                        placeholder="Search by ID or Name..." 
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                        className="w-full h-11 pl-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black"
                                    />
-                              </div>
-                              <button
-                                   type="button"
-                                   className="px-6 text-nowrap py-2.5 flex items-center space-x-2 text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg"
-                              >
-                                   <span>
-                                        <svg
-                                             width="20"
-                                             height="20"
-                                             viewBox="0 0 20 20"
-                                             fill="none"
-                                             xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                             <path
-                                                  d="M10 4V16"
-                                                  stroke="currentColor"
-                                                  strokeWidth="2"
-                                                  strokeLinecap="round"
-                                             />
-                                             <path
-                                                  d="M4 10H16"
-                                                  stroke="currentColor"
-                                                  strokeWidth="2"
-                                                  strokeLinecap="round"
-                                             />
-                                        </svg>
+                                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-bgray-400">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                                    </span>
-                                   <span>Add Staff</span>
-                              </button>
-                         </div>
-                    </div>
-
-                    {/* View Toggle and Cards Section */}
-                    <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
-                         {/* View Toggle */}
-                         <div className="flex space-x-4 mb-6 border-b border-bgray-300 dark:border-darkblack-400">
-                              <button
-                                   type="button"
-                                   onClick={() => setActiveView("card")}
-                                   className={`pb-4 px-2 flex items-center space-x-2 font-semibold transition-all ${
-                                        activeView === "card"
-                                             ? "text-success-300 border-b-2 border-success-300"
-                                             : "text-bgray-600 dark:text-bgray-400"
-                                   }`}
-                              >
-                                   <svg
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                   >
-                                        <rect x="2" y="2" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
-                                        <rect x="2" y="11" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
-                                        <rect x="11" y="2" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
-                                        <rect x="11" y="11" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
-                                   </svg>
-                                   <span>Card View</span>
-                              </button>
-                              <button
-                                   type="button"
-                                   onClick={() => setActiveView("list")}
-                                   className={`pb-4 px-2 flex items-center space-x-2 font-semibold transition-all ${
-                                        activeView === "list"
-                                             ? "text-success-300 border-b-2 border-success-300"
-                                             : "text-bgray-600 dark:text-bgray-400"
-                                   }`}
-                              >
-                                   <svg
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                   >
-                                        <path d="M3 4H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M3 10H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                        <path d="M3 16H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                   </svg>
-                                   <span>List View</span>
-                              </button>
-                         </div>
-
-                         {/* Staff Cards Grid */}
-                         {activeView === "card" && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                   {staffData.map((staff) => (
-                                        <div
-                                             key={staff.id}
-                                             className="border border-bgray-300 dark:border-darkblack-400 rounded-lg overflow-hidden bg-white dark:bg-darkblack-500 hover:shadow-lg transition-all"
+                              </div>
+                              <div className="flex items-center gap-1 bg-bgray-50 dark:bg-darkblack-500 p-1 rounded-xl">
+                                   {["All", "Admin", "Teacher", "Accountant"].map(r => (
+                                        <button 
+                                             key={r} 
+                                             onClick={() => setRoleFilter(r)}
+                                             className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${roleFilter === r ? "bg-white dark:bg-darkblack-600 text-bgray-900 shadow-sm" : "text-bgray-400"}`}
                                         >
-                                             <div className="flex items-start p-4 space-x-4">
-                                                  {/* Profile Image */}
-                                                  <div className="w-24 h-24 rounded-lg bg-bgray-200 dark:bg-darkblack-600 flex-shrink-0 overflow-hidden">
-                                                       <div className="w-full h-full flex items-center justify-center text-bgray-400 dark:text-bgray-600">
-                                                            <svg
-                                                                 width="48"
-                                                                 height="48"
-                                                                 viewBox="0 0 24 24"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
-                                                                 <path
-                                                                      d="M5 20C5 16.134 8.134 13 12 13C15.866 13 19 16.134 19 20"
-                                                                      stroke="currentColor"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                 />
-                                                            </svg>
-                                                       </div>
-                                                  </div>
-
-                                                  {/* Staff Info */}
-                                                  <div className="flex-1 min-w-0">
-                                                       <h4 className="font-bold text-base text-bgray-900 dark:text-white mb-1 truncate">
-                                                            {staff.name}
-                                                       </h4>
-                                                       <p className="text-sm text-bgray-600 dark:text-bgray-400 mb-1">
-                                                            {staff.staffId}
-                                                       </p>
-                                                       {staff.phone && (
-                                                            <p className="text-sm text-bgray-600 dark:text-bgray-400 mb-2">
-                                                                 {staff.phone}
-                                                            </p>
-                                                       )}
-                                                       {staff.location && (
-                                                            <p className="text-xs text-bgray-500 dark:text-bgray-400 mb-3">
-                                                                 {staff.location}
-                                                            </p>
-                                                       )}
-                                                       {/* Role Badges */}
-                                                       <div className="flex flex-wrap gap-2">
-                                                            {staff.roles.map((role, index) => (
-                                                                 <span
-                                                                      key={index}
-                                                                      className="px-3 py-1 text-xs font-medium text-bgray-700 dark:text-bgray-300 bg-bgray-100 dark:bg-darkblack-400 rounded"
-                                                                 >
-                                                                      {role}
-                                                                 </span>
-                                                            ))}
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                        </div>
+                                             {r}
+                                        </button>
                                    ))}
                               </div>
-                         )}
+                         </div>
+                         <button 
+                              onClick={() => setIsModalOpen(true)}
+                              className="px-8 h-12 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 transition-all shadow-lg shadow-success-300/20 flex items-center gap-2 shrink-0 uppercase tracking-widest text-[10px]"
+                         >
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                              REGISTER STAFF
+                         </button>
+                    </div>
+               </section>
 
-                         {/* List View */}
-                         {activeView === "list" && (
-                              <div className="flex flex-col space-y-5">
-                                   {/* Search and Export */}
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                                             <div className="flex w-full h-full items-center space-x-[15px]">
-                                                  <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            placeholder="Search..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                       />
-                                                  </label>
+               {/* Grid View */}
+               <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {loading ? (
+                         <div className="col-span-full py-24 text-center">
+                              <div className="w-12 h-12 border-4 border-success-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-bgray-400">Syncing Staff Records...</p>
+                         </div>
+                    ) : filteredStaff.length > 0 ? (
+                         filteredStaff.map((s) => (
+                              <div key={s._id} className="bg-white dark:bg-darkblack-600 rounded-3xl p-6 shadow-sm border border-bgray-200 dark:border-darkblack-400 hover:shadow-xl hover:shadow-success-300/5 transition-all group relative overflow-hidden">
+                                   <div className="absolute top-0 right-0 p-4">
+                                        <span className="px-3 py-1 bg-success-300/10 text-success-300 rounded-full text-[9px] font-black uppercase tracking-widest">{s.role}</span>
+                                   </div>
+                                   <div className="flex flex-col items-center text-center mt-4">
+                                        <div className="w-20 h-20 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform bg-gradient-to-br from-success-300/20 to-transparent">
+                                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        </div>
+                                        <h4 className="text-base font-black dark:text-white uppercase tracking-tighter">{s.firstName} {s.lastName}</h4>
+                                        <p className="text-[10px] font-bold text-bgray-400 uppercase mt-1">ID: {s.staffId}</p>
+                                        
+                                        <div className="grid grid-cols-2 gap-4 w-full mt-6 py-4 border-y border-dashed border-bgray-100 dark:border-darkblack-400">
+                                             <div className="text-left">
+                                                  <span className="text-[9px] font-black text-bgray-300 uppercase block tracking-widest">Dept</span>
+                                                  <span className="text-[10px] font-bold text-bgray-600 dark:text-bgray-200 uppercase">{s.department || "N/A"}</span>
+                                             </div>
+                                             <div className="text-right">
+                                                  <span className="text-[9px] font-black text-bgray-300 uppercase block tracking-widest">Qual</span>
+                                                  <span className="text-[10px] font-bold text-bgray-600 dark:text-bgray-200 uppercase">{s.qualification || "N/A"}</span>
                                              </div>
                                         </div>
-
-                                        {/* Export Dropdown */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center space-x-3 relative dark:bg-darkblack-500"
-                                                  onClick={() => toggleFilter("export")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
+                                        
+                                        <div className="flex gap-2 w-full mt-6">
+                                             <button className="flex-1 h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-[10px] font-black uppercase text-bgray-500 hover:bg-success-300 hover:text-white transition-all">Profile</button>
+                                             <button className="w-10 h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all">
+                                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                              </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${
-                                                       openFilter === "export" ? "block" : "hidden"
-                                                  }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Copy
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Excel
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            CSV
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            PDF
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Print
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                   </div>
-
-                                   {/* Table */}
-                                   <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Staff ID
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Name
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Role
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
-                                                                      Department
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
-                                                                      Designation
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
-                                                                      Mobile Number
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
-                                                                      PAN Number
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Action
-                                                            </span>
-                                                       </td>
-                                                  </tr>
-                                             </thead>
-                                             <tbody>
-                                                  {staffData.map((staff) => (
-                                                       <tr
-                                                            key={staff.id}
-                                                            className="border-b border-bgray-300 dark:border-darkblack-400"
-                                                       >
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {staff.staffId}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-success-300 hover:text-success-400 cursor-pointer">
-                                                                      {staff.name}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {staff.role}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {staff.department}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {staff.designation}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {staff.phone}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {staff.panNumber}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex space-x-3">
-                                                                      <button
-                                                                           type="button"
-                                                                           className="text-bgray-900 dark:text-white hover:text-success-300 transition-colors"
-                                                                      >
-                                                                           <svg
-                                                                                width="18"
-                                                                                height="18"
-                                                                                viewBox="0 0 18 18"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                           >
-                                                                                <path
-                                                                                     d="M2 4H4H16"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M2 7H16"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M2 10H16"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button
-                                                                           type="button"
-                                                                           className="text-bgray-900 dark:text-white hover:text-success-300 transition-colors"
-                                                                      >
-                                                                           <svg
-                                                                                width="18"
-                                                                                height="18"
-                                                                                viewBox="0 0 18 18"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                           >
-                                                                                <path
-                                                                                     d="M13.5 2.25L15.75 4.5L5.25 15H3V12.75L13.5 2.25Z"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </button>
-                                                                 </div>
-                                                            </td>
-                                                       </tr>
-                                                  ))}
-                                             </tbody>
-                                        </table>
-                                   </div>
-
-                                   {/* Records Info and Pagination */}
-                                   <div className="pagination-content w-full">
-                                        <div className="w-full flex lg:justify-between justify-center items-center">
-                                             <div className="lg:flex hidden">
-                                                  <p className="text-sm text-bgray-600 dark:text-bgray-50">
-                                                       Records: 1 to 10 of 10
-                                                  </p>
-                                             </div>
-                                             <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div className="flex items-center">
-                                                       <button
-                                                            type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
-                                                       >
-                                                            1
-                                                       </button>
-                                                  </div>
-                                                  <button type="button">
-                                                       <span>
-                                                            <svg
-                                                                 width="21"
-                                                                 height="21"
-                                                                 viewBox="0 0 21 21"
-                                                                 fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                            >
-                                                                 <path
-                                                                      d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                      stroke="#A0AEC0"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round"
-                                                                 />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                             </div>
                                         </div>
                                    </div>
                               </div>
-                         )}
+                         ))
+                    ) : (
+                         <div className="col-span-full py-32 text-center opacity-20">
+                              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto mb-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                              <p className="text-[12px] font-black uppercase tracking-[0.3em]">No personnel matching criteria</p>
+                         </div>
+                    )}
+               </section>
+
+               {/* Add Modal */}
+               {isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                         <div className="absolute inset-0 bg-bgray-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+                         <div className="relative bg-white dark:bg-darkblack-600 rounded-[40px] w-full max-w-4xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-success-300/20">
+                              <div className="p-8 border-b border-bgray-100 dark:border-darkblack-400 flex justify-between items-center bg-bgray-50/50">
+                                   <div>
+                                        <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">Personnel onboarding</h3>
+                                        <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest">Adding new member to institutional workforce</p>
+                                   </div>
+                                   <button onClick={() => setIsModalOpen(false)} className="bg-white p-3 rounded-2xl shadow-sm text-bgray-400 hover:text-red-500 transition-colors border border-bgray-200">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                   </button>
+                              </div>
+                              <form onSubmit={handleSubmit} className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                   <div className="grid grid-cols-3 gap-6 mb-8">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Staff ID *</label>
+                                             <input required value={formData.staffId} onChange={e => setFormData({...formData, staffId: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="EMP-101" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Role *</label>
+                                             <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30">
+                                                  <option value="Admin">Admin</option>
+                                                  <option value="Teacher">Teacher</option>
+                                                  <option value="Accountant">Accountant</option>
+                                                  <option value="Librarian">Librarian</option>
+                                             </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Department</label>
+                                             <input value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="Science" />
+                                        </div>
+                                   </div>
+                                   
+                                   <div className="grid grid-cols-2 gap-6 pb-8 border-b border-bgray-100 dark:border-darkblack-400 mb-8">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">First Name *</label>
+                                             <input required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Last Name</label>
+                                             <input value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                        </div>
+                                   </div>
+
+                                   <div className="grid grid-cols-3 gap-6 mb-8">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Email Address</label>
+                                             <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Phone Number</label>
+                                             <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Gender</label>
+                                             <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30">
+                                                  <option value="Male">Male</option>
+                                                  <option value="Female">Female</option>
+                                             </select>
+                                        </div>
+                                   </div>
+
+                                   <div className="flex justify-end gap-3 pt-4 border-t border-bgray-100 dark:border-darkblack-400 mt-8">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 h-14 bg-bgray-50 dark:bg-darkblack-500 text-bgray-500 font-black rounded-2xl hover:bg-bgray-100 transition-all uppercase tracking-widest text-[10px]">Discard</button>
+                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-2xl hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">Finalize registration</button>
+                                   </div>
+                              </form>
+                         </div>
                     </div>
-               </div>
-          </>
+               )}
+          </div>
      );
 }

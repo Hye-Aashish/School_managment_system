@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function SchoolHouse() {
      const [houses, setHouses] = useState<any[]>([]);
@@ -15,6 +16,16 @@ export default function SchoolHouse() {
           } catch (error) {
                console.error("Error fetching houses:", error);
           }
+     };
+
+     const onExport = (type: ExportType) => {
+          const exportData = houses.map(h => ({
+               "House Name": h.house_name,
+               "Description": h.description,
+               "House ID": h._id
+          }));
+          handleExport(type, exportData, "School_Houses");
+          setOpenFilter(null);
      };
 
      const handleDelete = async (houseName: string) => {
@@ -230,11 +241,11 @@ export default function SchoolHouse() {
                                                             }`}
                                                   >
                                                        <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Coppy</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
+                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("Copy")}>Copy</li>
+                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("Excel")}>Excel</li>
+                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("CSV")}>CSV</li>
+                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("PDF")}>PDF</li>
+                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("Print")}>Print</li>
                                                        </ul>
                                                   </div>
                                              </div>

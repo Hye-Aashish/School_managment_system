@@ -1,1065 +1,379 @@
-"use client";
-import React, { useEffect } from "react";
-import $ from "jquery";
-import RevenueFlow from '../../graphs/RevenueFlow';
-import TotalSpendingChart from '../../graphs/totalSpendingChart';
-import UseTotalGoalChart from '../../graphs/useTotalGoalChart';
-import RevenueFlowChart from '../../graphs/RevenueFlowChart';
-import PieChart from '../../graphs/PieChart'
+'use client';
+import React, { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faLayoutGrid, faUserShield, faChartPie, faExclamationTriangle, faArrowTrendUp, faArrowTrendDown,
+  faUsers, faDollarSign, faCalendarCheck, faGlobe, faEnvelope, faBell, faUserGraduate, faWallet,
+  faShieldHalved, faArrowUp, faArrowDown, faCircleCheck, faChartLine, faClockRotateLeft
+} from "@fortawesome/free-solid-svg-icons";
+import RevenueFlowChart from "../../graphs/RevenueFlowChart";
+import PieChart from "../../graphs/PieChart";
+import { StatCardSkeleton, TableSkeleton, ChartSkeleton } from "@/app/common/Skeleton";
 
-export default function DashboardPage() {
-     useEffect(() => {
-          // Require slick only in browser
-          const slick = require("slick-carousel");
-          $(".card-slider").slick({
-               dots: true,
-               infinite: true,
-               autoplay: true,
-               speed: 500,
-               fade: true,
-               cssEase: "linear",
-               arrows: false,
-          });
-     }, []);
-     return (
-          <div className="2xl:flex 2xl:space-x-12">
-               <section className="2xl:flex-1 2xl:mb-0 mb-6">
-                    <div className="w-full mb-6">
-                         <div className="grid lg:grid-cols-3 grid-cols-1 gap-[24px]">
-                              <div className="p-5 rounded-lg bg-white dark:bg-darkblack-600">
-                                   <div className="flex justify-between items-center mb-5">
-                                        <div className="flex space-x-[7px] items-center">
-                                             <div className="icon">
-                                                  <span>
-                                                       <img src="/assets/images/icons/total-earn.svg"
-                                                            alt="icon" />
-                                                  </span>
-                                             </div>
-                                             <span
-                                                  className="text-lg text-bgray-900 dark:text-white font-semibold">Fees Awaiting Payment</span>
-                                        </div>
-                                   </div>
-                                   <div className="flex justify-between items-end">
-                                        <div className="flex-1">
-                                             <p
-                                                  className="text-bgray-900 dark:text-white font-bold text-3xl leading-[48px]">
-                                                  $7,245.00
-                                             </p>
-                                             <div className="flex items-center space-x-1">
-                                                  <span>
-                                                       <svg width="16" height="14" viewBox="0 0 16 14"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M13.4318 0.522827L12.4446 0.522827L8.55575 0.522827L7.56859 0.522827C6.28227 0.522827 5.48082 1.91818 6.12896 3.02928L9.06056 8.05489C9.7037 9.1574 11.2967 9.1574 11.9398 8.05489L14.8714 3.02928C15.5196 1.91818 14.7181 0.522828 13.4318 0.522827Z"
-                                                                 fill="#0FCDE1" />
-                                                            <path opacity="0.4"
-                                                                 d="M2.16878 13.0485L3.15594 13.0485L7.04483 13.0485L8.03199 13.0485C9.31831 13.0485 10.1198 11.6531 9.47163 10.542L6.54002 5.5164C5.89689 4.41389 4.30389 4.41389 3.66076 5.5164L0.729153 10.542C0.0810147 11.6531 0.882466 13.0485 2.16878 13.0485Z"
-                                                                 fill="#0FCDE1" />
-                                                       </svg>
-                                                  </span>
-                                                  <span className="text-success-300 text-sm font-medium">
-                                                       + 3.5%
-                                                  </span>
-                                                  <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-sm font-medium">
-                                                       from last week
-                                                  </span>
-                                             </div>
-                                        </div>
-                                        <div className="w-[106px]">
-                                             <RevenueFlow />
-                                        </div>
-                                   </div>
-                              </div>
-                              <div className="p-5 rounded-lg bg-white  dark:bg-darkblack-600">
-                                   <div className="flex justify-between items-center mb-5">
-                                        <div className="flex space-x-[7px] items-center">
-                                             <div className="icon">
-                                                  <span>
-                                                       <img src="/assets/images/icons/total-earn.svg"
-                                                            alt="icon" />
-                                                  </span>
-                                             </div>
-                                             <span
-                                                  className="text-lg text-bgray-900 dark:text-white  font-semibold">Converted Leads</span>
-                                        </div>
-                                   </div>
-                                   <div className="flex justify-between items-end">
-                                        <div className="flex-1">
-                                             <p
-                                                  className="text-bgray-900 dark:text-white font-bold text-3xl leading-[48px]">
-                                                  $7,245.00
-                                             </p>
-                                             <div className="flex items-center space-x-1">
-                                                  <span>
-                                                       <svg width="16" height="14" viewBox="0 0 16 14"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M13.4318 0.522827L12.4446 0.522827L8.55575 0.522827L7.56859 0.522827C6.28227 0.522827 5.48082 1.91818 6.12896 3.02928L9.06056 8.05489C9.7037 9.1574 11.2967 9.1574 11.9398 8.05489L14.8714 3.02928C15.5196 1.91818 14.7181 0.522828 13.4318 0.522827Z"
-                                                                 fill="#0FCDE1" />
-                                                            <path opacity="0.4"
-                                                                 d="M2.16878 13.0485L3.15594 13.0485L7.04483 13.0485L8.03199 13.0485C9.31831 13.0485 10.1198 11.6531 9.47163 10.542L6.54002 5.5164C5.89689 4.41389 4.30389 4.41389 3.66076 5.5164L0.729153 10.542C0.0810147 11.6531 0.882466 13.0485 2.16878 13.0485Z"
-                                                                 fill="#0FCDE1" />
-                                                       </svg>
-                                                  </span>
-                                                  <span className="text-success-300 text-sm font-medium">
-                                                       + 3.5%
-                                                  </span>
-                                                  <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-sm font-medium">
-                                                       from last week
-                                                  </span>
-                                             </div>
-                                        </div>
-                                        <div className="w-[106px]">
-                                             <TotalSpendingChart />
-                                        </div>
-                                   </div>
-                              </div>
-                              <div className="p-5 rounded-lg bg-white dark:bg-darkblack-600">
-                                   <div className="flex justify-between items-center mb-5">
-                                        <div className="flex space-x-[7px] items-center">
-                                             <div className="icon">
-                                                  <span>
-                                                       <img src="/assets/images/icons/total-earn.svg"
-                                                            alt="icon" />
-                                                  </span>
-                                             </div>
-                                             <span
-                                                  className="text-lg text-bgray-900 dark:text-white font-semibold">Staff Present Today</span>
-                                        </div>
-                                   </div>
-                                   <div className="flex justify-between items-end">
-                                        <div className="flex-1">
-                                             <p
-                                                  className="text-bgray-900 dark:text-white font-bold text-3xl leading-[48px]">
-                                                  $7,245.00
-                                             </p>
-                                             <div className="flex items-center space-x-1">
-                                                  <span>
-                                                       <svg width="16" height="14" viewBox="0 0 16 14"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M13.4318 0.522827L12.4446 0.522827L8.55575 0.522827L7.56859 0.522827C6.28227 0.522827 5.48082 1.91818 6.12896 3.02928L9.06056 8.05489C9.7037 9.1574 11.2967 9.1574 11.9398 8.05489L14.8714 3.02928C15.5196 1.91818 14.7181 0.522828 13.4318 0.522827Z"
-                                                                 fill="#0FCDE1" />
-                                                            <path opacity="0.4"
-                                                                 d="M2.16878 13.0485L3.15594 13.0485L7.04483 13.0485L8.03199 13.0485C9.31831 13.0485 10.1198 11.6531 9.47163 10.542L6.54002 5.5164C5.89689 4.41389 4.30389 4.41389 3.66076 5.5164L0.729153 10.542C0.0810147 11.6531 0.882466 13.0485 2.16878 13.0485Z"
-                                                                 fill="#0FCDE1" />
-                                                       </svg>
-                                                  </span>
-                                                  <span className="text-success-300 text-sm font-medium">
-                                                       + 3.5%
-                                                  </span>
-                                                  <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-sm font-medium">
-                                                       from last week
-                                                  </span>
-                                             </div>
-                                        </div>
-                                        <div className="w-[106px]">
-                                             <UseTotalGoalChart />
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
+const StatCard = ({ title, value, icon, color, trend, trendValue, subtitle }: any) => {
+  const colorMap: any = {
+    primary: 'from-emerald-500/20 to-emerald-500/5 text-emerald-600',
+    blue: 'from-blue-500/20 to-blue-500/5 text-blue-600',
+    orange: 'from-orange-500/20 to-orange-500/5 text-orange-600',
+    purple: 'from-purple-500/20 to-purple-500/5 text-purple-600'
+  };
+
+  return (
+    <div className="card-modern group relative p-6 overflow-hidden border-none bg-white dark:bg-darkblack-600 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] transition-all duration-500">
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color]} blur-3xl -mr-12 -mt-12 opacity-50 group-hover:opacity-100 transition-opacity`} />
+      
+      <div className="flex items-start justify-between relative z-10">
+        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+          <FontAwesomeIcon icon={icon} className="text-2xl" />
+        </div>
+        <div className="flex flex-col items-end">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider
+                ${trend === 'up' ? 'bg-emerald-100 text-black' : 'bg-rose-100 text-black'}
+            `}>
+                <FontAwesomeIcon icon={trend === 'up' ? faArrowUp : faArrowDown} />
+                {trendValue}%
+            </div>
+        </div>
+      </div>
+
+      <div className="mt-6 relative z-10">
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">{title}</p>
+        <h3 className="text-3xl font-black text-bgray-900 dark:text-white tracking-tighter leading-none mb-2">{value}</h3>
+        <p className="text-[10px] font-bold text-gray-500 italic">{subtitle}</p>
+      </div>
+      
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gray-100 dark:via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    </div>
+  );
+};
+
+export default function Dashboard() {
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    activeStudents: 0,
+    disabledStudents: 0,
+    onlineAdmissions: 0,
+    totalRevenue: 0,
+    upcomingEvents: 0
+  });
+  const [recentStudents, setRecentStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setError(null);
+        const [statsRes, studentsRes] = await Promise.all([
+          fetch("/api/stats"),
+          fetch("/api/stats/recent-students")
+        ]);
+
+        if (!statsRes.ok || !studentsRes.ok) {
+            throw new Error("Failed to load school statistics.");
+        }
+
+        const statsDataJson = await statsRes.json();
+        const statsData = statsDataJson.data || {};
+        const studentsData = await studentsRes.json();
+
+        setStats({
+              totalStudents: statsData.totalStudents || 0,
+              activeStudents: statsData.activeStudents || 0,
+              disabledStudents: statsData.disabledStudents || 0,
+              onlineAdmissions: statsData.onlineAdmissions || 0,
+              totalRevenue: statsData.totalIncome || 0,
+              upcomingEvents: statsData.upcomingEvents || 0
+        });
+
+        setRecentStudents(studentsData.data || []);
+      } catch (err: any) {
+        console.error("Dashboard synchronization failure:", err);
+        setError(err.message || "An error occurred while loading data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <div className="space-y-10 pb-20">
+      
+      {/* Dynamic Mesh Background Glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30 dark:opacity-20 z-0">
+          <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-emerald-400/20 blur-[150px] rounded-full animate-pulse" />
+          <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-400/20 blur-[150px] rounded-full delay-700 animate-pulse" />
+      </div>
+
+      {/* Synchronized Error Alert */}
+      {error && (
+          <div className="relative z-50 animate-in slide-in-from-top-4 duration-500">
+               <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-xl p-4 rounded-2xl flex items-center gap-4 shadow-2xl shadow-red-500/10">
+                    <div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                         <FontAwesomeIcon icon={faExclamationTriangle} />
                     </div>
-                    <div className="w-full mb-6 xl:flex xl:space-x-6">
-                         <div
-                              className="xl:w-66 w-full bg-white dark:bg-darkblack-600 flex flex-col justify-between rounded-lg px-[24px] py-3">
-                              <div
-                                   className="flex justify-between items-center pb-2 mb-2 border-b border-bgray-300 dark:border-darkblack-400">
-                                   <h3
-                                        className="text-bgray-900 text-nowrap dark:text-white sm:text-2xl text-xl font-bold">
-                                        Revenue Flow
-                                   </h3>
-                                   <div className="sm:flex hidden space-x-1 items-center">
-                                        <div className="flex space-x-2 items-center">
-                                             <div className="w-3 h-3 bg-warning-300 rounded-full"></div>
-                                             <span
-                                                  className="text-bgray-700 dark:text-bgray-50 text-sm font-medium">Pending
-                                             </span>
-                                        </div>
-                                        <div className="flex space-x-2 items-center">
-                                             <div className="w-3 h-3 bg-success-300 rounded-full"></div>
-                                             <span
-                                                  className="text-bgray-700 dark:text-bgray-50 text-sm font-medium">Signed
-                                             </span>
-                                        </div>
-                                        <div className="flex space-x-2 items-center">
-                                             <div className="w-3 h-3 bg-orange rounded-full"></div>
-                                             <span
-                                                  className="text-bgray-700 dark:text-bgray-50 text-sm font-medium">Lost
-                                             </span>
-                                        </div>
-                                   </div>
-                                   <div className="date-filter relative">
-                                        <button
-                                             type="button"
-                                             className="px-3 py-2 bg-bgray-100 dark:bg-darkblack-500 dark:text-white flex space-x-1 items-center rounded-lg overflow-hidden">
-                                             <span
-                                                  className="text-sm text-nowrap font-medium text-bgray-900 dark:text-white">Jan
-                                                  10 - Jan 16</span>
-                                             <span>
-                                                  <svg className="stroke-bgray-900 dark:stroke-gray-50"
-                                                       width="16" height="17" viewBox="0 0 16 17"
-                                                       fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <path d="M4 6.5L8 10.5L12 6.5" strokeWidth="1.5"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round" />
-                                                  </svg>
-                                             </span>
-                                        </button>
-                                        <div id="date-filter-body"
-                                             className="rounded-lg shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-[44px] hidden overflow-hidden">
-                                             <ul>
-                                                  <li
-                                                       className="text-sm  text-bgray-90 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold hover:dark:bg-darkblack-600">
-                                                       Jan 10 - Jan 16
-                                                  </li>
-                                                  <li
-                                                       className="text-sm  text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold hover:dark:bg-darkblack-600">
-                                                       Jan 10 - Jan 16
-                                                  </li>
-                                                  <li
-                                                       className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold hover:dark:bg-darkblack-600">
-                                                       Jan 10 - Jan 16
-                                                  </li>
-                                             </ul>
-                                        </div>
-                                   </div>
-                              </div>
-                              <div className="w-full">
-                                   <RevenueFlowChart />
-                              </div>
-                         </div>
-                         <div className="flex-1 xl:block hidden">
-                              <div className="bg-white dark:bg-darkblack-600 rounded-lg">
-                                   <div
-                                        className="flex px-[20px] py-[12px] justify-between items-center border-b border-bgray-300 dark:border-darkblack-400">
-                                        <h3 className="text-bgray-900 dark:text-white text-xl font-bold">
-                                             Efficiency
-                                        </h3>
-                                        <div className="date-filter relative">
-                                             <button
-                                                  type="button" className="flex space-x-1 items-center">
-                                                  <span
-                                                       className="text-base font-semibold text-bgray-900 dark:text-white">Monthly</span>
-                                                  <span>
-                                                       <svg className="stroke-bgray-900 dark:stroke-bgray-50"
-                                                            width="16" height="17" viewBox="0 0 16 17"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M4 6.5L8 10.5L12 6.5"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div id="month-filter"
-                                                  className="rounded-lg shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-5 overflow-hidden hidden">
-                                                  <ul>
-                                                       <li
-                                                            className="text-sm  text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold dark:text-white hover:dark:bg-darkblack-600">
-                                                            January
-                                                       </li>
-                                                       <li
-                                                            className="text-sm text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold dark:text-white hover:dark:bg-darkblack-600">
-                                                            February
-                                                       </li>
-
-                                                       <li
-                                                            className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold dark:text-white hover:dark:bg-darkblack-600">
-                                                            March
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-                                   </div>
-                                   <div className="px-[20px] py-[12px]">
-                                        <div className="flex space-x-8 items-center mb-4">
-                                             <div className="w-[180px] relative">
-                                                  <PieChart />
-                                                 
-                                             </div>
-                                             <div className="counting">
-                                                  <div className="mb-6">
-                                                       <div className="flex items-center space-x-[2px]">
-                                                            <p
-                                                                 className="text-success-300 text-lg font-bold">
-                                                                 $5,230
-                                                            </p>
-                                                            <span><svg width="14" height="12"
-                                                                 viewBox="0 0 14 12" fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg">
-                                                                 <path fillRule="evenodd"
-                                                                      clipRule="evenodd"
-                                                                      d="M10.7749 0.558058C10.5309 0.313981 10.1351 0.313981 9.89107 0.558058L7.39107 3.05806C7.14699 3.30214 7.14699 3.69786 7.39107 3.94194C7.63514 4.18602 8.03087 4.18602 8.27495 3.94194L9.70801 2.50888V11C9.70801 11.3452 9.98783 11.625 10.333 11.625C10.6782 11.625 10.958 11.3452 10.958 11V2.50888L12.3911 3.94194C12.6351 4.18602 13.0309 4.18602 13.2749 3.94194C13.519 3.69786 13.519 3.30214 13.2749 3.05806L10.7749 0.558058Z"
-                                                                      fill="#0FCDE1" />
-                                                                 <path opacity="0.4"
-                                                                      fillRule="evenodd"
-                                                                      clipRule="evenodd"
-                                                                      d="M3.22407 11.4419C3.46815 11.686 3.86388 11.686 4.10796 11.4419L6.60796 8.94194C6.85203 8.69786 6.85203 8.30214 6.60796 8.05806C6.36388 7.81398 5.96815 7.81398 5.72407 8.05806L4.29102 9.49112L4.29101 1C4.29101 0.654823 4.01119 0.375001 3.66602 0.375001C3.32084 0.375001 3.04102 0.654823 3.04102 1L3.04102 9.49112L1.60796 8.05806C1.36388 7.81398 0.968151 7.81398 0.724074 8.05806C0.479996 8.30214 0.479996 8.69786 0.724074 8.94194L3.22407 11.4419Z"
-                                                                      fill="#0FCDE1" />
-                                                            </svg>
-                                                            </span>
-                                                       </div>
-                                                       <p className="text-bgray-600 text-base font-medium">
-                                                            Arrival
-                                                       </p>
-                                                  </div>
-                                                  <div>
-                                                       <div className="flex items-center space-x-[2px]">
-                                                            <p
-                                                                 className="text-bgray-900 dark:text-white text-lg font-bold">
-                                                                 $6,230
-                                                            </p>
-                                                            <span>
-                                                                 <svg className="fill-bgray-900 dark:fill-bgray-50"
-                                                                      width="14" height="12"
-                                                                      viewBox="0 0 14 12" fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path fillRule="evenodd"
-                                                                           clipRule="evenodd"
-                                                                           d="M10.7749 0.558058C10.5309 0.313981 10.1351 0.313981 9.89107 0.558058L7.39107 3.05806C7.14699 3.30214 7.14699 3.69786 7.39107 3.94194C7.63514 4.18602 8.03087 4.18602 8.27495 3.94194L9.70801 2.50888V11C9.70801 11.3452 9.98783 11.625 10.333 11.625C10.6782 11.625 10.958 11.3452 10.958 11V2.50888L12.3911 3.94194C12.6351 4.18602 13.0309 4.18602 13.2749 3.94194C13.519 3.69786 13.519 3.30214 13.2749 3.05806L10.7749 0.558058Z" />
-                                                                      <path opacity="0.4"
-                                                                           fillRule="evenodd"
-                                                                           clipRule="evenodd"
-                                                                           d="M3.22407 11.4419C3.46815 11.686 3.86388 11.686 4.10796 11.4419L6.60796 8.94194C6.85203 8.69786 6.85203 8.30214 6.60796 8.05806C6.36388 7.81398 5.96815 7.81398 5.72407 8.05806L4.29102 9.49112L4.29101 1C4.29101 0.654823 4.01119 0.375001 3.66602 0.375001C3.32084 0.375001 3.04102 0.654823 3.04102 1L3.04102 9.49112L1.60796 8.05806C1.36388 7.81398 0.968151 7.81398 0.724074 8.05806C0.479996 8.30214 0.479996 8.69786 0.724074 8.94194L3.22407 11.4419Z" />
-                                                                 </svg>
-                                                            </span>
-                                                       </div>
-                                                       <p
-                                                            className="text-bgray-600 dark:text-bgray-50 text-base font-medium">
-                                                            Spending
-                                                       </p>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                        <div className="status">
-                                             <div className="flex justify-between items-center mb-1.5">
-                                                  <div className="flex space-x-3 items-center">
-                                                       <div
-                                                            className="w-2.5 h-2.5 rounded-full bg-success-300">
-                                                       </div>
-                                                       <span
-                                                            className="text-sm text-bgray-600 dark:text-bgray-50 font-medium">Goal</span>
-                                                  </div>
-                                                  <p
-                                                       className="text-bgray-900 font-bold text-sm dark:text-bgray-50">
-                                                       13%</p>
-                                             </div>
-                                             <div className="flex justify-between items-center mb-1.5">
-                                                  <div className="flex space-x-3 items-center">
-                                                       <div
-                                                            className="w-2.5 h-2.5 rounded-full bg-warning-300">
-                                                       </div>
-                                                       <span
-                                                            className="text-sm text-bgray-600 dark:text-white font-medium">Spending</span>
-                                                  </div>
-                                                  <p
-                                                       className="text-bgray-900 font-bold text-sm dark:text-bgray-50">
-                                                       28%</p>
-                                             </div>
-                                             <div className="flex justify-between items-center mb-1.5">
-                                                  <div className="flex space-x-3 items-center">
-                                                       <div
-                                                            className="w-2.5 h-2.5 rounded-full bg-bgray-200">
-                                                       </div>
-                                                       <span
-                                                            className="text-sm text-bgray-600 dark:text-white font-medium">Others</span>
-                                                  </div>
-                                                  <p
-                                                       className="text-bgray-900 font-bold text-sm dark:text-bgray-50">
-                                                       59%</p>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
+                    <div>
+                         <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none">Connection Error</p>
+                         <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mt-1">{error}</p>
                     </div>
-                    <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600">
-                         <div className="flex flex-col space-y-5">
-                              <div className="w-full flex h-[56px] space-x-4">
-                                   <div
-                                        className="lg:w-88 sm:w-70 sm:block hidden border border-transparent focus-within:border-success-300 h-full dark:bg-darkblack-500 bg-bgray-100 rounded-lg px-[18px]">
-                                        <div className="flex w-full h-full items-center space-x-[15px]">
-                                             <span>
-                                                  <svg className="stroke-bgray-900 dark:stroke-white"
-                                                       width="21" height="22" viewBox="0 0 21 22"
-                                                       fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                       <circle cx="9.80204" cy="10.6761" r="8.98856"
-                                                            strokeWidth="1.5" strokeLinecap="round"
-                                                            strokeLinejoin="round" />
-                                                       <path d="M16.0537 17.3945L19.5777 20.9094"
-                                                            strokeWidth="1.5" strokeLinecap="round"
-                                                            strokeLinejoin="round" />
-                                                  </svg>
-                                             </span>
-                                             <label className="w-full">
-                                                  <input type="text" id="listSearch"
-                                                       placeholder="Search by name, email, or others..."
-                                                       className="search-input w-full dark:bg-darkblack-500 bg-bgray-100 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 " />
-                                             </label>
-                                        </div>
-                                   </div>
-                                   <div className="flex-1 h-full relative">
-                                        <button type="button"
-                                             className="w-full px-4 h-full flex justify-center items-center bg-bgray-100 dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-500 rounded-lg">
-                                             <div className="flex space-x-3 items-center">
-                                                  <span>
-                                                       <svg className="stroke-bgray-900 dark:stroke-success-400"
-                                                            width="18" height="17" viewBox="0 0 18 17"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M7.55169 13.5022H1.25098"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                            <path d="M10.3623 3.80984H16.663"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                            <path fillRule="evenodd" clipRule="evenodd"
-                                                                 d="M5.94797 3.75568C5.94797 2.46002 4.88981 1.40942 3.58482 1.40942C2.27984 1.40942 1.22168 2.46002 1.22168 3.75568C1.22168 5.05133 2.27984 6.10193 3.58482 6.10193C4.88981 6.10193 5.94797 5.05133 5.94797 3.75568Z"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                            <path fillRule="evenodd" clipRule="evenodd"
-                                                                 d="M17.2214 13.4632C17.2214 12.1675 16.1641 11.1169 14.8591 11.1169C13.5533 11.1169 12.4951 12.1675 12.4951 13.4632C12.4951 14.7589 13.5533 15.8095 14.8591 15.8095C16.1641 15.8095 17.2214 14.7589 17.2214 13.4632Z"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                                  <span
-                                                       className="text-base text-success-300 font-medium">Filters</span>
-                                             </div>
-                                        </button>
-                                        <div id="table-filter"
-                                             className="rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-[60px] overflow-hidden hidden">
-                                             <ul>
-                                                  <li
-                                                       className="text-sm  text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 dark:text-white font-semibold">
-                                                       January
-                                                  </li>
-                                                  <li
-                                                       className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 dark:text-white font-semibold">
-                                                       February
-                                                  </li>
-
-                                                  <li
-                                                       className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 dark:text-white font-semibold">
-                                                       March
-                                                  </li>
-                                             </ul>
-                                        </div>
-                                   </div>
-                              </div>
-                              <div className="filter-content w-full">
-                                   <div className="grid lg:grid-cols-4 grid-cols-1 gap-4">
-                                        <div className="w-full">
-                                             <p
-                                                  className="text-base text-bgray-900 dark:text-white leading-[24px] font-bold mb-2">
-                                                  Location
-                                             </p>
-                                             <div className="w-full h-[56px] relative">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-100 px-4 flex justify-between items-center relative dark:bg-darkblack-500">
-                                                       <span className="text-base text-bgray-500">State or
-                                                            province</span>
-                                                       <span>
-                                                            <svg width="21" height="21"
-                                                                 viewBox="0 0 21 21" fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0" strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div id="province-filter"
-                                                       className="rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden hidden">
-                                                       <ul>
-                                                            <li
-                                                                 className="text-sm  text-bgray-90 dark:text-white hover:dark:bg-darkblack-600 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold">
-                                                                 January
-                                                            </li>
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 dark:text-white hover:dark:bg-darkblack-600 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold">
-                                                                 February
-                                                            </li>
-
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 dark:text-white hover:dark:bg-darkblack-600 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold">
-                                                                 March
-                                                            </li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                        <div className="w-full">
-                                             <p
-                                                  className="text-base text-bgray-900 dark:text-white leading-[24px] font-bold mb-2">
-                                                  Amount Spent
-                                             </p>
-                                             <div className="w-full h-[56px] relative">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-100 px-4 flex justify-between items-center relative dark:bg-darkblack-500">
-                                                       <span className="text-base text-bgray-500">State or
-                                                            province</span>
-                                                       <span>
-                                                            <svg width="21" height="21"
-                                                                 viewBox="0 0 21 21" fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0" strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div id="amount-filter"
-                                                       className="rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden hidden">
-                                                       <ul>
-                                                            <li
-                                                                 className="text-sm  text-bgray-90 cursor-pointer px-5 py-2 hover:dark:bg-darkblack-600 hover:bg-bgray-100 font-semibold dark:text-white">
-                                                                 January
-                                                            </li>
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:dark:bg-darkblack-600 hover:bg-bgray-100 font-semibold dark:text-white">
-                                                                 February
-                                                            </li>
-
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:dark:bg-darkblack-600 dark:text-white hover:bg-bgray-100 font-semibold">
-                                                                 March
-                                                            </li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                        <div className="w-full">
-                                             <p
-                                                  className="text-base text-bgray-900 dark:text-white leading-[24px] font-bold mb-2">
-                                                  Transaction list Date
-                                             </p>
-                                             <div className="w-full h-[56px] relative">
-                                                  <button
-
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-100 px-4 flex justify-between items-center relative dark:bg-darkblack-500">
-                                                       <span className="text-base text-bgray-500">State or
-                                                            province</span>
-                                                       <span>
-                                                            <svg className="stroke-bgray-500 dark:stroke-white"
-                                                                 width="25" height="25"
-                                                                 viewBox="0 0 25 25" fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M18.6758 5.8186H6.67578C5.57121 5.8186 4.67578 6.71403 4.67578 7.8186V19.8186C4.67578 20.9232 5.57121 21.8186 6.67578 21.8186H18.6758C19.7804 21.8186 20.6758 20.9232 20.6758 19.8186V7.8186C20.6758 6.71403 19.7804 5.8186 18.6758 5.8186Z"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                                 <path d="M16.6758 3.8186V7.8186"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                                 <path d="M8.67578 3.8186V7.8186"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                                 <path d="M4.67578 11.8186H20.6758"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                                 <path d="M11.6758 15.8186H12.6758"
-                                                                      strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                                 <path d="M12.6758 15.8186V18.8186"
-                                                                      strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div id="date-filter-table"
-                                                       className="rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden hidden">
-                                                       <ul>
-                                                            <li
-                                                                 className="text-sm  text-bgray-90 cursor-pointer px-5 py-2 hover:dark:bg-darkblack-600 hover:bg-bgray-100 font-semibold dark:text-white">
-                                                                 January
-                                                            </li>
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:dark:bg-darkblack-600 hover:bg-bgray-100 font-semibold dark:text-white">
-                                                                 February
-                                                            </li>
-
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:dark:bg-darkblack-600 dark:text-white hover:bg-bgray-100 font-semibold">
-                                                                 March
-                                                            </li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                        <div className="w-full">
-                                             <p
-                                                  className="text-base text-bgray-900 dark:text-white leading-[24px] font-bold mb-2">
-                                                  Type of transaction
-                                             </p>
-                                             <div className="w-full h-[56px] relative">
-                                                  <button
-                                                       type="button"
-                                                       className="w-full h-full rounded-lg bg-bgray-100 px-4 flex justify-between items-center relative dark:bg-darkblack-500">
-                                                       <span className="text-base text-bgray-500">State or
-                                                            province</span>
-                                                       <span>
-                                                            <svg width="21" height="21"
-                                                                 viewBox="0 0 21 21" fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                      stroke="#A0AEC0" strokeWidth="2"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div id="trans-filter-tb"
-                                                       className="w-full rounded-lg shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden hidden">
-                                                       <ul>
-                                                            <li
-                                                                 className="text-sm  text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold hover:dark:bg-darkblack-600 dark:text-white">
-                                                                 January
-                                                            </li>
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold hover:dark:bg-darkblack-600 dark:text-white">
-                                                                 February
-                                                            </li>
-
-                                                            <li
-                                                                 className="text-sm  text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 font-semibold hover:dark:bg-darkblack-600 dark:text-white">
-                                                                 March
-                                                            </li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                              <div className="table-content w-full overflow-x-auto">
-                                   <table className="w-full">
-                                        <thead>
-                                             <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                  <td className="">
-                                                       <label className="text-center">
-                                                            <input type="checkbox"
-                                                                 className="focus:outline-none focus:ring-0 rounded-full border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 bg-transparent" />
-                                                       </label>
-                                                  </td>
-                                                  <td
-                                                       className="py-5 px-6 xl:px-0 w-[250px] lg:w-auto inline-block">
-                                                       <div className="w-full flex space-x-2.5 items-center">
-                                                            <span
-                                                                 className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Customer name</span>
-                                                            <span>
-                                                                 <svg width="14" height="15"
-                                                                      viewBox="0 0 14 15" fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M10.332 1.31567V13.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M3.66602 13.3157V1.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </span>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="w-full flex space-x-2.5 items-center">
-                                                            <span
-                                                                 className="text-base font-medium text-bgray-600 dark:text-bgray-50">Email</span>
-                                                            <span>
-                                                                 <svg width="14" height="15"
-                                                                      viewBox="0 0 14 15" fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M10.332 1.31567V13.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M3.66602 13.3157V1.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </span>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="flex space-x-2.5 items-center">
-                                                            <span
-                                                                 className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Location</span>
-                                                            <span>
-                                                                 <svg width="14" height="15"
-                                                                      viewBox="0 0 14 15" fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M10.332 1.31567V13.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M3.66602 13.3157V1.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </span>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                       <div className="w-full flex space-x-2.5 items-center">
-                                                            <span
-                                                                 className="text-base font-medium text-bgray-600 dark:text-bgray-50">Spent</span>
-                                                            <span>
-                                                                 <svg width="14" height="15"
-                                                                      viewBox="0 0 14 15" fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M10.332 1.31567V13.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M3.66602 13.3157V1.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                           stroke="#718096" strokeWidth="1.5"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </span>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0"></td>
-                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                             <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                  <td className="">
-                                                       <label className="text-center">
-                                                            <input type="checkbox"
-                                                                 className="focus:outline-none focus:ring-0 rounded-full border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 bg-transparent" />
-                                                       </label>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="w-full flex space-x-2.5 items-center">
-                                                            <div
-                                                                 className="w-10 h-10 rounded-full overflow-hidden">
-                                                                 <img src="/assets/images/avatar/user-40x40.png"
-                                                                      alt="avatar"
-                                                                      className="w-full h-full object-cover" />
-                                                            </div>
-                                                            <p
-                                                                 className="font-semibold text-base text-bgray-900 dark:text-white">
-                                                                 Devon Lane
-                                                            </p>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <p
-                                                            className="font-medium text-base text-bgray-900 dark:text-white">
-                                                            devon@mail.com
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <p
-                                                            className="font-medium text-base text-bgray-900 dark:text-white">
-                                                            Philadelphia, USA
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                       <p
-                                                            className="font-semibold text-base text-bgray-900 dark:text-white">
-                                                            $101.00
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="flex justify-center">
-                                                            <button type="button">
-                                                                 <svg width="18" height="4" viewBox="0 0 18 4"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </button>
-                                                       </div>
-                                                  </td>
-                                             </tr>
-                                             <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                  <td className="">
-                                                       <label className="text-center">
-                                                            <input type="checkbox"
-                                                                 className="focus:outline-none focus:ring-0 rounded-full border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 bg-transparent" />
-                                                       </label>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="w-full flex space-x-2.5 items-center">
-                                                            <div
-                                                                 className="w-10 h-10 rounded-full overflow-hidden">
-                                                                 <img src="/assets/images/avatar/user-40x40-1.png"
-                                                                      alt="avatar"
-                                                                      className="w-full h-full object-cover" />
-                                                            </div>
-                                                            <p
-                                                                 className="font-semibold text-base text-bgray-900 dark:text-white">
-                                                                 Bessie Cooper
-                                                            </p>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <p
-                                                            className="font-medium text-base text-bgray-900 dark:text-white">
-                                                            devon@mail.com
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <p
-                                                            className="font-medium text-base text-bgray-900 dark:text-white">
-                                                            Philadelphia, USA
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                       <p
-                                                            className="font-semibold text-base text-bgray-900 dark:text-white">
-                                                            $101.00
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="flex justify-center">
-                                                            <button type="button">
-                                                                 <svg width="18" height="4" viewBox="0 0 18 4"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </button>
-                                                       </div>
-                                                  </td>
-                                             </tr>
-                                             <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                  <td className="">
-                                                       <label className="text-center">
-                                                            <input type="checkbox"
-                                                                 className="focus:outline-none focus:ring-0 rounded-full border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 bg-transparent" />
-                                                       </label>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="w-full flex space-x-2.5 items-center">
-                                                            <div
-                                                                 className="w-10 h-10 rounded-full overflow-hidden">
-                                                                 <img src="/assets/images/avatar/user-40x40-2.png"
-                                                                      alt="avatar"
-                                                                      className="w-full h-full object-cover" />
-                                                            </div>
-                                                            <p
-                                                                 className="font-semibold text-base text-bgray-900 dark:text-white">
-                                                                 Dianne Russell
-                                                            </p>
-                                                       </div>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <p
-                                                            className="font-medium text-base text-bgray-900 dark:text-white">
-                                                            devon@mail.com
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <p
-                                                            className="font-medium text-base text-bgray-900 dark:text-white">
-                                                            Philadelphia, USA
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0 w-[165px]">
-                                                       <p
-                                                            className="font-semibold text-base text-bgray-900 dark:text-white">
-                                                            $101.00
-                                                       </p>
-                                                  </td>
-                                                  <td className="py-5 px-6 xl:px-0">
-                                                       <div className="flex justify-center">
-                                                            <button type="button">
-                                                                 <svg width="18" height="4" viewBox="0 0 18 4"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg">
-                                                                      <path d="M8 2.00024C8 2.55253 8.44772 3.00024 9 3.00024C9.55228 3.00024 10 2.55253 10 2.00024C10 1.44796 9.55228 1.00024 9 1.00024C8.44772 1.00024 8 1.44796 8 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M1 2.00024C1 2.55253 1.44772 3.00024 2 3.00024C2.55228 3.00024 3 2.55253 3 2.00024C3 1.44796 2.55228 1.00024 2 1.00024C1.44772 1.00024 1 1.44796 1 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                      <path d="M15 2.00024C15 2.55253 15.4477 3.00024 16 3.00024C16.5523 3.00024 17 2.55253 17 2.00024C17 1.44796 16.5523 1.00024 16 1.00024C15.4477 1.00024 15 1.44796 15 2.00024Z"
-                                                                           stroke="#A0AEC0" strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round" />
-                                                                 </svg>
-                                                            </button>
-                                                       </div>
-                                                  </td>
-                                             </tr>
-                                        </tbody>
-                                   </table>
-                              </div>
-                              <div className="pagination-content w-full">
-                                   <div
-                                        className="w-full flex lg:justify-between justify-center items-center">
-                                        <div className="lg:flex hidden space-x-4 items-center">
-                                             <span
-                                                  className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Show
-                                                  result:</span>
-                                             <div className="relative">
-                                                  <button
-                                                       type="button"
-                                                       className="px-2.5 py-3.5 border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center">
-                                                       <span
-                                                            className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">3</span>
-                                                       <span>
-                                                            <svg width="17" height="17"
-                                                                 viewBox="0 0 17 17" fill="none"
-                                                                 xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M4.03516 6.03271L8.03516 10.0327L12.0352 6.03271"
-                                                                      stroke="#A0AEC0" strokeWidth="1.5"
-                                                                      strokeLinecap="round"
-                                                                      strokeLinejoin="round" />
-                                                            </svg>
-                                                       </span>
-                                                  </button>
-                                                  <div id="result-filter"
-                                                       className="rounded-lg w-full shadow-lg bg-white absolute right-0 z-10 top-14 overflow-hidden hidden">
-                                                       <ul>
-                                                            <li
-                                                                 className="text-sm font-medium text-bgray-90 cursor-pointer px-5 py-2 hover:bg-bgray-100 ">
-                                                                 1
-                                                            </li>
-                                                            <li
-                                                                 className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 ">
-                                                                 2
-                                                            </li>
-
-                                                            <li
-                                                                 className="text-sm font-medium text-bgray-900 cursor-pointer px-5 py-2 hover:bg-bgray-100 ">
-                                                                 3
-                                                            </li>
-                                                       </ul>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                        <div className="flex sm:space-x-[35px] space-x-5 items-center">
-                                             <button type="button">
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327"
-                                                                 stroke="#A0AEC0" strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div className="flex items-center">
-                                                  <button type="button"
-                                                       className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">
-                                                       1
-                                                  </button>
-                                                  <button type="button"
-                                                       className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500">
-                                                       2
-                                                  </button>
-
-                                                  <span className="text-bgray-500 text-sm">. . . .</span>
-                                                  <button type="button"
-                                                       className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500">
-                                                       20
-                                                  </button>
-                                             </div>
-                                             <button type="button">
-                                                  <span>
-                                                       <svg width="21" height="21" viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327"
-                                                                 stroke="#A0AEC0" strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round" />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               </section>
-               
+                    <button onClick={() => window.location.reload()} className="ml-auto bg-red-500 px-6 py-2 rounded-xl text-[10px] font-black text-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"> Retry </button>
+               </div>
           </div>
-     );
+      )}
+
+      {/* Hero Welcome Banner */}
+      <div className="relative z-10 group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-[40px] blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-[38px] p-8 md:p-12 overflow-hidden shadow-2xl">
+              {/* Abstract Patterns */}
+              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/10 blur-[100px] rounded-full -mr-48 -mt-48" />
+              <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 blur-[80px] rounded-full -ml-32 -mb-32" />
+              
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 items-center relative z-10">
+                  <div className="xl:col-span-8 space-y-6">
+                      <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full">
+                          <FontAwesomeIcon icon={faShieldHalved} className="text-emerald-400 text-xs" />
+                          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Admin Dashboard Live</span>
+                      </div>
+                      <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-[1.1]">
+                          School Management <br />
+                          <span className="bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent italic font-serif">Dashboard.</span>
+                      </h1>
+                      <p className="text-slate-400 text-lg font-medium max-w-2xl leading-relaxed">
+                          Your school metrics are looking good. Total revenue has increased by <span className="text-emerald-400 font-bold">14.2%</span> and admissions are growing.
+                      </p>
+                      <div className="flex flex-wrap items-center gap-6 pt-4">
+                          <button className="bg-[#10b981] hover:bg-emerald-400 text-black px-10 py-4 rounded-2xl font-black text-sm transition-all hover:scale-105 active:scale-95 shadow-[0_10px_40px_rgba(16,185,129,0.4)] border-2 border-emerald-300"> View Report </button>
+                          <button className="bg-white hover:bg-white text-black px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-xl"> Recent Activity </button>
+                      </div>
+                  </div>
+                  <div className="xl:col-span-4 hidden xl:grid grid-cols-2 gap-4">
+                      <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 text-center flex flex-col justify-center transform hover:-translate-y-2 transition-transform duration-500">
+                           <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">Health Score</p>
+                           <h4 className="text-4xl font-black text-white">A+</h4>
+                      </div>
+                      <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 text-center flex flex-col justify-center transform hover:-translate-y-2 transition-transform duration-500 delay-100">
+                           <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Online Rate</p>
+                           <h4 className="text-4xl font-black text-white">92%</h4>
+                      </div>
+                      <div className="col-span-2 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 backdrop-blur-xl p-6 rounded-[32px] border border-white/10 flex items-center justify-between">
+                           <div className="flex items-center gap-3">
+                               <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white scale-75 animate-pulse">
+                                   <FontAwesomeIcon icon={faCircleCheck} />
+                               </div>
+                               <div>
+                                   <p className="text-[10px] font-black text-white uppercase tracking-wider">System Status</p>
+                                   <p className="text-xs text-white/60 font-medium">Online & Synced</p>
+                               </div>
+                           </div>
+                           <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-3 py-1 rounded-lg">LIVE</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+        {loading ? (
+            <>
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+            </>
+        ) : (
+            <>
+                <StatCard title="Total Students" value={stats.totalStudents} icon={faUserGraduate} color="primary" trend="up" trendValue="5.2" subtitle="Across all primary & secondary wings" />
+                <StatCard title="Total Revenue" value={`₹${(stats.totalRevenue || 0).toLocaleString()}`} icon={faWallet} color="blue" trend="up" trendValue="12.4" subtitle="Year-to-date collected fees" />
+                <StatCard title="Pending Applications" value={stats.onlineAdmissions} icon={faUsers} color="orange" trend="down" trendValue="1.8" subtitle="Processing time: 2.4 days" />
+                <StatCard title="Academic Schedule" value={(stats.upcomingEvents > 0 ? `${stats.upcomingEvents} Events` : "No Events")} icon={faCalendarCheck} color="purple" trend="up" trendValue={stats.upcomingEvents} subtitle="Upcoming institutional activities" />
+            </>
+        )}
+      </div>
+
+      {/* Analytical Layout */}
+      <div className="grid grid-cols-1 2xl:grid-cols-12 gap-10 relative z-10">
+        
+        {/* Financial Center */}
+        <div className="2xl:col-span-8 flex flex-col gap-10">
+          {loading ? <ChartSkeleton /> : (
+            <div className="card-modern p-10 bg-white dark:bg-darkblack-600 border-none shadow-xl shadow-black/5 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] -mr-16 -mt-16 rounded-full" />
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                <div>
+                    <h3 className="text-2xl font-black text-bgray-900 dark:text-white flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm">
+                            <FontAwesomeIcon icon={faChartLine} />
+                        </div>
+                        Fee Revenue
+                    </h3>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-2">Income & Expense Analysis</p>
+                </div>
+                <div className="flex items-center gap-3 p-1 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                    {['Quarterly', 'Monthly', 'Daily'].map((t, i) => (
+                        <button key={i} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${i === 1 ? 'bg-white dark:bg-darkblack-500 shadow-md text-black' : 'text-gray-500 hover:text-bgray-900 dark:hover:text-white'}`}>
+                            {t}
+                        </button>
+                    ))}
+                </div>
+                </div>
+                <div className="h-[400px]">
+                    <RevenueFlowChart />
+                </div>
+            </div>
+          )}
+
+          {/* Admission Registry */}
+          <div className="card-modern bg-white dark:bg-darkblack-600 border-none shadow-xl shadow-black/5">
+            <div className="p-10 border-b border-gray-50 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <h3 className="text-2xl font-black text-bgray-900 dark:text-white flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm">
+                        <FontAwesomeIcon icon={faClockRotateLeft} />
+                    </div>
+                    Recent Students
+                </h3>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-2">Latest student admissions</p>
+              </div>
+              <div className="flex items-center gap-3">
+                  <div className="flex -space-x-3 pr-4">
+                      {[1,2,3,4].map(i => <div key={i} className="w-10 h-10 rounded-full border-4 border-white dark:border-darkblack-600 bg-gray-100 dark:bg-darkblack-500 overflow-hidden text-[10px] flex items-center justify-center font-black"> {i} </div>)}
+                  </div>
+                   <button className="bg-primary text-black px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">View All</button>
+              </div>
+            </div>
+            
+            <div className="p-4 md:p-10 pt-0 overflow-x-auto">
+               {loading ? <TableSkeleton rows={5} /> : (
+                <table className="w-full table-modern text-left">
+                    <thead>
+                    <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 dark:border-white/5">
+                        <th className="py-6 px-1">ID-REF</th>
+                        <th className="py-6 px-4">Student Profile</th>
+                        <th className="py-6 px-2">Academic Level</th>
+                        <th className="py-6 px-2">Parent Guardian</th>
+                        <th className="py-6 px-2 text-right">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                    {recentStudents.length === 0 ? (
+                        <tr><td colSpan={5} className="py-20 text-center text-gray-400 font-bold italic">No recent students found.</td></tr>
+                    ) : recentStudents.map((student: any, idx: number) => (
+                        <tr key={idx} className="group hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all cursor-pointer">
+                        <td className="py-6 px-1">
+                            <span className="text-xs font-black text-primary bg-primary/10 px-2 py-1 rounded-md">#{student.admission_no}</span>
+                        </td>
+                        <td className="py-6 px-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-gray-50 to-gray-100 dark:from-white/5 dark:to-white/10 flex items-center justify-center border border-white/5 font-black text-xs group-hover:scale-110 transition-transform shadow-sm">
+                                    {student.fname[0]}{student.lname?.[0]}
+                                </div>
+                                <div>
+                                    <p className="font-black text-bgray-900 dark:text-white leading-tight mb-1">{student.fname} {student.lname}</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Enrolled: {new Date(student.created_at || student.admission_date).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td className="py-6 px-2">
+                            <div className="flex flex-col">
+                                <span className="text-xs font-black text-bgray-700 dark:text-gray-300">Grade {student.class}</span>
+                                <span className="text-[10px] font-bold text-gray-400">R-Section {student.section}</span>
+                            </div>
+                        </td>
+                        <td className="py-6 px-2">
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-bgray-600 dark:text-gray-400 italic">Mr. {student.father_name}</span>
+                            </div>
+                        </td>
+                        <td className="py-6 px-2 text-right">
+                            <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-400/10 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-400/20">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Confirmed
+                            </div>
+                        </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+               )}
+            </div>
+          </div>
+        </div>
+
+
+        {/* Intelligence Sidebar */}
+        <div className="2xl:col-span-4 flex flex-col gap-10">
+            <div className="card-modern p-10 bg-white dark:bg-darkblack-600 border-none shadow-xl shadow-black/5 overflow-hidden relative">
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full" />
+                <div className="text-center mb-12">
+                    <h3 className="text-2xl font-black text-bgray-900 dark:text-white flex items-center justify-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm">
+                            <FontAwesomeIcon icon={faChartPie} />
+                        </div>
+                        Student Categories
+                    </h3>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-3">Distribution by grade level</p>
+                </div>
+                
+                <div className="relative h-[240px] flex items-center justify-center mb-8">
+                    <div className="absolute inset-0 z-0 bg-gradient-to-tr from-gray-50/50 to-transparent dark:from-white/5 rounded-full blur-2xl" />
+                    <div className="w-full h-full relative z-10 transition-transform duration-700 cursor-pointer">
+                        <PieChart />
+                    </div>
+                </div>
+
+                <div className="mt-8 space-y-3">
+                    {[
+                        { label: 'Primary Wing', val: 42, color: 'emerald', detail: 'Classes I to V' },
+                        { label: 'Middle Wing', val: 28, color: 'blue', detail: 'Classes VI to VIII' },
+                        { label: 'Higher Wing', val: 30, color: 'orange', detail: 'Classes IX to XII' }
+                    ].map((item, i) => (
+                        <div key={i} className="group p-5 rounded-[24px] bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 hover:border-blue-500/30 hover:bg-white dark:hover:bg-darkblack-500 transition-all duration-300">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-3.5 h-3.5 rounded-full bg-${item.color}-500 shadow-[0_0_15px_rgba(var(--primary-glow))] group-hover:scale-125 transition-transform`} />
+                                    <span className="text-xs font-black text-bgray-900 dark:text-white">{item.label}</span>
+                                </div>
+                                <span className="text-sm font-black text-primary italic">{item.val}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full bg-${item.color}-500 transition-all duration-1000 delay-300`} style={{ width: `${item.val}%` }} />
+                            </div>
+                            <p className="text-[10px] font-bold text-gray-500 mt-2">Current Capacity Partition: {item.detail}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Quick Metrics Overlay */}
+            <div className="bg-gradient-to-br from-[#0f172a] to-primary p-1 rounded-[40px] shadow-2xl overflow-hidden group">
+                <div className="bg-white dark:bg-darkblack-600 rounded-[38px] p-10 h-full relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px]" />
+                    <h4 className="text-xl font-black mb-6 text-bgray-900 dark:text-white">Quick Insights</h4>
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between border-b border-gray-50 dark:border-white/5 pb-4">
+                            <span className="text-xs font-bold text-gray-500">Global Attendance</span>
+                            <span className="text-sm font-black text-emerald-500">94.8%</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-gray-50 dark:border-white/5 pb-4">
+                            <span className="text-xs font-bold text-gray-500">Faculty Punctuality</span>
+                            <span className="text-sm font-black text-blue-500">98.2%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500">Server Latency</span>
+                            <span className="text-sm font-black text-orange-500">42ms</span>
+                        </div>
+                    <button className="w-full mt-10 bg-gradient-to-r from-primary to-emerald-500 text-black rounded-2xl py-4 font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+                        View Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  );
 }

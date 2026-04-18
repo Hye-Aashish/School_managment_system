@@ -1,708 +1,312 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
-export default function AddTopic() {
-     const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "export" | null>(null);
-     const [topicNames, setTopicNames] = useState<string[]>([""]);
+export default function TopicsPage() {
+     const [classList, setClassList] = useState<any[]>([]);
+     const [sectionList, setSectionList] = useState<any[]>([]);
+     const [groupsList, setGroupsList] = useState<any[]>([]);
+     const [subjectsList, setSubjectsList] = useState<any[]>([]);
+     const [lessonsList, setLessonsList] = useState<any[]>([]);
+     const [topics, setTopics] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
+     const [saving, setSaving] = useState(false);
+     
+     const [formData, setFormData] = useState({
+          class: "",
+          section: "",
+          subjectGroup: "",
+          subject: "",
+          lesson: "",
+          topicNames: [""]
+     });
 
-     const toggleFilter = (type: "action" | "pagination" | "export") => {
-          setOpenFilter(openFilter === type ? null : type);
+     const fetchClasses = async () => {
+          const res = await fetch("/api/classes");
+          const data = await res.json();
+          if (data.success) setClassList(data.data);
      };
 
-     const addTopicName = () => {
-          setTopicNames([...topicNames, ""]);
+     const fetchTopics = async () => {
+          setLoading(true);
+          const res = await fetch("/api/topics");
+          const data = await res.json();
+          if (data.success) setTopics(data.data);
+          setLoading(false);
      };
 
-     const removeTopicName = (index: number) => {
-          const newTopicNames = topicNames.filter((_, i) => i !== index);
-          setTopicNames(newTopicNames);
+     useEffect(() => {
+          fetchClasses();
+          fetchTopics();
+     }, []);
+
+     useEffect(() => {
+          if (formData.class) {
+               const cls = classList.find(c => c.name === formData.class);
+               if (cls) setSectionList(cls.sections || []);
+          }
+     }, [formData.class, classList]);
+
+     useEffect(() => {
+          if (formData.class && formData.section) {
+               fetch(`/api/subject-groups?class=${formData.class}&section=${formData.section}`)
+                    .then(r => r.json())
+                    .then(d => { if(d.success) setGroupsList(d.data); });
+          }
+     }, [formData.class, formData.section]);
+
+     useEffect(() => {
+          if (formData.subjectGroup) {
+               const group = groupsList.find(g => g.name === formData.subjectGroup);
+               if (group) setSubjectsList(group.subjects || []);
+          }
+     }, [formData.subjectGroup, groupsList]);
+
+     useEffect(() => {
+          if (formData.subject) {
+               fetch(`/api/lessons?class=${formData.class}&section=${formData.section}&subject=${formData.subject}`)
+                    .then(r => r.json())
+                    .then(d => { if(d.success) setLessonsList(d.data); });
+          }
+     }, [formData.subject, formData.class, formData.section]);
+
+     const handleAddTopicInput = () => {
+          setFormData({ ...formData, topicNames: [...formData.topicNames, ""] });
      };
 
-     const handleTopicNameChange = (index: number, value: string) => {
-          const newTopicNames = [...topicNames];
-          newTopicNames[index] = value;
-          setTopicNames(newTopicNames);
+     const handleRemoveTopicInput = (index: number) => {
+          setFormData({ ...formData, topicNames: formData.topicNames.filter((_, i) => i !== index) });
      };
 
-     const topicData = [
-          {
-               id: 1,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "English (210)",
-               lesson: "Alice In Wonderland",
-               topic: "Wonderland Chapter-5",
-          },
-          {
-               id: 2,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "English (210)",
-               lesson: "The Milkman's Cow",
-               topic: "The Cow's",
-          },
-          {
-               id: 3,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "English (210)",
-               lesson: "I Had a Little Pony",
-               topic: "Pony Story Chapter-7",
-          },
-          {
-               id: 4,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "Mathematics (110)",
-               lesson: "Tables and Shares",
-               topic: "Shapes Angle Chapter-5",
-          },
-          {
-               id: 5,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "Mathematics (110)",
-               lesson: "Building with Bricks",
-               topic: "Fire Resistant",
-          },
-          {
-               id: 6,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "Mathematics (110)",
-               lesson: "Carts and Wheels",
-               topic: "Making a Circle Chapter-8",
-          },
-          {
-               id: 7,
-               class: "Class 5",
-               section: "A",
-               subjectGroup: "Class 5th Subject Group",
-               subject: "Mathematics (110)",
-               lesson: "Long and Short",
-               topic: "Length and Distance Chapter-10",
-          },
-          {
-               id: 8,
-               class: "Class 1",
-               section: "A",
-               subjectGroup: "Class 1st Subject Group",
-               subject: "English (210)",
-               lesson: "First Day at School",
-               topic: "School Life School Day's Chapter-2",
-          },
-          {
-               id: 9,
-               class: "Class 1",
-               section: "A",
-               subjectGroup: "Class 1st Subject Group",
-               subject: "English (210)",
-               lesson: "The Wind and the Sun",
-               topic: "The Wind",
-          },
-          {
-               id: 10,
-               class: "Class 1",
-               section: "A",
-               subjectGroup: "Class 1st Subject Group",
-               subject: "English (210)",
-               lesson: "Storm in the Garden",
-               topic: "My Garden Chapter 2",
-          },
-     ];
+     const handleTopicNameChange = (index: number, val: string) => {
+          const names = [...formData.topicNames];
+          names[index] = val;
+          setFormData({ ...formData, topicNames: names });
+     };
+
+     const handleSave = async () => {
+          if (!formData.lesson || formData.topicNames.some(n => !n)) {
+               alert("Please fill all required fields");
+               return;
+          }
+          setSaving(true);
+          const payloads = formData.topicNames.map(name => ({
+               name,
+               lesson: formData.lesson,
+               class: formData.class,
+               section: formData.section,
+               subjectGroup: formData.subjectGroup,
+               subject: formData.subject
+          }));
+
+          try {
+               await fetch("/api/topics", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payloads)
+               });
+               setFormData({ ...formData, topicNames: [""] });
+               fetchTopics();
+          } catch (e) {
+               console.error(e);
+          } finally {
+               setSaving(false);
+          }
+     };
+
+     const deleteTopic = async (id: string) => {
+          if (!confirm("Delete this topic?")) return;
+          await fetch(`/api/topics?id=${id}`, { method: "DELETE" });
+          fetchTopics();
+     };
+
+     const groupedTopics = useMemo(() => {
+          const map: any = {};
+          topics.forEach(t => {
+               const key = `${t.class}-${t.lesson}-${t.subject}`;
+               if (!map[key]) map[key] = { ...t, allTopics: [] };
+               map[key].allTopics.push(t);
+          });
+          return Object.values(map);
+     }, [topics]);
 
      return (
-          <>
-               <div className="2xl:flex 2xl:space-x-12">
-                    {/* Left Section - Add Topic Form */}
-                    <section className="2xl:w-[400px] 2xl:mb-0 mb-6">
-                         <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600">
-                              <h3 className="text-xl font-bold text-bgray-900 dark:text-white mb-6">
-                                   Add Topic
+          <div className="flex flex-col space-y-6 px-1">
+               <div className="2xl:flex 2xl:space-x-8">
+                    {/* Form Component */}
+                    <section className="2xl:w-[400px] shrink-0">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-2xl p-6 shadow-sm border border-bgray-200 dark:border-darkblack-400">
+                              <h3 className="text-xl font-bold dark:text-white mb-6 flex items-center gap-2 uppercase tracking-tighter">
+                                   <div className="w-1.5 h-6 bg-success-300 rounded-full"></div>
+                                   Topic registration
                               </h3>
-                              <div className="flex flex-col space-y-5">
-                                   {/* Class Dropdown */}
-                                   <div className="w-full space-y-2 mb-0">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-white">
-                                             Class <span className="text-red-500">*</span>
-                                        </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="">Select</option>
-                                             <option value="class1">Class 1</option>
-                                             <option value="class2">Class 2</option>
-                                             <option value="class3">Class 3</option>
-                                             <option value="class4">Class 4</option>
-                                             <option value="class5">Class 5</option>
-                                        </select>
-                                   </div>
-
-                                   {/* Section Dropdown */}
-                                   <div className="w-full space-y-2">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-white">
-                                             Section <span className="text-red-500">*</span>
-                                        </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="">Select</option>
-                                             <option value="a">A</option>
-                                             <option value="b">B</option>
-                                             <option value="c">C</option>
-                                        </select>
-                                   </div>
-
-                                   {/* Subject Group Dropdown */}
-                                   <div className="w-full space-y-2">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-white">
-                                             Subject Group <span className="text-red-500">*</span>
-                                        </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="">Select</option>
-                                             <option value="group1">Class 1st Subject Group</option>
-                                             <option value="group2">Class 2nd Subject Group</option>
-                                        </select>
-                                   </div>
-
-                                   {/* Subject Dropdown */}
-                                   <div className="w-full space-y-2">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-white">
-                                             Subject <span className="text-red-500">*</span>
-                                        </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="">Select</option>
-                                             <option value="english">English (210)</option>
-                                             <option value="hindi">Hindi (230)</option>
-                                        </select>
-                                   </div>
-
-                                   {/* Lesson Dropdown */}
-                                   <div className="w-full space-y-2">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-white">
-                                             Lesson <span className="text-red-500">*</span>
-                                        </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="">Select</option>
-                                             <option value="lesson1">Alice In Wonderland</option>
-                                             <option value="lesson2">The Milkman's Cow</option>
-                                        </select>
-                                   </div>
-
-                                   {/* Topic Name Inputs with Add More */}
-                                   <div className="w-full space-y-2">
-                                        <div className="flex justify-between items-center">
-                                             <label className="text-sm font-medium text-bgray-900 dark:text-white">
-                                                  Topic Name <span className="text-red-500">*</span>
-                                             </label>
-                                             <button
-                                                  type="button"
-                                                  onClick={addTopicName}
-                                                  className="px-4 py-1.5 text-xs font-semibold text-white bg-bgray-500 hover:bg-bgray-600 dark:bg-bgray-600 dark:hover:bg-bgray-700 rounded transition-all"
+                              <div className="space-y-4">
+                                   <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Target Class</label>
+                                             <select 
+                                                  value={formData.class}
+                                                  onChange={e => setFormData({ ...formData, class: e.target.value })}
+                                                  className="w-full h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-3 text-[11px] font-bold border-none outline-none focus:ring-2 focus:ring-success-300/50"
                                              >
-                                                  Add More
-                                             </button>
+                                                  <option value="">Class</option>
+                                                  {classList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                             </select>
                                         </div>
-                                        <div className="space-y-3">
-                                             {topicNames.map((topic, index) => (
-                                                  <div key={index} className="flex items-center space-x-2">
-                                                       <input
+                                        <div className="space-y-1.5">
+                                             <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Section</label>
+                                             <select 
+                                                  value={formData.section}
+                                                  onChange={e => setFormData({ ...formData, section: e.target.value })}
+                                                  className="w-full h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-3 text-[11px] font-bold border-none outline-none focus:ring-2 focus:ring-success-300/50"
+                                             >
+                                                  <option value="">Section</option>
+                                                  {sectionList.map(s => <option key={s._id} value={s.name}>{s.name}</option>)}
+                                             </select>
+                                        </div>
+                                   </div>
+                                   
+                                   <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject Group</label>
+                                        <select 
+                                             value={formData.subjectGroup}
+                                             onChange={e => setFormData({ ...formData, subjectGroup: e.target.value })}
+                                             className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/50"
+                                        >
+                                             <option value="">Select Group</option>
+                                             {groupsList.map(g => <option key={g._id} value={g.name}>{g.name}</option>)}
+                                        </select>
+                                   </div>
+
+                                   <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-bgray-500 uppercase tracking-widest">Subject</label>
+                                        <select 
+                                             value={formData.subject}
+                                             onChange={e => setFormData({ ...formData, subject: e.target.value })}
+                                             className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/50"
+                                        >
+                                             <option value="">Select Subject</option>
+                                             {subjectsList.map((s, idx) => <option key={idx} value={s.name}>{s.name}</option>)}
+                                        </select>
+                                   </div>
+
+                                   <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-bgray-500 uppercase tracking-widest">Parent Lesson</label>
+                                        <select 
+                                             value={formData.lesson}
+                                             onChange={e => setFormData({ ...formData, lesson: e.target.value })}
+                                             className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/50 border-l-4 border-success-300"
+                                        >
+                                             <option value="">Choose Lesson</option>
+                                             {lessonsList.map(l => <option key={l._id} value={l.name}>{l.name}</option>)}
+                                        </select>
+                                   </div>
+
+                                   <div className="pt-4 border-t border-dashed border-bgray-200 dark:border-darkblack-400">
+                                        <div className="flex justify-between items-center mb-3 text-[10px] font-black text-bgray-500 uppercase tracking-widest">
+                                             <span>Granular Topics</span>
+                                             <button onClick={handleAddTopicInput} className="text-success-300 hover:underline">+ Multiple</button>
+                                        </div>
+                                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex flex-col gap-2">
+                                             {formData.topicNames.map((name, idx) => (
+                                                  <div key={idx} className="flex gap-2 animate-in fade-in duration-300">
+                                                       <input 
                                                             type="text"
-                                                            value={topic}
-                                                            onChange={(e) => handleTopicNameChange(index, e.target.value)}
-                                                            placeholder=""
-                                                            className="flex-1 px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                                            value={name}
+                                                            onChange={e => handleTopicNameChange(idx, e.target.value)}
+                                                            className="flex-1 h-9 bg-bgray-50 dark:bg-darkblack-500 rounded-lg px-4 text-[11px] font-bold border-none outline-none focus:ring-2 focus:ring-success-300/20"
+                                                            placeholder="e.g. History of Rome"
                                                        />
-                                                       {topicNames.length > 1 && (
-                                                            <button
-                                                                 type="button"
-                                                                 onClick={() => removeTopicName(index)}
-                                                                 className="text-red-500 hover:text-red-600 transition-colors"
-                                                            >
-                                                                 <svg
-                                                                      width="20"
-                                                                      height="20"
-                                                                      viewBox="0 0 20 20"
-                                                                      fill="none"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                 >
-                                                                      <path
-                                                                           d="M15 5L5 15"
-                                                                           stroke="currentColor"
-                                                                           strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                      <path
-                                                                           d="M5 5L15 15"
-                                                                           stroke="currentColor"
-                                                                           strokeWidth="2"
-                                                                           strokeLinecap="round"
-                                                                           strokeLinejoin="round"
-                                                                      />
-                                                                 </svg>
-                                                            </button>
+                                                       {formData.topicNames.length > 1 && (
+                                                            <button onClick={() => handleRemoveTopicInput(idx)} className="text-bgray-300 hover:text-red-500 transition-colors"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                                                        )}
                                                   </div>
                                              ))}
                                         </div>
                                    </div>
 
-                                   {/* Save Button */}
-                                   <button
-                                        type="button"
-                                        className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
+                                   <button 
+                                        disabled={saving}
+                                        onClick={handleSave}
+                                        className="w-full h-12 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 transition-all shadow-lg shadow-success-300/20 disabled:opacity-50 mt-4 uppercase tracking-[0.2em] text-[10px]"
                                    >
-                                        Save
+                                        {saving ? "Deploying..." : "REGISTER TOPICS"}
                                    </button>
                               </div>
                          </div>
                     </section>
 
-                    {/* Right Section - Topic List */}
-                    <section className="2xl:flex-1">
-                         <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600">
-                              <h3 className="text-xl font-bold text-bgray-900 dark:text-white mb-6">
-                                   Topic List
-                              </h3>
-                              <div className="flex flex-col space-y-5">
-                                   {/* Search and Export */}
-                                   <div className="w-full flex h-14 space-x-4">
-                                        <div className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]">
-                                             <div className="flex w-full h-full items-center space-x-[15px]">
-                                                  <span>
-                                                       <svg
-                                                            className="stroke-bgray-900 dark:stroke-white"
-                                                            width="21"
-                                                            height="22"
-                                                            viewBox="0 0 21 22"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <circle
-                                                                 cx="9.80204"
-                                                                 cy="10.6761"
-                                                                 r="8.98856"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M16.0537 17.3945L19.5777 20.9094"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                                  <label className="w-full">
-                                                       <input
-                                                            type="text"
-                                                            placeholder="Search..."
-                                                            className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
-                                                       />
-                                                  </label>
-                                             </div>
-                                        </div>
-
-                                        {/* Show Results Dropdown */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="px-2.5 py-[14px] h-full border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center bg-white dark:bg-darkblack-500"
-                                                  onClick={() => toggleFilter("pagination")}
-                                             >
-                                                  <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">
-                                                       100
-                                                  </span>
-                                                  <span>
-                                                       <svg
-                                                            width="17"
-                                                            height="17"
-                                                            viewBox="0 0 17 17"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M4.03516 6.03271L8.03516 10.0327L12.0352 6.03271"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden ${openFilter === "pagination" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600">
-                                                            10
-                                                       </li>
-                                                       <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600">
-                                                            50
-                                                       </li>
-                                                       <li className="text-sm font-medium text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600">
-                                                            100
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
-
-                                        {/* Export Dropdown */}
-                                        <div className="relative">
-                                             <button
-                                                  type="button"
-                                                  className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center space-x-3 relative dark:bg-darkblack-500"
-                                                  onClick={() => toggleFilter("export")}
-                                             >
-                                                  <span className="text-base text-bgray-500 text-nowrap">Export</span>
-                                                  <span>
-                                                       <svg
-                                                            width="21"
-                                                            height="21"
-                                                            viewBox="0 0 21 21"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
-                                                                 stroke="#A0AEC0"
-                                                                 strokeWidth="2"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </span>
-                                             </button>
-
-                                             <div
-                                                  className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
-                                                       }`}
-                                             >
-                                                  <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Copy
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Excel
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            CSV
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            PDF
-                                                       </li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">
-                                                            Print
-                                                       </li>
-                                                  </ul>
-                                             </div>
-                                        </div>
+                    {/* Table View */}
+                    <section className="flex-1 mt-6 2xl:mt-0">
+                         <div className="bg-white dark:bg-darkblack-600 rounded-2xl shadow-sm border border-bgray-200 dark:border-darkblack-400 overflow-hidden min-h-[600px]">
+                              <div className="p-6 border-b border-bgray-100 dark:border-darkblack-400 flex justify-between items-center bg-bgray-50/10 hover:bg-bgray-50 transition-colors">
+                                   <div className="flex flex-col">
+                                        <h4 className="text-sm font-black uppercase tracking-widest text-bgray-900 dark:text-white">Detailed Topic Matrix</h4>
+                                        <span className="text-[9px] font-bold text-bgray-400 uppercase tracking-tighter">Granular Syllabus Breakdown</span>
                                    </div>
-
-                                   {/* Table */}
-                                   <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                                        <table className="w-full">
-                                             <thead>
-                                                  <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Class
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
-                                                                      Section
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Subject Group
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Subject
-                                                            </span>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Lesson
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                      Topic
-                                                                 </span>
-                                                                 <span>
-                                                                      <svg
-                                                                           width="14"
-                                                                           height="15"
-                                                                           viewBox="0 0 14 15"
-                                                                           fill="none"
-                                                                           xmlns="http://www.w3.org/2000/svg"
-                                                                      >
-                                                                           <path
-                                                                                d="M10.332 1.31567V13.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M3.66602 13.3157V1.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                           <path
-                                                                                d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567"
-                                                                                stroke="#718096"
-                                                                                strokeWidth="1.5"
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                           />
-                                                                      </svg>
-                                                                 </span>
-                                                            </div>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
-                                                                 Action
-                                                            </span>
-                                                       </td>
-                                                  </tr>
-                                             </thead>
-                                             <tbody>
-                                                  {topicData.map((item) => (
-                                                       <tr
-                                                            key={item.id}
-                                                            className="border-b border-bgray-300 dark:border-darkblack-400"
-                                                       >
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {item.class}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {item.section}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {item.subjectGroup}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {item.subject}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {item.lesson}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {item.topic}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <div className="flex space-x-3">
-                                                                      <button
-                                                                           type="button"
-                                                                           className="text-bgray-900 dark:text-white hover:text-success-300 transition-colors"
-                                                                      >
-                                                                           <svg
-                                                                                width="18"
-                                                                                height="18"
-                                                                                viewBox="0 0 18 18"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                           >
-                                                                                <path
-                                                                                     d="M13.5 2.25L15.75 4.5L5.25 15H3V12.75L13.5 2.25Z"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </button>
-                                                                      <button
-                                                                           type="button"
-                                                                           className="text-bgray-900 dark:text-white hover:text-red-500 transition-colors"
-                                                                      >
-                                                                           <svg
-                                                                                width="18"
-                                                                                height="18"
-                                                                                viewBox="0 0 18 18"
-                                                                                fill="none"
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                           >
-                                                                                <path
-                                                                                     d="M13.5 4.5L4.5 13.5"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                                <path
-                                                                                     d="M4.5 4.5L13.5 13.5"
-                                                                                     stroke="currentColor"
-                                                                                     strokeWidth="1.5"
-                                                                                     strokeLinecap="round"
-                                                                                     strokeLinejoin="round"
-                                                                                />
-                                                                           </svg>
-                                                                      </button>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-success-300 animate-pulse"></div>
+                                        <span className="text-[9px] font-black text-bgray-400 uppercase tracking-widest">Live Record</span>
+                                   </div>
+                              </div>
+                              <div className="overflow-x-auto">
+                                   <table className="w-full text-left">
+                                        <thead>
+                                             <tr className="bg-bgray-50 dark:bg-darkblack-500/30 text-[10px] font-black text-bgray-500 uppercase tracking-widest">
+                                                  <th className="px-6 py-4">Context</th>
+                                                  <th className="px-6 py-4">Parent Lesson</th>
+                                                  <th className="px-6 py-4">Granular Topics</th>
+                                                  <th className="px-6 py-4 text-right">Metrics</th>
+                                             </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-bgray-100 dark:divide-darkblack-400">
+                                             {loading ? (
+                                                  <tr><td colSpan={4} className="py-24 text-center"><div className="w-8 h-8 mx-auto border-4 border-success-300/20 border-t-success-300 rounded-full animate-spin"></div></td></tr>
+                                             ) : groupedTopics.length > 0 ? (
+                                                  groupedTopics.map((group: any, idx) => (
+                                                       <tr key={idx} className="hover:bg-bgray-50/50 dark:hover:bg-darkblack-500/10 transition-colors group">
+                                                            <td className="px-6 py-6">
+                                                                 <div className="flex flex-col">
+                                                                      <span className="text-xs font-black text-bgray-900 dark:text-white uppercase">{group.class} ({group.section})</span>
+                                                                      <span className="text-[9px] font-bold text-bgray-400 uppercase mt-1">Group: {group.subjectGroup}</span>
                                                                  </div>
                                                             </td>
+                                                            <td className="px-6 py-6 border-l border-bgray-100 dark:border-darkblack-400">
+                                                                 <div className="flex flex-col">
+                                                                      <span className="text-xs font-black text-success-300 uppercase tracking-tighter">{group.lesson}</span>
+                                                                      <span className="text-[9px] text-bgray-400 font-bold uppercase mt-1 tracking-tighter">{group.subject}</span>
+                                                                 </div>
+                                                            </td>
+                                                            <td className="px-6 py-6">
+                                                                 <div className="flex flex-wrap gap-1.5 max-w-md">
+                                                                      {group.allTopics.map((t: any) => (
+                                                                           <div key={t._id} className="group/item flex items-center gap-3 bg-white dark:bg-darkblack-500 pl-4 pr-2 py-1.5 rounded-lg border border-bgray-200 dark:border-darkblack-400 shadow-sm transition-all hover:shadow-md">
+                                                                                <span className="text-[10px] font-black text-bgray-700 dark:text-bgray-200 uppercase tracking-tighter">{t.name}</span>
+                                                                                <button onClick={() => deleteTopic(t._id)} className="text-bgray-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-all"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                                                                           </div>
+                                                                      ))}
+                                                                 </div>
+                                                            </td>
+                                                            <td className="px-6 py-6 text-right">
+                                                                 <span className="px-3 py-1 bg-bgray-100 dark:bg-darkblack-400 rounded-full text-[9px] font-black text-bgray-500 uppercase">{group.allTopics.length} Units</span>
+                                                            </td>
                                                        </tr>
-                                                  ))}
-                                             </tbody>
-                                        </table>
-                                   </div>
+                                                  ))
+                                             ) : (
+                                                  <tr>
+                                                       <td colSpan={4} className="py-24 text-center">
+                                                            <div className="max-w-[140px] mx-auto opacity-10">
+                                                                 <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto mb-3"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                                                                 <p className="text-[9px] font-black uppercase tracking-widest">No Topics Defined</p>
+                                                            </div>
+                                                       </td>
+                                                  </tr>
+                                             )}
+                                        </tbody>
+                                   </table>
                               </div>
                          </div>
                     </section>
                </div>
-          </>
+          </div>
      );
 }

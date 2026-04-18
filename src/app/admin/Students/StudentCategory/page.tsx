@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function StudentCategory() {
      const [categories, setCategories] = useState<any[]>([]);
@@ -11,6 +12,14 @@ export default function StudentCategory() {
      const fetchCategories = async () => {
           const res = await fetch("/api/student-categories");
           if (res.ok) setCategories(await res.json());
+     };
+
+     const onExport = (type: ExportType) => {
+          const exportData = categories.map(c => ({
+               "Category Name": c.category
+          }));
+          handleExport(type, exportData, "Student_Categories");
+          setOpenFilter(null);
      };
 
      useEffect(() => {
@@ -155,8 +164,9 @@ export default function StudentCategory() {
                                                   </button>
                                                   <div className={`rounded-lg w-[120px] shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-12 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"}`}>
                                                        <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 font-semibold">Excel</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 font-semibold">PDF</li>
+                                                            {["Copy", "Excel", "CSV", "PDF", "Print"].map(type => (
+                                                                 <li key={type} onClick={() => onExport(type as ExportType)} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 font-semibold">{type}</li>
+                                                            ))}
                                                        </ul>
                                                   </div>
                                              </div>

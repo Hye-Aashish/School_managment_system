@@ -1,170 +1,181 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export default function NoticeBoard() {
-     const notices = [
-          { id: 1, title: "Online Learning Notice", hasActions: true },
-          { id: 2, title: "Staff Meeting", hasActions: false },
-          { id: 3, title: "Fees Reminder", hasActions: false },
-          { id: 4, title: "Student Health Check-up", hasActions: false },
-          { id: 5, title: "Extra class for Std - X to XII", hasActions: false },
-          { id: 6, title: "Christmas Celebration Holiday", hasActions: false },
-          { id: 7, title: "PTM Meeting", hasActions: false },
-          { id: 8, title: "Staff Meeting", hasActions: false },
-          { id: 9, title: "Fees Reminder", hasActions: false },
-          { id: 10, title: "Online Learning Notice", hasActions: false },
-          { id: 11, title: "Notice for new Book collection", hasActions: false },
-          { id: 12, title: "School Vacation Notice ..!!!!", hasActions: false },
-          { id: 13, title: "Merry Christmas Holiday", hasActions: false },
-          { id: 14, title: "Online Learning Notice", hasActions: false },
-     ];
+     const [notices, setNotices] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
+     const [isModalOpen, setIsModalOpen] = useState(false);
+     
+     const [formData, setFormData] = useState({
+          title: "",
+          noticeDate: new Date().toISOString().split('T')[0],
+          publishOn: new Date().toISOString().split('T')[0],
+          message: "",
+          messageTo: [] as string[]
+     });
+
+     const fetchNotices = async () => {
+          setLoading(true);
+          const res = await fetch("/api/notices");
+          const data = await res.json();
+          if (data.success) setNotices(data.data);
+          setLoading(false);
+     };
+
+     useEffect(() => { fetchNotices(); }, []);
+
+     const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          const res = await fetch("/api/notices", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify(formData)
+          });
+          if (res.ok) {
+               setIsModalOpen(false);
+               setFormData({
+                    title: "",
+                    noticeDate: new Date().toISOString().split('T')[0],
+                    publishOn: new Date().toISOString().split('T')[0],
+                    message: "",
+                    messageTo: []
+               });
+               fetchNotices();
+          }
+     };
+
+     const deleteNotice = async (id: string) => {
+          if (!confirm("Delete this notice?")) return;
+          await fetch(`/api/notices?id=${id}`, { method: "DELETE" });
+          fetchNotices();
+     };
+
+     const toggleRecipient = (role: string) => {
+          setFormData(prev => ({
+               ...prev,
+               messageTo: prev.messageTo.includes(role) 
+                    ? prev.messageTo.filter(r => r !== role) 
+                    : [...prev.messageTo, role]
+          }));
+     };
 
      return (
-          <>
-               <div className="w-full space-y-6">
-                    {/* Notice Board Section */}
-                    <div className="w-full py-[20px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
-                         <div className="flex justify-between items-center mb-6">
-                              <h3 className="text-xl font-bold text-bgray-900 dark:text-white">
-                                   Notice Board
-                              </h3>
-                              <button
-                                   type="button"
-                                   className="px-6 py-2.5 text-sm font-semibold text-white bg-bgray-600 hover:bg-bgray-600 dark:bg-bgray-600 dark:hover:bg-bgray-700 rounded transition-all flex items-center space-x-2"
-                              >
-                                   <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 14 14"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                   >
-                                        <path
-                                             d="M7 1V13"
-                                             stroke="white"
-                                             strokeWidth="2"
-                                             strokeLinecap="round"
-                                             strokeLinejoin="round"
-                                        />
-                                        <path
-                                             d="M1 7H13"
-                                             stroke="white"
-                                             strokeWidth="2"
-                                             strokeLinecap="round"
-                                             strokeLinejoin="round"
-                                        />
-                                   </svg>
-                                   <span>Post New Message</span>
-                              </button>
-                         </div>
-
+          <div className="flex flex-col space-y-6 px-1">
+               {/* Controls */}
+               <section className="bg-white dark:bg-darkblack-600 rounded-2xl p-6 shadow-sm border border-bgray-200 dark:border-darkblack-400">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
                          <div className="flex flex-col">
-                              {notices.map((notice, index) => (
-                                   <div
-                                        key={notice.id}
-                                        className={`flex items-center justify-between py-4 ${
-                                             index !== notices.length - 1
-                                                  ? "border-b border-bgray-300 dark:border-darkblack-400"
-                                                  : ""
-                                        }`}
-                                   >
-                                        <div className="flex items-center space-x-4">
-                                             {/* Mail Icon */}
-                                             <span className="text-cyan-500">
-                                                  <svg
-                                                       width="20"
-                                                       height="20"
-                                                       viewBox="0 0 20 20"
-                                                       fill="none"
-                                                       xmlns="http://www.w3.org/2000/svg"
-                                                  >
-                                                       <path
-                                                            d="M14.1667 17.0833H5.83333C3.33333 17.0833 1.66667 15.8333 1.66667 12.9167V7.08333C1.66667 4.16667 3.33333 2.91667 5.83333 2.91667H14.1667C16.6667 2.91667 18.3333 4.16667 18.3333 7.08333V12.9167C18.3333 15.8333 16.6667 17.0833 14.1667 17.0833Z"
-                                                            stroke="currentColor"
-                                                            strokeWidth="1.5"
-                                                            strokeMiterlimit="10"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                       />
-                                                       <path
-                                                            d="M14.1667 7.5L11.5583 9.58333C10.7 10.2667 9.29167 10.2667 8.43333 9.58333L5.83333 7.5"
-                                                            stroke="currentColor"
-                                                            strokeWidth="1.5"
-                                                            strokeMiterlimit="10"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                       />
-                                                  </svg>
-                                             </span>
+                              <h3 className="text-xl font-bold dark:text-white flex items-center gap-3 uppercase tracking-tighter">
+                                   <div className="w-1.5 h-6 bg-success-300 rounded-full"></div>
+                                   Digital Bulletin
+                              </h3>
+                              <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">Official institutional broadcasts and announcements</p>
+                         </div>
+                         <button 
+                              onClick={() => setIsModalOpen(true)}
+                              className="px-8 h-12 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 transition-all shadow-lg shadow-success-300/20 flex items-center gap-2 shrink-0 uppercase tracking-widest text-[10px]"
+                         >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                              PUBLISH NOTICE
+                         </button>
+                    </div>
+               </section>
 
-                                             {/* Notice Title */}
-                                             <button
-                                                  type="button"
-                                                  className="text-base font-medium text-cyan-500 hover:text-cyan-600 dark:text-cyan-400 dark:hover:text-cyan-300 transition-colors text-left"
-                                             >
-                                                  {notice.title}
-                                             </button>
+               {/* Notice List */}
+               <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {loading ? (
+                         <div className="col-span-full py-24 text-center">
+                              <div className="w-10 h-10 border-4 border-success-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                         </div>
+                    ) : notices.length > 0 ? (
+                         notices.map((n) => (
+                              <div key={n._id} className="bg-white dark:bg-darkblack-600 rounded-3xl p-8 shadow-sm border border-bgray-200 dark:border-darkblack-400 hover:shadow-xl hover:shadow-success-300/5 transition-all group relative border-l-[6px] border-l-success-300">
+                                   <div className="flex justify-between items-start mb-6">
+                                        <div className="p-3 bg-success-300/10 rounded-2xl text-success-300">
+                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                                         </div>
-
-                                        {/* Action Icons (only show on first item or on hover) */}
-                                        {notice.hasActions && (
-                                             <div className="flex items-center space-x-3">
-                                                  <button
-                                                       type="button"
-                                                       className="text-cyan-500 hover:text-cyan-600 transition-colors"
-                                                       title="Edit"
-                                                  >
-                                                       <svg
-                                                            width="18"
-                                                            height="18"
-                                                            viewBox="0 0 18 18"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M13.5 2.25L15.75 4.5L5.25 15H3V12.75L13.5 2.25Z"
-                                                                 stroke="currentColor"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </button>
-                                                  <button
-                                                       type="button"
-                                                       className="text-red-500 hover:text-red-600 transition-colors"
-                                                       title="Delete"
-                                                  >
-                                                       <svg
-                                                            width="18"
-                                                            height="18"
-                                                            viewBox="0 0 18 18"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                       >
-                                                            <path
-                                                                 d="M13.5 4.5L4.5 13.5"
-                                                                 stroke="currentColor"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                            <path
-                                                                 d="M4.5 4.5L13.5 13.5"
-                                                                 stroke="currentColor"
-                                                                 strokeWidth="1.5"
-                                                                 strokeLinecap="round"
-                                                                 strokeLinejoin="round"
-                                                            />
-                                                       </svg>
-                                                  </button>
-                                             </div>
-                                        )}
+                                        <button onClick={() => deleteNotice(n._id)} className="text-bgray-300 hover:text-red-500 transition-colors">
+                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </button>
                                    </div>
-                              ))}
+                                   <div className="space-y-4">
+                                        <h4 className="text-lg font-black dark:text-white uppercase tracking-tighter leading-tight">{n.title}</h4>
+                                        <p className="text-xs font-medium text-bgray-500 dark:text-bgray-400 line-clamp-3 leading-relaxed">{n.message}</p>
+                                        
+                                        <div className="pt-6 border-t border-dashed border-bgray-100 dark:border-darkblack-400 flex flex-col gap-3">
+                                             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-bgray-400">
+                                                  <span>Date: {n.noticeDate}</span>
+                                                  <span className="text-success-300">Published</span>
+                                             </div>
+                                             <div className="flex flex-wrap gap-1.5">
+                                                  {n.messageTo.map((role: string) => (
+                                                       <span key={role} className="px-3 py-1 bg-bgray-50 dark:bg-darkblack-500 rounded-full text-[8px] font-black text-bgray-600 dark:text-bgray-200 uppercase tracking-tighter">{role}</span>
+                                                  ))}
+                                             </div>
+                                        </div>
+                                   </div>
+                              </div>
+                         ))
+                    ) : (
+                         <div className="col-span-full py-32 text-center opacity-10">
+                               <p className="text-[12px] font-black uppercase tracking-[0.3em]">Institutional Bulletin empty</p>
+                         </div>
+                    )}
+               </section>
+
+               {/* Post Modal */}
+               {isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                         <div className="absolute inset-0 bg-bgray-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+                         <div className="relative bg-white dark:bg-darkblack-600 rounded-[40px] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-success-300/20">
+                              <div className="p-8 border-b border-bgray-100 dark:border-darkblack-400 bg-bgray-50/50">
+                                   <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">Draft Official Broadcast</h3>
+                                   <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">Deploying announcement to institutional network</p>
+                              </div>
+                              <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                                   <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Notice Subject *</label>
+                                        <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full h-12 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="e.g. Summer Vacation Schedule" />
+                                   </div>
+                                   <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Notice Date</label>
+                                             <input type="date" value={formData.noticeDate} onChange={e => setFormData({...formData, noticeDate: e.target.value})} className="w-full h-12 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Publish Date</label>
+                                             <input type="date" value={formData.publishOn} onChange={e => setFormData({...formData, publishOn: e.target.value})} className="w-full h-12 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black" />
+                                        </div>
+                                   </div>
+                                   <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Message Payload *</label>
+                                        <textarea required rows={5} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} className="w-full bg-bgray-50 dark:bg-darkblack-500 rounded-3xl p-5 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 resize-none" placeholder="Provide full details of the announcement..."></textarea>
+                                   </div>
+                                   <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Broadcast Target Recipients</label>
+                                        <div className="flex flex-wrap gap-2 text-white">
+                                             {["Student", "Parent", "Teacher", "Admin"].map(role => (
+                                                  <button 
+                                                       key={role}
+                                                       type="button"
+                                                       onClick={() => toggleRecipient(role)}
+                                                       className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                            formData.messageTo.includes(role) ? "bg-success-300 shadow-lg shadow-success-300/20" : "bg-bgray-100 dark:bg-darkblack-500 text-bgray-400"
+                                                       }`}
+                                                  >
+                                                       {role}
+                                                  </button>
+                                             ))}
+                                        </div>
+                                   </div>
+                                   <div className="flex justify-end gap-3 pt-6 border-t border-bgray-100 dark:border-darkblack-400 mt-6">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 h-14 bg-bgray-50 dark:bg-darkblack-500 text-bgray-500 font-black rounded-[20px] hover:bg-bgray-100 transition-all uppercase tracking-widest text-[10px]">Discard</button>
+                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-[20px] hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">Finalize & Deploy</button>
+                                   </div>
+                              </form>
                          </div>
                     </div>
-               </div>
-          </>
+               )}
+          </div>
      );
 }

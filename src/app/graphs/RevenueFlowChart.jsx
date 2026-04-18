@@ -8,105 +8,85 @@ export default function RevenueFlowChart() {
   const chartInstance = useRef(null);
 
   useEffect(() => {
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
+    const fetchData = async () => {
+      let incomeData = [1, 5, 2, 2, 6, 7, 8, 7, 3, 4, 1, 3];
+      let expenseData = [5, 2, 4, 2, 5, 8, 3, 7, 3, 4, 1, 3];
 
-    const month = [
-      "Jan", "Feb", "Mar", "April", "May", "Jun",
-      "July", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-
-    // Light mode datasets (same as your code)
-    const dataSetsLight = [
-      {
-        label: "My First Dataset",
-        data: [1, 5, 2, 2, 6, 7, 8, 7, 3, 4, 1, 3],
-        backgroundColor: [
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(250, 204, 21, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)"
-        ],
-        borderWidth: 0,
-        borderRadius: 5,
-      },
-      {
-        label: "My First Dataset 2",
-        data: [5, 2, 4, 2, 5, 8, 3, 7, 3, 4, 1, 3],
-        backgroundColor: [
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(255, 120, 75, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)"
-        ],
-        borderWidth: 0,
-        borderRadius: 5,
-      },
-      {
-        label: "My First Dataset 3",
-        data: [2, 5, 3, 2, 5, 6, 9, 7, 3, 4, 1, 3],
-        backgroundColor: [
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(74, 222, 128, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)",
-          "rgba(237, 242, 247, 1)", "rgba(237, 242, 247, 1)"
-        ],
-        borderWidth: 0,
-        borderRadius: 5,
+      try {
+        const res = await fetch("/api/stats/monthly");
+        if (res.ok) {
+          const stats = await res.json();
+          if (stats.income.some(v => v > 0) || stats.expense.some(v => v > 0)) {
+            incomeData = stats.income;
+            expenseData = stats.expense;
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching chart data:", err);
       }
-    ];
 
-    const ctx = chartRef.current.getContext("2d");
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
 
-    chartInstance.current = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: month,
-        datasets: dataSetsLight,
-      },
-      options: {
-        maintainAspectRatio: false,
+      const month = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      ];
 
-        scales: {
-          x: {
-            stacked: true,
-            grid: {
-              color: "rgb(243, 246, 255)",
-              drawBorder: false,
+      const dataSetsLight = [
+        {
+          label: "Income",
+          data: incomeData,
+          backgroundColor: incomeData.map((_, i) => i === new Date().getMonth() ? "rgba(16, 185, 129, 1)" : "rgba(16, 185, 129, 0.1)"),
+          hoverBackgroundColor: "rgba(16, 185, 129, 0.8)",
+          borderWidth: 0,
+          borderRadius: 8,
+          barPercentage: 0.6,
+        },
+        {
+          label: "Expense",
+          data: expenseData,
+          backgroundColor: expenseData.map((_, i) => i === new Date().getMonth() ? "rgba(244, 63, 94, 1)" : "rgba(244, 63, 94, 0.1)"),
+          hoverBackgroundColor: "rgba(244, 63, 94, 0.8)",
+          borderWidth: 0,
+          borderRadius: 8,
+          barPercentage: 0.6,
+        }
+      ];
+      if (!chartRef.current) return;
+      const ctx = chartRef.current.getContext("2d");
+      chartInstance.current = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: month,
+          datasets: dataSetsLight,
+        },
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: false,
+              grid: { color: "rgb(243, 246, 255)", drawBorder: false },
+              ticks: { color: "#6B7280" },
             },
-            ticks: {
-              color: "#6B7280",
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgb(243, 246, 255)", drawBorder: false },
+              ticks: {
+                callback: (value) => `$${value}`,
+                color: "#6B7280",
+              },
             },
           },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            grid: {
-              color: "rgb(243, 246, 255)",
-              drawBorder: false,
-            },
-            ticks: {
-              callback: (value) => `${value}%`,
-              color: "#6B7280",
-            },
+          plugins: {
+            legend: { display: false },
           },
         },
+      });
+    };
 
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-      },
-    });
-
+    fetchData();
   }, []);
 
   return (

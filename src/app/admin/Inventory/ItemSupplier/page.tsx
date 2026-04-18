@@ -1,11 +1,26 @@
 "use client";
 import React, { useState } from "react";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function ItemSupplier() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "export" | null>(null);
 
      const toggleFilter = (type: "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
+     };
+
+     const onExport = (type: ExportType) => {
+          const exportData = supplierData.map(s => ({
+               "Supplier": s.supplier,
+               "Phone": s.phone,
+               "Email": s.email,
+               "Contact Person": s.contactPerson,
+               "Contact Phone": s.contactPhone,
+               "Contact Email": s.contactEmail,
+               "Address": s.address
+          }));
+          handleExport(type, exportData, "Item_Suppliers");
+          setOpenFilter(null);
      };
 
      const supplierData = [

@@ -1,8 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function StudenAdmission() {
      const [admissions, setAdmissions] = useState<any[]>([]);
@@ -33,32 +31,7 @@ export default function StudenAdmission() {
           setCurrentPage(pageNumber);
      };
 
-     // Export Functions
-     const handleCopy = () => {
-          if (filteredAdmissions.length === 0) return alert("No data to copy");
-          const headers = ["Reference No", "Student Name", "Class", "Father Name", "Date Of Birth", "Gender", "Category", "Mobile Number", "Form Status", "Payment Status", "Enrolled", "Admission Date"];
-          const rows = filteredAdmissions.map(adm => [
-               adm.reference_no || "",
-               `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
-               `${adm.class || ""}(${adm.section || ""})`,
-               adm.father_name || "",
-               adm.dob || "",
-               adm.gender || "",
-               adm.category || "",
-               adm.mobile_no || "",
-               adm.status || "Submitted",
-               adm.payment_status || "Paid",
-               "Yes",
-               adm.admission_date || "N/A"
-          ]);
-          const csvContent = [headers.join("\t"), ...rows.map(row => row.join("\t"))].join("\n");
-          navigator.clipboard.writeText(csvContent);
-          alert("Data copied to clipboard!");
-          setOpenFilter(null);
-     };
-
-     const handleExcel = () => {
-          if (filteredAdmissions.length === 0) return alert("No data to export");
+     const onExport = (type: ExportType) => {
           const exportData = filteredAdmissions.map(adm => ({
                "Reference No": adm.reference_no,
                "Student Name": `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
@@ -70,78 +43,10 @@ export default function StudenAdmission() {
                "Mobile Number": adm.mobile_no,
                "Form Status": adm.status || "Submitted",
                "Payment Status": adm.payment_status || "Paid",
-               "Enrolled": "Yes",
                "Admission Date": adm.admission_date || "N/A"
           }));
-          const worksheet = XLSX.utils.json_to_sheet(exportData);
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, "Admissions");
-          XLSX.writeFile(workbook, "online_admissions.xlsx");
+          handleExport(type, exportData, "Online_Admissions");
           setOpenFilter(null);
-     };
-
-     const handleCSV = () => {
-          if (filteredAdmissions.length === 0) return alert("No data to export");
-          const exportData = filteredAdmissions.map(adm => ({
-               "Reference No": adm.reference_no,
-               "Student Name": `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
-               "Class": `${adm.class || ""}(${adm.section || ""})`,
-               "Father Name": adm.father_name,
-               "Date Of Birth": adm.dob,
-               "Gender": adm.gender,
-               "Category": adm.category,
-               "Mobile Number": adm.mobile_no,
-               "Form Status": adm.status || "Submitted",
-               "Payment Status": adm.payment_status || "Paid",
-               "Enrolled": "Yes",
-               "Admission Date": adm.admission_date || "N/A"
-          }));
-          const worksheet = XLSX.utils.json_to_sheet(exportData);
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, "Admissions");
-          XLSX.writeFile(workbook, "online_admissions.csv");
-          setOpenFilter(null);
-     };
-
-     const handlePDF = () => {
-          if (filteredAdmissions.length === 0) return alert("No data to export");
-          const doc = new jsPDF('landscape');
-          doc.text("Online Admissions Report", 14, 15);
-          
-          const headers = [["Ref No", "Name", "Class", "Father", "DOB", "Gender", "Category", "Mobile", "Form Status", "Pay Status", "Date"]];
-          const data = filteredAdmissions.map(adm => [
-               adm.reference_no || "",
-               `${adm.first_name || ""} ${adm.last_name || ""}`.trim(),
-               `${adm.class || ""}(${adm.section || ""})`,
-               adm.father_name || "",
-               adm.dob || "",
-               adm.gender || "",
-               adm.category || "",
-               adm.mobile_no || "",
-               adm.status || "Submitted",
-               adm.payment_status || "Paid",
-               adm.admission_date || "N/A"
-          ]);
-
-          (doc as any).autoTable({
-               head: headers,
-               body: data,
-               startY: 20,
-               styles: { fontSize: 8 },
-               headStyles: { fillColor: [41, 128, 185] }
-          });
-          doc.save("online_admissions.pdf");
-          setOpenFilter(null);
-     };
-
-     const handlePrint = () => {
-          if (!tableRef.current) return;
-          const printContents = tableRef.current.outerHTML;
-          const originalContents = document.body.innerHTML;
-          document.body.innerHTML = `<div><h2 style="text-align:center;">Online Admissions</h2>${printContents}</div>`;
-          window.print();
-          document.body.innerHTML = originalContents;
-          window.location.reload(); // Reload to restore React bindings after replacing innerHTML
      };
 
 
@@ -259,13 +164,11 @@ export default function StudenAdmission() {
                                                   className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"
                                                        }`}
                                              >
-                                                   <ul>
-                                                        <li onClick={handleCopy} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
-                                                        <li onClick={handleExcel} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                        <li onClick={handleCSV} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                        <li onClick={handlePDF} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                        <li onClick={handlePrint} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
-                                                   </ul>
+                                                    <ul>
+                                                         {["Copy", "Excel", "CSV", "PDF", "Print"].map(type => (
+                                                              <li key={type} onClick={() => onExport(type as ExportType)} className="text-sm text-foreground cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">{type}</li>
+                                                         ))}
+                                                    </ul>
                                              </div>
                                         </div>
                                    </div>

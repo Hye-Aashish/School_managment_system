@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Student, CLASSES, SECTIONS, GENDERS, CATEGORIES, BLOOD_GROUPS, STUDENT_HOUSES, RELIGIONS } from "@/constants/student-constants";
 import Pagination from "../../components/Pagination";
+import { handleExport, ExportType } from "@/lib/export-utils";
+import { TableSkeleton } from "@/app/common/Skeleton";
 
 export default function StudenDetails() {
      const router = useRouter();
@@ -36,14 +38,31 @@ export default function StudenDetails() {
      };
 
 
+     const [dynamicClasses, setDynamicClasses] = useState<string[]>([]);
+     const [dynamicSections, setDynamicSections] = useState<string[]>([]);
+
      useEffect(() => {
-          const fetchReasons = async () => {
+          const fetchMetadata = async () => {
                try {
-                    const res = await fetch("/api/disable-reasons");
-                    if (res.ok) setDisableReasons(await res.json());
+                    const [reasonRes, classRes, sectionRes] = await Promise.all([
+                         fetch("/api/disable-reasons"),
+                         fetch("/api/classes"),
+                         fetch("/api/sections")
+                    ]);
+                    if (reasonRes.ok) setDisableReasons(await reasonRes.json());
+                    if (classRes.ok) {
+                        const json = await classRes.json();
+                        const classes = json.data ? json.data.map((c: any) => c.name || c.className) : [];
+                        setDynamicClasses(classes.length > 0 ? classes : CLASSES);
+                    }
+                    if (sectionRes.ok) {
+                        const json = await sectionRes.json();
+                        const sections = json.data ? json.data.map((s: any) => s.name || s.sectionName) : [];
+                        setDynamicSections(sections.length > 0 ? sections : SECTIONS);
+                    }
                } catch (err) { console.error(err); }
           };
-          fetchReasons();
+          fetchMetadata();
      }, []);
 
      // Load students from API
@@ -58,10 +77,10 @@ export default function StudenDetails() {
                const res = await fetch(url);
                if (res.ok) {
                     const result = await res.json();
-                    setStudents(result.data || []);
-                    setFilteredStudents(result.data || []);
-                    setTotalPages(result.totalPages || 0);
-                    setTotalEntries(result.totalEntries || 0);
+                    setStudents(result.data.students || []);
+                    setFilteredStudents(result.data.students || []);
+                    setTotalPages(result.data.totalPages || 0);
+                    setTotalEntries(result.data.totalEntries || 0);
                } else {
                     setError("Failed to fetch students");
                }
@@ -90,32 +109,57 @@ export default function StudenDetails() {
           alert("Copied to clipboard");
      };
 
-     const handleExportCSV = () => {
-          const headers = ["Admission No", "Student Name", "Class", "Father Name", "DOB", "Gender", "Mobile"];
-          const csvContent = [
-               headers.join(","),
-               ...filteredStudents.map(s => [
-                    s.admission_no,
-                    `"${s.fname} ${s.lname}"`,
-                    s.class,
-                    `"${s.father_name}"`,
-                    s.dob,
-                    s.gender,
-                    s.mobile
-               ].join(","))
-          ].join("\n");
+     const onExport = async (type: ExportType) => {
+          try {
+               // Fetch all students matching current filters
+               let url = `/api/students?page=1&limit=10000`; // Sufficient limit
+               if (selectedClass && selectedClass !== "Select Class") url += `&class=${selectedClass}`;
+               if (selectedSection && selectedSection !== "Select Section") url += `&section=${selectedSection}`;
+               if (searchTerm) url += `&search=${searchTerm}`;
 
-          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.setAttribute("download", "students.csv");
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+               const res = await fetch(url);
+               if (!res.ok) {
+                    throw new Error(`Failed to fetch students: ${res.statusText}`);
+               }
+
+               const result = await res.json();
+               if (!result.success) {
+                    throw new Error(result.error || "Failed to fetch student data");
+               }
+
+               const allStudents = result.data.students || [];
+               if (allStudents.length === 0) {
+                    alert("No data found for the selected filters.");
+                    setOpenFilter(null);
+                    return;
+               }
+               
+               const exportData = allStudents.map((s: Student) => ({
+                    "Admission No": s.admission_no,
+                    "Student Name": `${s.fname} ${s.lname}`,
+                    "Class": s.class,
+                    "Section": s.section,
+                    "Father Name": s.father_name,
+                    "DOB": s.dob,
+                    "Gender": s.gender,
+                    "Mobile": s.mobile,
+                    "Category": s.category,
+                    "Religion": s.religion,
+                    "Blood Group": s.blood_group,
+                    "Status": s.status
+               }));
+
+               handleExport(type, exportData, "Student_List");
+          } catch (err: any) {
+               console.error("Export error:", err);
+               alert(`Export failed: ${err.message}`);
+          }
+          setOpenFilter(null);
      };
 
      const handlePrint = () => {
           window.print();
+          setOpenFilter(null);
      };
 
      const toggleFilter = (type: "class" | "section" | "pagination" | "export") => {
@@ -261,7 +305,7 @@ export default function StudenDetails() {
                                              </button>
                                              <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
                                                   <ul>
-                                                       {["Select Class", ...CLASSES.slice(0, 6)].map(c => (
+                                                       {["Select Class", ...(dynamicClasses.length > 0 ? dynamicClasses : CLASSES.slice(0, 6))].map(c => (
                                                             <li key={c} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("class", c)}>{c}</li>
                                                        ))}
                                                   </ul>
@@ -301,10 +345,10 @@ export default function StudenDetails() {
                                              </button>
                                              <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"}`}>
                                                   <ul>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handleCopy}>Copy</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handleExportCSV}>Excel</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handleExportCSV}>CSV</li>
-                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handlePrint}>PDF</li>
+                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("Copy")}>Copy</li>
+                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("Excel")}>Excel</li>
+                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("CSV")}>CSV</li>
+                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => onExport("PDF")}>PDF</li>
                                                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={handlePrint}>Print</li>
                                                   </ul>
                                              </div>
@@ -312,7 +356,8 @@ export default function StudenDetails() {
                                    </div>
 
                                    <div className="table-content w-full min-h-[52vh] overflow-x-auto">
-                                        <table className="w-full">
+                                        {loading ? <TableSkeleton rows={limit} /> : (
+                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0">Admission No</td>
@@ -372,6 +417,7 @@ export default function StudenDetails() {
                                                   )}
                                              </tbody>
                                         </table>
+                                        )}
                                    </div>
                                    <Pagination
                                         currentPage={currentPage}
@@ -588,9 +634,9 @@ export default function StudenDetails() {
                                              </div>
                                         </div>
 
-                                        {/* Parent Guardian Detail */}
+                                        {/* Parent Info */}
                                         <div className="pt-8 space-y-6">
-                                             <h4 className="text-sm font-bold dark:text-white border-b border-bgray-100 dark:border-darkblack-400 pb-2">Parent Guardian Detail</h4>
+                                             <h4 className="text-sm font-bold dark:text-white border-b border-bgray-100 dark:border-darkblack-400 pb-2">Parent Information</h4>
                                              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                                   <div className="flex flex-col gap-1">
                                                        <label className="text-xs font-bold text-bgray-600">Father Name</label>
@@ -695,9 +741,9 @@ export default function StudenDetails() {
                                              </div>
                                         </div>
 
-                                        {/* Miscellaneous Details */}
+                                        {/* Other Details */}
                                         <div className="pt-8 space-y-6">
-                                             <h4 className="text-sm font-bold dark:text-white border-b border-bgray-100 dark:border-darkblack-400 pb-2 uppercase">Miscellaneous Details</h4>
+                                             <h4 className="text-sm font-bold dark:text-white border-b border-bgray-100 dark:border-darkblack-400 pb-2 uppercase">Other Details</h4>
                                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                                   <div className="flex flex-col gap-1">
                                                        <label className="text-xs font-bold text-bgray-600">Bank Account Number</label>
@@ -714,11 +760,11 @@ export default function StudenDetails() {
                                              </div>
                                              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                                                   <div className="flex flex-col gap-1">
-                                                       <label className="text-xs font-bold text-bgray-600">National Identification Number</label>
+                                                       <label className="text-xs font-bold text-bgray-600">ID Number</label>
                                                        <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:text-white text-sm" value={editStudent.national_id_no || ""} onChange={(e) => setEditStudent({...editStudent, national_id_no: e.target.value})} />
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                       <label className="text-xs font-bold text-bgray-600">Local Identification Number</label>
+                                                       <label className="text-xs font-bold text-bgray-600">Local ID</label>
                                                        <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:text-white text-sm" value={editStudent.local_id_no || ""} onChange={(e) => setEditStudent({...editStudent, local_id_no: e.target.value})} />
                                                   </div>
                                                   <div className="flex flex-col gap-1">
@@ -733,7 +779,7 @@ export default function StudenDetails() {
                                                        </div>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                       <label className="text-xs font-bold text-bgray-600">Previous School Details</label>
+                                                       <label className="text-xs font-bold text-bgray-600">Previous School</label>
                                                        <textarea className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:text-white text-sm" value={editStudent.previous_school_details || ""} onChange={(e) => setEditStudent({...editStudent, previous_school_details: e.target.value})} />
                                                   </div>
                                              </div>

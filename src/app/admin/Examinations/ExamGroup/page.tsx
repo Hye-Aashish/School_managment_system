@@ -1,18 +1,96 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function ExamGroup() {
      const [nameInput, setNameInput] = useState("");
      const [examType, setExamType] = useState("");
      const [description, setDescription] = useState("");
+     const [examGroups, setExamGroups] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
+     const [submitting, setSubmitting] = useState(false);
+     const [editId, setEditId] = useState<string | null>(null);
+     const [searchTerm, setSearchTerm] = useState("");
 
-     const examGroupData = [
-          { name: "General Exam (Pass / Fail)", noOfExams: 5, examType: "General Purpose (Pass/Fail)" },
-          { name: "Grading System (School Based Grading System)", noOfExams: 5, examType: "School Based Grading System" },
-          { name: "CGPA (College Based Grading System)", noOfExams: 4, examType: "College Based Grading System" },
-          { name: "GPA Exam Grading System", noOfExams: 5, examType: "GPA Grading System" },
-          { name: "Average Passing Exam", noOfExams: 5, examType: "Average Passing" }
-     ];
+     useEffect(() => {
+          fetchExamGroups();
+     }, []);
+
+     const fetchExamGroups = async () => {
+          try {
+               const res = await fetch("/api/exam-groups");
+               const data = await res.json();
+               if (data.success) {
+                    setExamGroups(data.data);
+               }
+          } catch (error) {
+               console.error("Error fetching exam groups:", error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleSubmit = async () => {
+          if (!nameInput || !examType) {
+               alert("Please fill all required fields");
+               return;
+          }
+
+          setSubmitting(true);
+          try {
+               const url = editId ? `/api/exam-groups/${editId}` : "/api/exam-groups";
+               const method = editId ? "PATCH" : "POST";
+               const res = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: nameInput, examType, description }),
+               });
+
+               const data = await res.json();
+               if (data.success) {
+                    setNameInput("");
+                    setExamType("");
+                    setDescription("");
+                    setEditId(null);
+                    fetchExamGroups();
+                    alert(editId ? "Exam Group updated successfully!" : "Exam Group added successfully!");
+               } else {
+                    alert("Error: " + data.error);
+               }
+          } catch (error) {
+               console.error("Error saving exam group:", error);
+               alert("An error occurred");
+          } finally {
+               setSubmitting(false);
+          }
+     };
+
+     const handleEdit = (group: any) => {
+          setNameInput(group.name);
+          setExamType(group.examType);
+          setDescription(group.description || "");
+          setEditId(group._id);
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!window.confirm("Are you sure you want to delete this exam group?")) return;
+
+          try {
+               const res = await fetch(`/api/exam-groups/${id}`, { method: "DELETE" });
+               const data = await res.json();
+               if (data.success) {
+                    fetchExamGroups();
+               } else {
+                    alert("Error: " + data.error);
+               }
+          } catch (error) {
+               console.error("Error deleting exam group:", error);
+          }
+     };
+
+     const filteredGroups = examGroups.filter(group => 
+          group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          group.examType.toLowerCase().includes(searchTerm.toLowerCase())
+     );
 
      return (
           <>
@@ -22,7 +100,9 @@ export default function ExamGroup() {
                               {/* Left Column - Add Exam Group */}
                               <div className="w-full py-6 px-6 rounded-lg bg-white dark:bg-darkblack-600 max-w-[450px]">
                                    <div className="flex flex-col space-y-5">
-                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Add Exam Group</h3>
+                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">
+                                             {editId ? "Edit Exam Group" : "Add Exam Group"}
+                                        </h3>
                                         
                                         <div className="w-full space-y-4">
                                              {/* Name Input */}
@@ -50,11 +130,11 @@ export default function ExamGroup() {
                                                        className="w-full px-4 py-3 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent"
                                                   >
                                                        <option value="">Select</option>
-                                                       <option value="general-purpose">General Purpose (Pass/Fail)</option>
-                                                       <option value="school-based">School Based Grading System</option>
-                                                       <option value="college-based">College Based Grading System</option>
-                                                       <option value="gpa">GPA Grading System</option>
-                                                       <option value="average">Average Passing</option>
+                                                       <option value="General Purpose (Pass/Fail)">General Purpose (Pass/Fail)</option>
+                                                       <option value="School Based Grading System">School Based Grading System</option>
+                                                       <option value="College Based Grading System">College Based Grading System</option>
+                                                       <option value="GPA Grading System">GPA Grading System</option>
+                                                       <option value="Average Passing">Average Passing</option>
                                                   </select>
                                              </div>
 
@@ -75,10 +155,26 @@ export default function ExamGroup() {
                                              {/* Save Button */}
                                              <button
                                                   type="button"
-                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-bgray-900 hover:bg-bgray-800 dark:bg-success-300 dark:hover:bg-success-400 transition-all rounded-lg w-full"
+                                                  disabled={submitting}
+                                                  onClick={handleSubmit}
+                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-bgray-900 hover:bg-bgray-800 dark:bg-success-300 dark:hover:bg-success-400 transition-all rounded-lg w-full disabled:opacity-50"
                                              >
-                                                  Save
+                                                  {submitting ? "Saving..." : (editId ? "Update" : "Save")}
                                              </button>
+                                             {editId && (
+                                                  <button
+                                                       type="button"
+                                                       onClick={() => {
+                                                            setEditId(null);
+                                                            setNameInput("");
+                                                            setExamType("");
+                                                            setDescription("");
+                                                       }}
+                                                       className="py-2 text-sm text-bgray-600 hover:text-bgray-900 dark:text-bgray-400 dark:hover:text-white underline"
+                                                  >
+                                                       Cancel Edit
+                                                  </button>
+                                             )}
                                         </div>
                                    </div>
                               </div>
@@ -120,6 +216,8 @@ export default function ExamGroup() {
                                                        <label className="w-full">
                                                             <input
                                                                  type="text"
+                                                                 value={searchTerm}
+                                                                 onChange={(e) => setSearchTerm(e.target.value)}
                                                                  placeholder="Search..."
                                                                  className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
@@ -142,30 +240,11 @@ export default function ExamGroup() {
                                                             <path d="M11.668 2.5V6.66667H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                                                        </svg>
                                                   </button>
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="CSV">
-                                                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M14.1654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V4.16667C15.832 3.24619 15.0859 2.5 14.1654 2.5Z" stroke="currentColor" strokeWidth="1.5"/>
-                                                            <path d="M7.5 7.5H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                            <path d="M7.5 10.8333H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                                       </svg>
-                                                  </button>
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="PDF">
-                                                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M11.6654 2.5H5.83203C4.91156 2.5 4.16536 3.24619 4.16536 4.16667V15.8333C4.16536 16.7538 4.91156 17.5 5.83203 17.5H14.1654C15.0859 17.5 15.832 16.7538 15.832 15.8333V6.66667L11.6654 2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                            <path d="M11.668 2.5V6.66667H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                       </svg>
-                                                  </button>
                                                   <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Print">
                                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <path d="M5 7.5V5.83333C5 5.39131 5.17559 4.96738 5.48816 4.65482C5.80072 4.34226 6.22464 4.16667 6.66667 4.16667H13.3333C13.7754 4.16667 14.1993 4.34226 14.5118 4.65482C14.8244 4.96738 15 5.39131 15 5.83333V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                             <path d="M5 12.5H3.33333C2.89131 12.5 2.46738 12.3244 2.15482 12.0118C1.84226 11.6993 1.66667 11.2754 1.66667 10.8333V8.33333C1.66667 7.89131 1.84226 7.46738 2.15482 7.15482C2.46738 6.84226 2.89131 6.66667 3.33333 6.66667H16.6667C17.1087 6.66667 17.5326 6.84226 17.8452 7.15482C18.1577 7.46738 18.3333 7.89131 18.3333 8.33333V10.8333C18.3333 11.2754 18.1577 11.6993 17.8452 12.0118C17.5326 12.3244 17.1087 12.5 16.6667 12.5H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                             <path d="M5 10H15V15.8333C15 16.0543 14.9122 16.2663 14.7559 16.4226C14.5996 16.5789 14.3877 16.6667 14.1667 16.6667H5.83333C5.61232 16.6667 5.40036 16.5789 5.24408 16.4226C5.0878 16.2663 5 16.0543 5 15.8333V10Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                       </svg>
-                                                  </button>
-                                                  <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors" title="Columns">
-                                                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M3.33203 3.33334H16.6654V16.6667H3.33203V3.33334Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                                                            <path d="M10 3.33334V16.6667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                        </svg>
                                                   </button>
                                              </div>
@@ -179,40 +258,16 @@ export default function ExamGroup() {
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
                                                                       <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Name</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </span>
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
                                                                       <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">No Of Exams</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </span>
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
                                                                       <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Exam Type</span>
-                                                                      <span>
-                                                                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      </span>
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-right">
@@ -221,8 +276,16 @@ export default function ExamGroup() {
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {examGroupData.map((item, index) => (
-                                                            <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                       {loading ? (
+                                                            <tr>
+                                                                 <td colSpan={4} className="py-10 text-center text-bgray-600 dark:text-bgray-400">Loading...</td>
+                                                            </tr>
+                                                       ) : filteredGroups.length === 0 ? (
+                                                            <tr>
+                                                                 <td colSpan={4} className="py-10 text-center text-bgray-600 dark:text-bgray-400">No records found.</td>
+                                                            </tr>
+                                                       ) : filteredGroups.map((item, index) => (
+                                                            <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.name}</p>
                                                                  </td>
@@ -234,19 +297,23 @@ export default function ExamGroup() {
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <div className="flex justify-end space-x-3 items-center">
-                                                                           <button type="button" className="text-bgray-500 hover:text-success-300 dark:hover:text-success-300 transition-colors" title="Add">
-                                                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <path d="M10 4.16666V15.8333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                     <path d="M4.16797 10H15.8346" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                </svg>
-                                                                           </button>
-                                                                           <button type="button" className="text-bgray-500 hover:text-success-300 dark:hover:text-success-300 transition-colors" title="Edit">
+                                                                           <button 
+                                                                                type="button" 
+                                                                                onClick={() => handleEdit(item)}
+                                                                                className="text-bgray-500 hover:text-success-300 dark:hover:text-success-300 transition-colors" 
+                                                                                title="Edit"
+                                                                           >
                                                                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                      <path d="M9.16797 3.33334H3.33464C2.89261 3.33334 2.46868 3.50894 2.15612 3.82149C1.84356 4.13405 1.66797 4.55798 1.66797 5.00001V16.6667C1.66797 17.1087 1.84356 17.5326 2.15612 17.8452C2.46868 18.1577 2.89261 18.3333 3.33464 18.3333H15.0013C15.4433 18.3333 15.8673 18.1577 16.1798 17.8452C16.4924 17.5326 16.668 17.1087 16.668 16.6667V10.8333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                                                      <path d="M15.418 2.08332C15.7495 1.75188 16.1991 1.56555 16.668 1.56555C17.1368 1.56555 17.5864 1.75188 17.918 2.08332C18.2494 2.41476 18.4357 2.86436 18.4357 3.33332C18.4357 3.80228 18.2494 4.25188 17.918 4.58332L10.0013 12.5L6.66797 13.3333L7.5013 9.99999L15.418 2.08332Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                                                 </svg>
                                                                            </button>
-                                                                           <button type="button" className="text-bgray-500 hover:text-error-300 dark:hover:text-error-300 transition-colors" title="Delete">
+                                                                           <button 
+                                                                                type="button" 
+                                                                                onClick={() => handleDelete(item._id)}
+                                                                                className="text-bgray-500 hover:text-error-300 dark:hover:text-error-300 transition-colors" 
+                                                                                title="Delete"
+                                                                           >
                                                                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                      <path d="M15.8333 5L14.1667 15.8333C14.1667 16.2754 13.9911 16.6993 13.6785 17.0118C13.366 17.3244 12.942 17.5 12.5 17.5H7.5C7.05797 17.5 6.63405 17.3244 6.32149 17.0118C6.00893 16.6993 5.83333 16.2754 5.83333 15.8333L4.16667 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                                                                      <path d="M8.33203 9.16666V14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -266,19 +333,8 @@ export default function ExamGroup() {
                                         {/* Pagination */}
                                         <div className="pagination-content w-full">
                                              <div className="w-full flex justify-between items-center">
-                                                  <div className="text-sm text-bgray-600 dark:text-bgray-300">Records: 1 to 5 of 5</div>
-                                                  <div className="flex items-center space-x-3">
-                                                       <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors">
-                                                            <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                            </svg>
-                                                       </button>
-                                                       <button type="button" className="rounded-lg text-white lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-300 hover:bg-success-400 transition-colors">1</button>
-                                                       <button type="button" className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white transition-colors">
-                                                            <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                 <path d="M7.72168 5.03271L12.7217 10.0327L7.72168 15.0327" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                            </svg>
-                                                       </button>
+                                                  <div className="text-sm text-bgray-600 dark:text-bgray-300">
+                                                       Records: {filteredGroups.length}
                                                   </div>
                                              </div>
                                         </div>

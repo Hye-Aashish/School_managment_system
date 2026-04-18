@@ -33,8 +33,14 @@ export default function QuickFeesMaster() {
                          fetch("/api/classes"),
                          fetch("/api/sections")
                     ]);
-                    if (classRes.ok) setClasses(await classRes.json());
-                    if (sectionRes.ok) setSections(await sectionRes.json());
+                    if (classRes.ok) {
+                        const json = await classRes.json();
+                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                     }
+                    if (sectionRes.ok) {
+                        const json = await sectionRes.json();
+                        setSections(json.data ? json.data.map((s: any) => s.sectionName) : []);
+                     }
                } catch (err) { console.error(err); }
           };
           fetchData();
@@ -48,7 +54,7 @@ export default function QuickFeesMaster() {
                          const res = await fetch(`/api/students?class=${selectedClass}&section=${selectedSection}`);
                          if (res.ok) {
                               const result = await res.json();
-                              setStudents(result.data || []);
+                              setStudents(result.data.students || []);
                          }
                     } catch (err) { console.error(err); }
                };
