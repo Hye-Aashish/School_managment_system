@@ -35,7 +35,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           <Header />
 
           {/* Dynamic Content Area */}
-          <main className="flex-1 mt-[80px] p-4 md:p-6 lg:p-8 w-full relative z-10">
+          <main className="flex-1 mt-[80px] p-[var(--content-padding)] w-full relative z-10">
             <div className="max-w-[1600px] mx-auto animate-fade-in text-foreground">
               {children}
             </div>

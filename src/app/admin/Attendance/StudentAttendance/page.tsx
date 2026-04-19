@@ -180,11 +180,11 @@ export default function StudentAttendance() {
           <div className="space-y-10 pb-20">
                {/* Hero Header */}
                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                    <div>
-                         <h2 className="text-3xl font-black text-bgray-900 dark:text-white tracking-tighter">Student Attendance</h2>
-                         <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Manage student attendance</p>
+                    <div className="text-center md:text-left">
+                         <h2 className="text-2xl md:text-3xl font-black text-bgray-900 dark:text-white tracking-tighter">Student Attendance</h2>
+                         <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Manage student attendance</p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center justify-center md:justify-end gap-4">
                          {studentList.length > 0 && (
                               <div className="relative">
                                    <button
@@ -238,9 +238,8 @@ export default function StudentAttendance() {
                     </div>
                </div>
 
-               {/* Controls Panel */}
-               <div className="card-modern p-10">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
+               <div className="card-modern">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                          <div className="space-y-3">
                               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Class</label>
                               <div className="relative">
