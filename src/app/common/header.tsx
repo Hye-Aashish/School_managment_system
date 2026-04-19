@@ -28,9 +28,30 @@ export default function Header() {
     };
   }, []);
 
-  if (!mounted) return null;
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notices, setNotices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchNotices = async () => {
+        try {
+            const res = await fetch("/api/notices");
+            const data = await res.json();
+            if (data.success) setNotices(data.data);
+        } catch (error) {
+            console.error("Notice fetch error:", error);
+        }
+    };
+    fetchNotices();
+  }, []);
 
   const sidebarWidth = isDrawerOpen ? 280 : 88;
+
+  const displayNotices = notices.length > 0 ? notices : [
+    { title: "System Update 4.0", message: "New security patches applied successfully.", created_at: new Date().toISOString() },
+    { title: "Admission Open", message: "New session admissions are now live.", created_at: new Date().toISOString() }
+  ];
+
+  if (!mounted) return <div className="h-[80px]" />;
 
   return (
     <header 
@@ -77,7 +98,7 @@ export default function Header() {
         </div>
 
         {/* Right Side: Actions & Profile */}
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-3 md:gap-4 relative">
             {/* Theme Toggle Button */}
             <button 
                 onClick={toggleTheme}
@@ -94,10 +115,40 @@ export default function Header() {
             </div>
 
             {/* Notification & Notification Glow */}
-            <button className="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white dark:bg-darkblack-600 shadow-sm border border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-darkblack-500 transition-all text-gray-600 dark:text-gray-300">
-                <FontAwesomeIcon icon={faBell} />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-darkblack-600" />
-            </button>
+            <div className="relative">
+                <button 
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white dark:bg-darkblack-600 shadow-sm border border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-darkblack-500 transition-all text-gray-600 dark:text-gray-300"
+                >
+                    <FontAwesomeIcon icon={faBell} />
+                    <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-darkblack-600 animate-pulse" />
+                </button>
+
+                {/* Modern Notification Dropdown */}
+                {isNotifOpen && (
+                    <div className="absolute top-[120%] right-0 w-80 md:w-96 bg-white dark:bg-[#0f172a] shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[32px] border border-gray-100 dark:border-white/5 overflow-hidden animate-in fade-in zoom-in-95 duration-300 origin-top-right">
+                        <div className="p-6 border-b dark:border-white/5 flex items-center justify-between">
+                            <h3 className="font-black text-sm uppercase tracking-widest text-bgray-900 dark:text-white">Alerts Center</h3>
+                            <span className="bg-primary/20 text-primary text-[10px] font-black px-2 py-0.5 rounded-lg">{displayNotices.length} NEW</span>
+                        </div>
+                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-2">
+                            {displayNotices.map((notif: any, i: number) => (
+                                <div key={i} className="p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
+                                    <h4 className="font-black text-xs text-bgray-900 dark:text-white group-hover:text-primary transition-colors">{notif.title}</h4>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 leading-relaxed">{notif.message}</p>
+                                    <div className="flex items-center gap-2 mt-3 opacity-60">
+                                        <FontAwesomeIcon icon={faClock} className="text-[9px]" />
+                                        <span className="text-[9px] font-bold uppercase tracking-wider">{new Date(notif.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-white/5 text-center">
+                            <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Mark all as read</button>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {/* User Profile */}
             <div className="pl-4 border-l border-gray-100 dark:border-white/10 flex items-center gap-4 group cursor-pointer">
@@ -113,6 +164,20 @@ export default function Header() {
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-success-500 border-4 border-white dark:border-darkblack-600" />
                 </div>
+                
+                {/* Quick Logout Header Action */}
+                <button 
+                    onClick={async () => { 
+                        await fetch("/api/auth/logout", { method: "POST" });
+                        window.location.replace("/"); 
+                    }}
+                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all ml-2"
+                    title="Quick Logout"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </button>
             </div>
         </div>
       </div>

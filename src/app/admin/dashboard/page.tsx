@@ -30,7 +30,7 @@ const StatCard = ({ title, value, icon, color, trend, trendValue, subtitle }: an
             <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider
                 ${trend === 'up' ? 'bg-emerald-100 text-black' : 'bg-rose-100 text-black'}
             `}>
-                <FontAwesomeIcon icon={trend === 'up' ? faArrowUp : faArrowDown} trendValue={trendValue} />
+                <FontAwesomeIcon icon={trend === 'up' ? faArrowUp : faArrowDown} />
                 {trendValue}%
             </div>
         </div>

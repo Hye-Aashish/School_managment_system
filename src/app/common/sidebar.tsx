@@ -91,7 +91,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation Section - Floating Capsule Style */}
-        <div className="flex-1 overflow-y-auto pt-8 pb-32 px-4 custom-scrollbar space-y-2 sidebar-animate-items relative z-10">
+        <div className="flex-1 overflow-y-auto pt-8 pb-10 px-4 custom-scrollbar space-y-2 sidebar-animate-items relative z-10">
           {menu.map((item, idx) => {
             const isActive = activeMenu === idx;
             const hasSubmenu = item.dropdown && item.submenu && item.submenu.length > 0;
@@ -183,16 +183,38 @@ export default function Sidebar() {
           })}
         </div>
 
-        {/* Footer/Pro Branding Section */}
-        {isDrawerOpen && (
-            <div className="p-6 mt-auto relative z-10">
-                <div className="bg-gradient-to-br from-primary/10 to-transparent rounded-3xl p-5 border border-primary/20 group cursor-pointer transition-all hover:bg-primary/20 overflow-hidden relative">
-                    <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-primary/20 blur-3xl group-hover:bg-primary/40 transition-all duration-500" />
-                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1.5">Version 4.0</p>
-                    <p className="text-white font-black text-xs leading-tight">Institutional Enterprise <br/>Network Active</p>
-                </div>
-            </div>
-        )}
+        {/* Logout Section - Always Visible */}
+        <div className={`p-4 relative z-10 ${isDrawerOpen ? 'mx-2 mb-6' : 'mx-auto mb-6'}`}>
+            <button 
+                onClick={async () => { 
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    window.location.replace("/"); 
+                }}
+                className={`flex items-center gap-5 transition-all duration-500 overflow-hidden group/logout
+                    ${isDrawerOpen 
+                        ? 'w-full p-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[#020617] rounded-[22px] border border-red-500/20' 
+                        : 'w-14 h-14 justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[#020617] rounded-2xl border border-red-500/20'
+                    }
+                `}
+                title={!isDrawerOpen ? "Terminate Session" : ""}
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="shrink-0 group-hover/logout:rotate-180 transition-transform duration-500">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                
+                {isDrawerOpen && (
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Logout System</span>
+                )}
+                
+                {/* Tooltip for Collapsed State */}
+                {!isDrawerOpen && (
+                    <div className="fixed left-[110px] bg-red-500 text-[#020617] text-[10px] font-black px-4 py-2.5 rounded-2xl opacity-0 group-hover/logout:opacity-100 transition-all invisible group-hover/logout:visible translate-x-4 group-hover/logout:translate-x-0 z-[100] whitespace-nowrap shadow-[0_20px_50px_rgba(239,68,68,0.3)] uppercase tracking-[0.2em]">
+                        Terminate Session
+                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rotate-45 rounded-sm" />
+                    </div>
+                )}
+            </button>
+        </div>
 
       </aside>
     </>
