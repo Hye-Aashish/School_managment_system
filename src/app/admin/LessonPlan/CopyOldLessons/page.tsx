@@ -1,8 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { TableSkeleton } from "@/app/common/Skeleton";
 
 export default function CopyLessonsPage() {
      const [classList, setClassList] = useState<any[]>([]);
+     
+     const [sourceSections, setSourceSections] = useState<any[]>([]);
+     const [sourceGroups, setSourceGroups] = useState<any[]>([]);
+     const [sourceSubjects, setSourceSubjects] = useState<any[]>([]);
+     
+     const [targetSections, setTargetSections] = useState<any[]>([]);
+     const [targetGroups, setTargetGroups] = useState<any[]>([]);
+     const [targetSubjects, setTargetSubjects] = useState<any[]>([]);
+
      const [sourceFilter, setSourceFilter] = useState({ class: "", section: "", group: "", subject: "" });
      const [targetFilter, setTargetFilter] = useState({ class: "", section: "", group: "", subject: "" });
      
@@ -17,6 +27,50 @@ export default function CopyLessonsPage() {
      };
 
      useEffect(() => { fetchClasses(); }, []);
+
+     // Source Cascading Logic
+     useEffect(() => {
+          if (sourceFilter.class) {
+               const cls = classList.find(c => c.name === sourceFilter.class);
+               setSourceSections(cls?.sections || []);
+          }
+     }, [sourceFilter.class, classList]);
+
+     useEffect(() => {
+          if (sourceFilter.class && sourceFilter.section) {
+               fetch(`/api/subject-groups?class=${sourceFilter.class}&section=${sourceFilter.section}`)
+                    .then(r => r.json()).then(d => { if(d.success) setSourceGroups(d.data); });
+          }
+     }, [sourceFilter.class, sourceFilter.section]);
+
+     useEffect(() => {
+          if (sourceFilter.group) {
+               const group = sourceGroups.find(g => g.name === sourceFilter.group);
+               setSourceSubjects(group?.subjects || []);
+          }
+     }, [sourceFilter.group, sourceGroups]);
+
+     // Target Cascading Logic
+     useEffect(() => {
+          if (targetFilter.class) {
+               const cls = classList.find(c => c.name === targetFilter.class);
+               setTargetSections(cls?.sections || []);
+          }
+     }, [targetFilter.class, classList]);
+
+     useEffect(() => {
+          if (targetFilter.class && targetFilter.section) {
+               fetch(`/api/subject-groups?class=${targetFilter.class}&section=${targetFilter.section}`)
+                    .then(r => r.json()).then(d => { if(d.success) setTargetGroups(d.data); });
+          }
+     }, [targetFilter.class, targetFilter.section]);
+
+     useEffect(() => {
+          if (targetFilter.group) {
+               const group = targetGroups.find(g => g.name === targetFilter.group);
+               setTargetSubjects(group?.subjects || []);
+          }
+     }, [targetFilter.group, targetGroups]);
 
      const fetchSourceCurriculum = async () => {
           if (!sourceFilter.class || !sourceFilter.section || !sourceFilter.subject) return;
@@ -37,7 +91,7 @@ export default function CopyLessonsPage() {
           setLoading(false);
      };
 
-     useEffect(() => { fetchSourceCurriculum(); }, [sourceFilter.class, sourceFilter.section, sourceFilter.subject]);
+     useEffect(() => { fetchSourceCurriculum(); }, [sourceFilter.subject]);
 
      const handleClone = async () => {
           if (!targetFilter.class || !targetFilter.section || !targetFilter.subject || sourceLessons.length === 0) {
@@ -119,38 +173,44 @@ export default function CopyLessonsPage() {
                               </div>
                          </div>
                          <div className="p-6 space-y-6">
-                              <div className="grid grid-cols-2 gap-4">
-                                   <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Source Class</label>
-                                        <select value={sourceFilter.class} onChange={e => setSourceFilter({...sourceFilter, class: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
-                                             <option value="">Select Class</option>
-                                             {classList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
-                                        </select>
-                                   </div>
-                                   <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Section</label>
-                                        <select value={sourceFilter.section} onChange={e => setSourceFilter({...sourceFilter, section: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
-                                             <option value="">Select Section</option>
-                                             {classList.find(c => c.name === sourceFilter.class)?.sections.map((s: any) => <option key={s._id} value={s.name}>{s.name}</option>)}
-                                        </select>
-                                   </div>
-                              </div>
-                              <div className="space-y-1.5">
-                                   <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject</label>
-                                   <select value={sourceFilter.subject} onChange={e => setSourceFilter({...sourceFilter, subject: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black text-success-300">
-                                        <option value="">Choose Subject</option>
-                                        {/* Mocked/Fetched subjects logic here based on group */}
-                                        <option value="English">English</option>
-                                        <option value="Mathematics">Mathematics</option>
-                                        <option value="Science">Science</option>
-                                   </select>
-                              </div>
+                               <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Source Class</label>
+                                         <select value={sourceFilter.class} onChange={e => setSourceFilter({...sourceFilter, class: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                              <option value="">Select Class</option>
+                                              {classList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                         </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Section</label>
+                                         <select value={sourceFilter.section} onChange={e => setSourceFilter({...sourceFilter, section: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                              <option value="">Select Section</option>
+                                              {sourceSections.map((s: any) => <option key={s._id} value={s.name}>{s.name}</option>)}
+                                         </select>
+                                    </div>
+                               </div>
+                               <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject Group</label>
+                                         <select value={sourceFilter.group} onChange={e => setSourceFilter({...sourceFilter, group: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                              <option value="">Select Group</option>
+                                              {sourceGroups.map(g => <option key={g._id} value={g.name}>{g.name}</option>)}
+                                         </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject</label>
+                                         <select value={sourceFilter.subject} onChange={e => setSourceFilter({...sourceFilter, subject: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black text-success-300">
+                                              <option value="">Choose Subject</option>
+                                              {sourceSubjects.map((s: any, idx) => <option key={idx} value={s.name}>{s.name}</option>)}
+                                         </select>
+                                    </div>
+                               </div>
 
                               <div className="mt-8 border-t border-dashed border-bgray-200 dark:border-darkblack-400 pt-6">
                                    <h5 className="text-[10px] font-black text-bgray-400 uppercase tracking-[0.2em] mb-4">Structure Preview</h5>
                                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                         {loading ? (
-                                             <div className="py-8 text-center"><div className="w-6 h-6 mx-auto border-2 border-success-300/20 border-t-success-300 rounded-full animate-spin"></div></div>
+                                             <div className="py-2"><TableSkeleton rows={4} /></div>
                                         ) : sourceLessons.length > 0 ? (
                                              sourceLessons.map((l, idx) => (
                                                   <div key={idx} className="bg-bgray-50 dark:bg-darkblack-500 p-3 rounded-xl border border-bgray-100 dark:border-darkblack-400 transition-all hover:scale-[1.01]">
@@ -181,31 +241,38 @@ export default function CopyLessonsPage() {
                               </div>
                          </div>
                          <div className="p-6 space-y-6">
-                              <div className="grid grid-cols-2 gap-4">
-                                   <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Target Class</label>
-                                        <select value={targetFilter.class} onChange={e => setTargetFilter({...targetFilter, class: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
-                                             <option value="">Select Class</option>
-                                             {classList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
-                                        </select>
-                                   </div>
-                                   <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Section</label>
-                                        <select value={targetFilter.section} onChange={e => setTargetFilter({...targetFilter, section: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
-                                             <option value="">Select Section</option>
-                                             {classList.find(c => c.name === targetFilter.class)?.sections.map((s: any) => <option key={s._id} value={s.name}>{s.name}</option>)}
-                                        </select>
-                                   </div>
-                              </div>
-                              <div className="space-y-1.5">
-                                   <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject</label>
-                                   <select value={targetFilter.subject} onChange={e => setTargetFilter({...targetFilter, subject: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black text-success-300">
-                                        <option value="">Choose Subject</option>
-                                        <option value="English">English</option>
-                                        <option value="Mathematics">Mathematics</option>
-                                        <option value="Science">Science</option>
-                                   </select>
-                              </div>
+                               <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Target Class</label>
+                                         <select value={targetFilter.class} onChange={e => setTargetFilter({...targetFilter, class: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                              <option value="">Select Class</option>
+                                              {classList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                         </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Section</label>
+                                         <select value={targetFilter.section} onChange={e => setTargetFilter({...targetFilter, section: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                              <option value="">Select Section</option>
+                                              {targetSections.map((s: any) => <option key={s._id} value={s.name}>{s.name}</option>)}
+                                         </select>
+                                    </div>
+                               </div>
+                               <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject Group</label>
+                                         <select value={targetFilter.group} onChange={e => setTargetFilter({...targetFilter, group: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                              <option value="">Select Group</option>
+                                              {targetGroups.map(g => <option key={g._id} value={g.name}>{g.name}</option>)}
+                                         </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                         <label className="text-[9px] font-black text-bgray-500 uppercase tracking-widest">Subject</label>
+                                         <select value={targetFilter.subject} onChange={e => setTargetFilter({...targetFilter, subject: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black text-success-300">
+                                              <option value="">Choose Subject</option>
+                                              {targetSubjects.map((s: any, idx) => <option key={idx} value={s.name}>{s.name}</option>)}
+                                         </select>
+                                    </div>
+                               </div>
 
                               <div className="pt-12 flex flex-col items-center">
                                    <div className="w-16 h-16 rounded-3xl bg-success-300/10 flex items-center justify-center mb-6 border border-success-300/20">

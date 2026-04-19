@@ -59,40 +59,60 @@ export default function StudentAttendance() {
           setSelectedCriteria({ ...selectedCriteria, [e.target.name]: e.target.value });
      };
 
-     const handleSearch = async () => {
-          setLoading(true);
-          setError(null);
-          try {
-               const query = new URLSearchParams({
-                   class: selectedCriteria.class,
-                   section: selectedCriteria.section,
-               });
-               
-               const response = await fetch(`/api/students?${query.toString()}`);
-               if (!response.ok) throw new Error("Failed to load students.");
-               
-               const json = await response.json();
-               const students = json.data?.students || [];
-               
-               // Initialize attendance as 'Present' for new fetches
-               const listWithAttendance = students.map((s: any) => ({
-                   ...s,
-                   attendance: 'Present'
-               }));
+      const handleSearch = async () => {
+           setLoading(true);
+           setError(null);
+           try {
+                const query = new URLSearchParams({
+                    class: selectedCriteria.class,
+                    section: selectedCriteria.section,
+                });
+                
+                const attQuery = new URLSearchParams({
+                    class: selectedCriteria.class,
+                    section: selectedCriteria.section,
+                    date: selectedCriteria.date
+                });
+                
+                // Fetch students and attendance concurrently for better performance
+                const [studentsRes, attendanceRes] = await Promise.all([
+                    fetch(`/api/students?${query.toString()}`),
+                    fetch(`/api/attendance?${attQuery.toString()}`)
+                ]);
 
-               setStudentList(listWithAttendance);
-               setFilteredStudents(listWithAttendance);
-               
-               if (students.length === 0) {
-                   setError("No students found.");
-               }
-          } catch (err: any) {
-               console.error("Search students error:", err);
-               setError(err.message);
-          } finally {
-               setLoading(false);
-          }
-     };
+                if (!studentsRes.ok || !attendanceRes.ok) throw new Error("Synchronization failure with server.");
+                
+                const studentsJson = await studentsRes.json();
+                const attendanceJson = await attendanceRes.json();
+
+                const students = studentsJson.data?.students || [];
+                const existingAttendance = attendanceJson.data || [];
+
+                // Map existing attendance into a fast-lookup map
+                const attendanceMap = new Map();
+                existingAttendance.forEach((att: any) => {
+                    attendanceMap.set(att.student.toString(), att.status);
+                });
+                
+                // Merge attendance with student list (default to 'Present' if not found)
+                const listWithAttendance = students.map((s: any) => ({
+                    ...s,
+                    attendance: attendanceMap.get(s._id.toString()) || 'Present'
+                }));
+
+                setStudentList(listWithAttendance);
+                setFilteredStudents(listWithAttendance);
+                
+                if (students.length === 0) {
+                    setError("No students found.");
+                }
+           } catch (err: any) {
+                console.error("Attendance synchronization error:", err);
+                setError(err.message);
+           } finally {
+                setLoading(false);
+           }
+      };
 
      useEffect(() => {
           const filtered = studentList.filter(s => 
@@ -118,8 +138,42 @@ export default function StudentAttendance() {
           setOpenFilter(openFilter === type ? null : type);
      };
 
+     const [saving, setSaving] = useState(false);
+
      const handleAttendanceChange = (id: string, status: string) => {
           setStudentList(prev => prev.map(s => s._id === id ? { ...s, attendance: status } : s));
+     };
+
+     const handleSaveAttendance = async () => {
+          if (studentList.length === 0) return;
+          setSaving(true);
+          try {
+               const payload = studentList.map(s => ({
+                    student: s._id,
+                    class: selectedCriteria.class,
+                    section: selectedCriteria.section,
+                    date: selectedCriteria.date,
+                    status: s.attendance
+               }));
+
+               const res = await fetch("/api/attendance", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+               });
+
+               const data = await res.json();
+               if (data.success) {
+                    alert("Attendance Saved Successfully!");
+               } else {
+                    throw new Error(data.error || "Sync failure");
+               }
+          } catch (err: any) {
+               console.error("Save attendance error:", err);
+               alert("CRITICAL ERROR: Failed to push logs to server.");
+          } finally {
+               setSaving(false);
+          }
      };
 
      return (
@@ -346,8 +400,12 @@ export default function StudentAttendance() {
                                              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Absent: {studentList.filter(s => s.attendance === 'Absent').length}</span>
                                         </div>
                                    </div>
-                                   <button className="bg-primary text-black px-10 py-3 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-105 shadow-xl shadow-primary/20 transition-all">
-                                        Save Attendance
+                                   <button 
+                                        onClick={handleSaveAttendance}
+                                        disabled={saving}
+                                        className="bg-primary text-black px-10 py-3 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-105 shadow-xl shadow-primary/20 transition-all disabled:opacity-50"
+                                   >
+                                        {saving ? "Saving..." : "Save Attendance"}
                                    </button>
                               </div>
                          </div>

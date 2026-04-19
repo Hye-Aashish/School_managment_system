@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { TableSkeleton } from "@/app/common/Skeleton";
 
 export default function TopicsPage() {
      const [classList, setClassList] = useState<any[]>([]);
@@ -260,7 +261,7 @@ export default function TopicsPage() {
                                         </thead>
                                         <tbody className="divide-y divide-bgray-100 dark:divide-darkblack-400">
                                              {loading ? (
-                                                  <tr><td colSpan={4} className="py-24 text-center"><div className="w-8 h-8 mx-auto border-4 border-success-300/20 border-t-success-300 rounded-full animate-spin"></div></td></tr>
+                                                  <tr><td colSpan={4} className="py-10 px-6"><TableSkeleton rows={10} /></td></tr>
                                              ) : groupedTopics.length > 0 ? (
                                                   groupedTopics.map((group: any, idx) => (
                                                        <tr key={idx} className="hover:bg-bgray-50/50 dark:hover:bg-darkblack-500/10 transition-colors group">

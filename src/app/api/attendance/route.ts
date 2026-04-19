@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
         }));
 
         await Attendance.bulkWrite(operations);
-        return NextResponse.json({ success: true, message: "Attendance saved successfully" });
-    } catch (error) {
+        return apiResponse.success({ message: "Attendance saved successfully" });
+    } catch (error: any) {
         console.error("API Error (Attendance POST):", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }

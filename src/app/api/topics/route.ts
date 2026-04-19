@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import dbConnect from "@/lib/mongodb";
 import Topic from "@/models/Topic";
+import { apiResponse } from "@/lib/response";
 
 export async function GET(req: NextRequest) {
     await dbConnect();
@@ -9,33 +10,37 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const className = searchParams.get("class");
         const section = searchParams.get("section");
-        const lesson = searchParams.get("lesson");
+        const subject = searchParams.get("subject");
+        const lessonId = searchParams.get("lessonId");
 
         let query: any = {};
         if (className) query.class = className;
         if (section) query.section = section;
-        if (lesson) query.lesson = lesson;
+        if (subject) query.subject = subject;
+        if (lessonId) query.lesson = lessonId;
 
         const topics = await Topic.find(query).sort({ created_at: -1 }).lean();
-        return NextResponse.json({ success: true, data: topics });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.success(topics);
+    } catch (error: any) {
+        console.error("API Error (Topics GET):", error);
+        return apiResponse.error("Failed to retrieve topics", 500, error.message);
     }
 }
 
 export async function POST(req: NextRequest) {
     await dbConnect();
     try {
-        const body = await req.json();
+        const body = await req.json(); // Array of topics or single topic
         if (Array.isArray(body)) {
             const topics = await Topic.insertMany(body);
-            return NextResponse.json({ success: true, data: topics });
+            return apiResponse.success(topics);
         } else {
             const topic = await Topic.create(body);
-            return NextResponse.json({ success: true, data: topic });
+            return apiResponse.success(topic);
         }
-    } catch (error) {
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    } catch (error: any) {
+        console.error("API Error (Topics POST):", error);
+        return apiResponse.error("Failed to save topic(s)", 500, error.message);
     }
 }
 
@@ -44,10 +49,11 @@ export async function DELETE(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
-        if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+        if (!id) return apiResponse.badRequest("ID required");
         await Topic.findByIdAndDelete(id);
-        return NextResponse.json({ success: true, message: "Deleted successfully" });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.success({ message: "Deleted successfully" });
+    } catch (error: any) {
+        console.error("API Error (Topics DELETE):", error);
+        return apiResponse.error("Deletion failed", 500, error.message);
     }
 }

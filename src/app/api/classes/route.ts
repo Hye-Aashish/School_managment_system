@@ -3,16 +3,17 @@ export const dynamic = "force-dynamic";
 import dbConnect from "@/lib/mongodb";
 import Class from "@/models/Class";
 import Section from "@/models/Section";
+import { apiResponse } from "@/lib/response";
 
 // GET: List all classes with sections
 export async function GET() {
     await dbConnect();
     try {
         const classes = await Class.find({}).populate("sections").sort({ name: 1 });
-        return NextResponse.json({ success: true, data: classes });
-    } catch (error) {
+        return apiResponse.success(classes);
+    } catch (error: any) {
         console.error("API Error (Classes GET):", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }
 
@@ -22,21 +23,21 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { id, name, sections } = body;
-        if (!name) return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 });
+        if (!name) return apiResponse.badRequest("Name is required");
 
         if (id) {
             const updatedClass = await Class.findByIdAndUpdate(id, { name, sections }, { new: true });
-            return NextResponse.json({ success: true, data: updatedClass });
+            return apiResponse.success(updatedClass);
         } else {
             const newClass = await Class.create({ name, sections });
-            return NextResponse.json({ success: true, data: newClass });
+            return apiResponse.success(newClass);
         }
     } catch (error: any) {
         console.error("API Error (Classes POST):", error);
         if (error.code === 11000) {
-            return NextResponse.json({ success: false, error: "Class already exists" }, { status: 400 });
+            return apiResponse.error("Class already exists", 400);
         }
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }
 
@@ -46,12 +47,12 @@ export async function DELETE(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
-        if (!id) return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
+        if (!id) return apiResponse.badRequest("ID is required");
 
         await Class.findByIdAndDelete(id);
-        return NextResponse.json({ success: true, message: "Class deleted" });
-    } catch (error) {
+        return apiResponse.success({ message: "Class deleted" });
+    } catch (error: any) {
         console.error("API Error (Classes DELETE):", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }

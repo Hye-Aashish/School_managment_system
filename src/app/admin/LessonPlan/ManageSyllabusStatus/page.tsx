@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { TableSkeleton } from "@/app/common/Skeleton";
 
 export default function ManageSyllabusStatus() {
      const [classList, setClassList] = useState<any[]>([]);
@@ -143,7 +144,7 @@ export default function ManageSyllabusStatus() {
                               </thead>
                               <tbody className="divide-y divide-bgray-100 dark:divide-darkblack-400">
                                    {loading ? (
-                                        <tr><td colSpan={4} className="py-24 text-center"><div className="w-10 h-10 mx-auto border-4 border-success-300/20 border-t-success-300 rounded-full animate-spin"></div></td></tr>
+                                        <tr><td colSpan={4} className="py-10 px-6"><TableSkeleton rows={10} /></td></tr>
                                    ) : lessons.length > 0 ? (
                                         lessons.map((lesson) => (
                                              <React.Fragment key={lesson._id}>

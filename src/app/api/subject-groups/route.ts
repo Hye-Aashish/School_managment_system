@@ -5,20 +5,43 @@ import SubjectGroup from "@/models/SubjectGroup";
 import Class from "@/models/Class";
 import Section from "@/models/Section";
 import Subject from "@/models/Subject";
+import { apiResponse } from "@/lib/response";
 
-// GET: List all subject groups with population
-export async function GET() {
+// GET: List all subject groups with optional filtering
+export async function GET(req: NextRequest) {
     await dbConnect();
     try {
-        const groups = await SubjectGroup.find({})
+        const { searchParams } = new URL(req.url);
+        const className = searchParams.get("class");
+        const sectionName = searchParams.get("section");
+
+        let query: any = {};
+        
+        // Find by class name if provided
+        if (className) {
+            const classDoc = await Class.findOne({ name: className });
+            if (classDoc) query.class = classDoc._id;
+        }
+
+        const groups = await SubjectGroup.find(query)
             .populate("class")
             .populate("sections")
             .populate("subjects")
-            .sort({ name: 1 });
-        return NextResponse.json({ success: true, data: groups });
-    } catch (error) {
+            .sort({ name: 1 })
+            .lean();
+
+        // Frontend also filters by section name if provided
+        let filteredGroups = groups;
+        if (sectionName) {
+            filteredGroups = groups.filter((g: any) => 
+                g.sections.some((s: any) => s.name === sectionName)
+            );
+        }
+
+        return apiResponse.success(filteredGroups);
+    } catch (error: any) {
         console.error("API Error (SubjectGroups GET):", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }
 
@@ -28,7 +51,7 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { id, name, classId, sections, subjects, description } = body;
-        if (!name || !classId) return NextResponse.json({ success: false, error: "Name and Class are required" }, { status: 400 });
+        if (!name || !classId) return apiResponse.badRequest("Name and Class are required");
 
         const payload = {
             name,
@@ -40,14 +63,14 @@ export async function POST(req: NextRequest) {
 
         if (id) {
             const updatedGroup = await SubjectGroup.findByIdAndUpdate(id, payload, { new: true });
-            return NextResponse.json({ success: true, data: updatedGroup });
+            return apiResponse.success(updatedGroup);
         } else {
             const newGroup = await SubjectGroup.create(payload);
-            return NextResponse.json({ success: true, data: newGroup });
+            return apiResponse.success(newGroup);
         }
     } catch (error: any) {
         console.error("API Error (SubjectGroups POST):", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }
 
@@ -57,12 +80,12 @@ export async function DELETE(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
-        if (!id) return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
+        if (!id) return apiResponse.badRequest("ID is required");
 
         await SubjectGroup.findByIdAndDelete(id);
-        return NextResponse.json({ success: true, message: "Subject Group deleted" });
-    } catch (error) {
+        return apiResponse.success({ message: "Subject Group deleted" });
+    } catch (error: any) {
         console.error("API Error (SubjectGroups DELETE):", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        return apiResponse.error("Internal Server Error", 500, error.message);
     }
 }

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { TableSkeleton } from "@/app/common/Skeleton";
 
 export default function LessonsPage() {
      const [classList, setClassList] = useState<any[]>([]);
@@ -229,14 +230,7 @@ export default function LessonsPage() {
                                         </thead>
                                         <tbody className="divide-y divide-bgray-100 dark:divide-darkblack-400">
                                              {loading ? (
-                                                  <tr>
-                                                       <td colSpan={4} className="py-24 text-center">
-                                                            <div className="flex flex-col items-center gap-3">
-                                                                 <div className="w-10 h-10 border-4 border-success-300 border-t-transparent rounded-full animate-spin"></div>
-                                                                 <span className="text-[10px] font-black text-bgray-300 uppercase tracking-[0.2em]">Synchronizing Archive...</span>
-                                                            </div>
-                                                       </td>
-                                                  </tr>
+                                                  <tr><td colSpan={4} className="py-10 px-6"><TableSkeleton rows={8} /></td></tr>
                                              ) : groupedLessons.length > 0 ? (
                                                   groupedLessons.map((group: any, idx) => (
                                                        <tr key={idx} className="hover:bg-bgray-50/50 dark:hover:bg-darkblack-500/10 transition-colors group">

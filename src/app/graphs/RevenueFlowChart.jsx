@@ -74,7 +74,7 @@ export default function RevenueFlowChart() {
               beginAtZero: true,
               grid: { color: "rgb(243, 246, 255)", drawBorder: false },
               ticks: {
-                callback: (value) => `$${value}`,
+                callback: (value) => `₹${value}`,
                 color: "#6B7280",
               },
             },

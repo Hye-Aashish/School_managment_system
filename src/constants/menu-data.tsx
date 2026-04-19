@@ -105,11 +105,11 @@ export const menu: MenuItem[] = [
         submenu: [
             { title: "Overview", url: "/admin/multibranch/overview" },
             { title: "Report", url: "/admin/multibranch/report" },
-            { title: "Setting", url: "/admin/multibranch/branch" },
+            { title: "Branch Setup", url: "/admin/multibranch/branch" },
         ],
     },
     {
-        title: "Gmeet Live Classes",
+        title: "Google Meet Classes",
         url: "",
         icon: <Presentation size={20} />,
         dropdown: true,
@@ -143,7 +143,7 @@ export const menu: MenuItem[] = [
             { title: "Assign Incident", url: "/admin/behaviourRecords/AssignIncident" },
             { title: "Incidents", url: "/admin/behaviourRecords/Incidents" },
             { title: "Reports", url: "/admin/behaviourRecords/Reports" },
-            { title: "Setting", url: "/admin/behaviourRecords/Setting" },
+            { title: "Behavior Settings", url: "/admin/behaviourRecords/Setting" },
         ],
     },
     {
@@ -154,7 +154,7 @@ export const menu: MenuItem[] = [
         submenu: [
             { title: "Add Income", url: "/admin/income/addIncome" },
             { title: "Search Income", url: "/admin/income/searchIncome" },
-            { title: "Income Head", url: "/admin/income/incomeHead" },
+            { title: "Income Category", url: "/admin/income/incomeHead" },
         ],
     },
     {
@@ -165,7 +165,7 @@ export const menu: MenuItem[] = [
         submenu: [
             { title: "Add Expense", url: "/admin/expenses/addExpense" },
             { title: "Search Expense", url: "/admin/expenses/searchExpense" },
-            { title: "Expense Head", url: "/admin/expenses/expenseHead" },
+            { title: "Expense Category", url: "/admin/expenses/expenseHead" },
         ],
     },
     {
