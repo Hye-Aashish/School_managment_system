@@ -187,7 +187,7 @@ export default function MultiBranchSettings() {
 
                {/* Add/Edit Modal */}
                {showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                          <div className="bg-white dark:bg-darkblack-600 rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
                               <h3 className="text-lg font-bold text-bgray-900 dark:text-white mb-5">
                                    {editBranch ? "Edit Branch" : "Add New Branch"}

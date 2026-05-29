@@ -884,7 +884,7 @@ export default function StudentFee() {
 
                {/* Payment Modal */}
                {isPayModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-50 px-4">
                          <div className="bg-white dark:bg-darkblack-600 rounded-lg shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col transition-all duration-300">
                               {/* Header */}
                               <div className="bg-[#6E63F1] px-6 py-4 flex justify-between items-center shrink-0">

@@ -100,7 +100,7 @@ export default function GmeetLiveClassModal({ isOpen, onClose, onRefresh, editDa
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60bg-opacity-50">
       <div className="bg-white dark:bg-darkblack-600 rounded-lg w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4 text-bgray-900 dark:text-white">
           {editData ? "Edit Live Class" : "Add Live Class"}

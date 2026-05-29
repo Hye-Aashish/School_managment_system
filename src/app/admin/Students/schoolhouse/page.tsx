@@ -19,10 +19,10 @@ export default function SchoolHouse() {
      };
 
      const onExport = (type: ExportType) => {
-          const exportData = houses.map(h => ({
+          const exportData = houses.map((h, i) => ({
                "House Name": h.house_name,
                "Description": h.description,
-               "House ID": h._id
+               "House ID": i + 1
           }));
           handleExport(type, exportData, "School_Houses");
           setOpenFilter(null);
@@ -419,7 +419,7 @@ export default function SchoolHouse() {
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                           {house._id}
+                                                                           {idx + 1}
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">

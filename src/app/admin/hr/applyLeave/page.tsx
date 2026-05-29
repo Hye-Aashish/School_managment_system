@@ -8,53 +8,60 @@ export default function Leaves() {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     const leaveData = [
-          {
-               id: 1,
+     const [leaveRequests, setLeaveRequests] = useState([
+          { id: 1, staff: "Joe Black", leaveType: "Medical Leave", leaveDate: "12/22/2025 - 12/24/2025", days: 3, applyDate: "12/22/2025", status: "Approved", reason: "Recovery from minor dental surgery." },
+          { id: 2, staff: "Joe Black", leaveType: "Medical Leave", leaveDate: "11/22/2025 - 11/24/2025", days: 3, applyDate: "11/22/2025", status: "Approved", reason: "Severe fever and flu." },
+          { id: 3, staff: "Joe Black", leaveType: "Medical Leave", leaveDate: "10/22/2025 - 10/23/2025", days: 3, applyDate: "10/22/2025", status: "Approved", reason: "Follow-up health screening." },
+          { id: 4, staff: "Joe Black", leaveType: "Medical Leave", leaveDate: "09/22/2025 - 09/23/2025", days: 3, applyDate: "09/22/2025", status: "Approved", reason: "Routine check-up." },
+          { id: 5, staff: "Joe Black", leaveType: "Medical Leave", leaveDate: "08/21/2025 - 08/23/2025", days: 3, applyDate: "08/21/2025", status: "Approved", reason: "Physical therapy session." }
+     ]);
+
+     const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+     const [showDetails, setShowDetails] = useState(false);
+     const [showAddModal, setShowAddModal] = useState(false);
+
+     const [addLeaveType, setAddLeaveType] = useState("Medical Leave");
+     const [addFromDate, setAddFromDate] = useState("");
+     const [addToDate, setAddToDate] = useState("");
+     const [addReason, setAddReason] = useState("");
+
+     const calculateDays = (from: string, to: string) => {
+          if (!from || !to) return 1;
+          const d1 = new Date(from);
+          const d2 = new Date(to);
+          const diffTime = Math.abs(d2.getTime() - d1.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          return diffDays;
+     };
+
+     const handleApplyLeave = (e: React.FormEvent) => {
+          e.preventDefault();
+          if (!addFromDate || !addToDate) return;
+          const days = calculateDays(addFromDate, addToDate);
+
+          const formatDate = (dateStr: string) => {
+               const [y, m, d] = dateStr.split("-");
+               return `${m}/${d}/${y}`;
+          };
+
+          const newRequest = {
+               id: Date.now(),
                staff: "Joe Black",
-               leaveType: "Medical Leave",
-               leaveDate: "12/22/2025 - 12/24/2025",
-               days: 3,
-               applyDate: "12/22/2025",
-               status: "Approved",
-          },
-          {
-               id: 2,
-               staff: "Joe Black",
-               leaveType: "Medical Leave",
-               leaveDate: "11/22/2025 - 11/24/2025",
-               days: 3,
-               applyDate: "11/22/2025",
-               status: "Approved",
-          },
-          {
-               id: 3,
-               staff: "Joe Black",
-               leaveType: "Medical Leave",
-               leaveDate: "10/22/2025 - 10/23/2025",
-               days: 3,
-               applyDate: "10/22/2025",
-               status: "Approved",
-          },
-          {
-               id: 4,
-               staff: "Joe Black",
-               leaveType: "Medical Leave",
-               leaveDate: "09/22/2025 - 09/23/2025",
-               days: 3,
-               applyDate: "09/22/2025",
-               status: "Approved",
-          },
-          {
-               id: 5,
-               staff: "Joe Black",
-               leaveType: "Medical Leave",
-               leaveDate: "08/21/2025 - 08/23/2025",
-               days: 3,
-               applyDate: "08/21/2025",
-               status: "Approved",
-          },
-     ];
+               leaveType: addLeaveType,
+               leaveDate: `${formatDate(addFromDate)} - ${formatDate(addToDate)}`,
+               days,
+               applyDate: new Date().toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }),
+               status: "Pending" as const,
+               reason: addReason
+          };
+
+          setLeaveRequests([newRequest, ...leaveRequests]);
+          setShowAddModal(false);
+          setAddLeaveType("Medical Leave");
+          setAddFromDate("");
+          setAddToDate("");
+          setAddReason("");
+     };
 
      return (
           <>
@@ -157,7 +164,8 @@ export default function Leaves() {
                                    
                               <button
                                    type="button"
-                                   className="px-6 py-2.5 text-nowrap text-sm font-semibold text-white bg-bgray-600 hover:bg-bgray-600 dark:bg-bgray-600 dark:hover:bg-bgray-700 rounded transition-all"
+                                   onClick={() => setShowAddModal(true)}
+                                   className="px-6 py-2.5 text-nowrap text-sm font-semibold text-white bg-success-300 hover:bg-success-400 dark:bg-success-300 dark:hover:bg-success-400 rounded transition-all shadow-md shadow-success-300/10 uppercase tracking-wider font-bold"
                               >
                                    Apply Leave
                               </button>
@@ -446,7 +454,7 @@ export default function Leaves() {
                                              </tr>
                                         </thead>
                                         <tbody>
-                                             {leaveData.map((leave) => (
+                                             {leaveRequests.map((leave) => (
                                                   <tr
                                                        key={leave.id}
                                                        className="border-b border-bgray-300 dark:border-darkblack-400"
@@ -585,6 +593,146 @@ export default function Leaves() {
                          </div>
                     </div>
                </div>
+
+               {/* Leave Details Modal */}
+               {showDetails && selectedRequest && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                         <div className="absolute inset-0 bg-bgray-900/60 backdrop-blur-sm" onClick={() => setShowDetails(false)}></div>
+                         <div className="relative bg-white dark:bg-darkblack-600 rounded-[30px] w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in duration-200 border border-success-300/10 p-8 space-y-6">
+                              <div className="flex justify-between items-center border-b pb-4 border-bgray-100 dark:border-darkblack-400">
+                                   <h3 className="text-xl font-black dark:text-white uppercase tracking-tighter">Leave Request Details</h3>
+                                   <button onClick={() => setShowDetails(false)} className="text-bgray-400 hover:text-red-500 transition-colors">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                   </button>
+                              </div>
+                              <div className="space-y-4">
+                                   <div className="grid grid-cols-2 gap-4 bg-bgray-50 dark:bg-darkblack-550 p-4 rounded-xl">
+                                        <div>
+                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Staff Member</span>
+                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.staff}</span>
+                                        </div>
+                                        <div>
+                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Leave Type</span>
+                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.leaveType}</span>
+                                        </div>
+                                        <div>
+                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Leave Date</span>
+                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.leaveDate}</span>
+                                        </div>
+                                        <div>
+                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Days Requested</span>
+                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.days} {selectedRequest.days === 1 ? 'Day' : 'Days'}</span>
+                                        </div>
+                                   </div>
+
+                                   <div className="space-y-1">
+                                        <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest font-bold">Reason for Leave</span>
+                                        <p className="text-sm font-semibold text-bgray-600 dark:text-bgray-300 bg-bgray-50 dark:bg-darkblack-550 p-4 rounded-xl italic">
+                                             "{selectedRequest.reason || "Urgent personal business requiring leave of absence."}"
+                                        </p>
+                                   </div>
+
+                                   <div className="flex justify-between items-center bg-bgray-50 dark:bg-darkblack-550 p-4 rounded-xl">
+                                        <span className="text-xs font-bold text-bgray-500 uppercase">Current Status</span>
+                                        <span className={`px-3 py-1.5 text-xs font-black rounded uppercase tracking-wider ${
+                                             selectedRequest.status === "Approved" ? "bg-green-500 text-white" :
+                                             selectedRequest.status === "Pending" ? "bg-orange-500 text-white" : "bg-red-500 text-white"
+                                        }`}>
+                                             {selectedRequest.status}
+                                        </span>
+                                   </div>
+                              </div>
+                              <div className="flex justify-end gap-3 pt-4 border-t border-bgray-100 dark:border-darkblack-400">
+                                   <button 
+                                        onClick={() => setShowDetails(false)}
+                                        className="px-6 h-12 bg-bgray-200 dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-300 font-black rounded-xl hover:bg-bgray-300 transition-all text-xs uppercase tracking-widest w-full"
+                                   >
+                                        Close
+                                   </button>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {/* Apply Leave Request Modal */}
+               {showAddModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                         <div className="absolute inset-0 bg-bgray-900/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)}></div>
+                         <div className="relative bg-white dark:bg-darkblack-600 rounded-[35px] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in duration-200 border border-success-300/10">
+                              <div className="p-6 border-b border-bgray-100 dark:border-darkblack-400 flex justify-between items-center bg-bgray-50/50">
+                                   <div>
+                                        <h3 className="text-xl font-black dark:text-white uppercase tracking-tighter">Apply Leave</h3>
+                                        <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest">Submit a new leave application request</p>
+                                   </div>
+                                   <button onClick={() => setShowAddModal(false)} className="text-bgray-400 hover:text-red-500 transition-colors">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                   </button>
+                              </div>
+                              <form onSubmit={handleApplyLeave} className="p-6 space-y-4">
+                                   <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block font-bold">Leave Type *</label>
+                                        <select 
+                                             value={addLeaveType} 
+                                             onChange={e => setAddLeaveType(e.target.value)} 
+                                             className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30"
+                                        >
+                                             <option value="Medical Leave">Medical Leave</option>
+                                             <option value="Casual Leave">Casual Leave</option>
+                                             <option value="Maternity Leave">Maternity Leave</option>
+                                             <option value="Sick Leave">Sick Leave</option>
+                                        </select>
+                                   </div>
+                                   <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block font-bold">From Date *</label>
+                                             <input 
+                                                  type="date" 
+                                                  required 
+                                                  value={addFromDate} 
+                                                  onChange={e => setAddFromDate(e.target.value)}
+                                                  className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" 
+                                             />
+                                        </div>
+                                        <div className="space-y-1">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block font-bold">To Date *</label>
+                                             <input 
+                                                  type="date" 
+                                                  required 
+                                                  value={addToDate} 
+                                                  onChange={e => setAddToDate(e.target.value)}
+                                                  className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" 
+                                             />
+                                        </div>
+                                   </div>
+                                   <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block font-bold">Reason</label>
+                                        <textarea 
+                                             value={addReason} 
+                                             onChange={e => setAddReason(e.target.value)}
+                                             placeholder="Write reason for leave application..."
+                                             rows={3}
+                                             className="w-full bg-bgray-50 dark:bg-darkblack-500 rounded-xl p-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30"
+                                        />
+                                   </div>
+                                   <div className="flex justify-end gap-3 pt-4 border-t border-bgray-100 dark:border-darkblack-400">
+                                        <button 
+                                             type="button" 
+                                             onClick={() => setShowAddModal(false)} 
+                                             className="px-6 h-12 bg-bgray-200 dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-300 font-black rounded-xl hover:bg-bgray-300 transition-all text-xs uppercase tracking-widest"
+                                        >
+                                             Discard
+                                        </button>
+                                        <button 
+                                             type="submit" 
+                                             className="px-8 h-12 bg-success-300 hover:bg-success-400 text-white font-black rounded-xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-success-300/25"
+                                        >
+                                             Apply
+                                        </button>
+                                   </div>
+                              </form>
+                         </div>
+                    </div>
+               )}
           </>
      );
 }

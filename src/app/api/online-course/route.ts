@@ -1,16 +1,28 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import OnlineCourse from "@/models/OnlineCourse";
+// Import related models so Mongoose registers their schemas before populate() runs
+import "@/models/Class";
+import "@/models/Section";
+import "@/models/Staff";
+
 
 export async function GET() {
     try {
         await dbConnect();
-        const courses = await OnlineCourse.find().populate("category").sort({ created_at: -1 });
+        const courses = await OnlineCourse.find()
+            .populate("category")
+            .populate({ path: "class" })
+            .populate({ path: "sections" })
+            .populate({ path: "assignTeacher" })
+            .sort({ created_at: -1 });
         return NextResponse.json(courses);
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch courses" }, { status: 500 });
+    } catch (error: any) {
+        console.error("GET /api/online-course error:", error);
+        return NextResponse.json({ error: "Failed to fetch courses", detail: error?.message }, { status: 500 });
     }
 }
+
 
 export async function POST(req: Request) {
     try {

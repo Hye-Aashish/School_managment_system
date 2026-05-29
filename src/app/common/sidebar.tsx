@@ -49,8 +49,8 @@ export default function Sidebar() {
         className={`fixed inset-0 bg-black/40 backdrop-blur-xl z-40 transition-all duration-700 lg:hidden ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       />
 
-      {/* Main Sidebar - Sleek Ultra Dark Design */}
-      <aside className={`fixed top-0 left-0 h-full bg-[#020617] z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col border-r border-white-[0.03]
+      {/* Main Sidebar - Sleek Theme-Aware Design */}
+      <aside className={`fixed top-0 left-0 h-full bg-white dark:bg-[#020617] z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-xl dark:shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col border-r border-bgray-200 dark:border-white/[0.03]
         ${isDrawerOpen ? 'w-[280px] translate-x-0' : 'w-0 -translate-x-full lg:w-[100px] lg:translate-x-0'}
       `}>
         {/* Subtle Geometric Background Glows */}
@@ -64,14 +64,14 @@ export default function Sidebar() {
                 <div className="w-12 h-12 bg-gradient-to-br from-primary via-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(16,185,129,0.3)] transform transition-all duration-500 group-hover:rotate-[360deg] group-hover:scale-110">
                 <span className="text-[#020617] font-black text-2xl tracking-tighter">S</span>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#020617] scale-0 group-hover:scale-100 transition-transform duration-300" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white dark:border-[#020617] scale-0 group-hover:scale-100 transition-transform duration-300" />
             </div>
             {isDrawerOpen && (
               <div className="transition-all duration-500 opacity-100 translate-x-0">
-                <h2 className="text-white font-black text-2xl tracking-tighter leading-none">SCHOOL<span className="text-primary">SYS</span></h2>
+                <h2 className="text-bgray-900 dark:text-white font-black text-2xl tracking-tighter leading-none">SCHOOL<span className="text-primary">SYS</span></h2>
                 <div className="flex items-center gap-2 mt-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em]">Institutional Hub</p>
+                    <p className="text-[9px] text-bgray-400 dark:text-gray-500 font-black uppercase tracking-[0.3em]">Institutional Hub</p>
                 </div>
               </div>
             )}
@@ -81,7 +81,7 @@ export default function Sidebar() {
           {isDrawerOpen && (
             <button 
               onClick={toggleDrawer}
-              className="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.05] text-gray-500 hover:text-white lg:hidden z-20 transition-all hover:bg-white/10"
+              className="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-xl bg-bgray-50 dark:bg-white/[0.03] border border-bgray-200 dark:border-white/[0.05] text-bgray-500 dark:text-gray-500 hover:text-bgray-900 dark:hover:text-white lg:hidden z-20 transition-all hover:bg-bgray-100 dark:hover:bg-white/10"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
@@ -108,7 +108,9 @@ export default function Sidebar() {
                     }
                   }}
                   className={`w-full flex items-center gap-5 p-4 rounded-[22px] transition-all duration-500 group relative overflow-hidden
-                    ${isActive ? 'bg-primary shadow-[0_20px_40px_rgba(16,185,129,0.15)]' : 'text-gray-500 hover:bg-white/[0.03]'}
+                    ${isActive 
+                      ? 'bg-primary text-[#020617] shadow-[0_20px_40px_rgba(16,185,129,0.15)]' 
+                      : 'text-bgray-600 dark:text-gray-400 hover:bg-bgray-50 dark:hover:bg-white/[0.03]'}
                     ${!isDrawerOpen ? 'lg:justify-center lg:px-0' : ''}
                   `}
                 >
@@ -116,14 +118,14 @@ export default function Sidebar() {
                   {isActive && <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />}
                   
                   <span className={`shrink-0 transition-all duration-500 
-                    ${isActive ? 'text-[#020617] scale-110 drop-shadow-md' : 'text-gray-500 group-hover:scale-110 group-hover:text-primary'}
+                    ${isActive ? 'text-[#020617] scale-110 drop-shadow-md' : 'text-bgray-600 dark:text-gray-400 group-hover:scale-110 group-hover:text-primary'}
                   `}>
                     {item.icon}
                   </span>
                   
                   <span className={`text-[13.5px] font-black whitespace-nowrap transition-all duration-500 flex-1 text-left tracking-tight
                     ${isDrawerOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10 pointer-events-none absolute'}
-                    ${isActive ? 'text-[#020617]' : 'text-gray-400 group-hover:text-white'}
+                    ${isActive ? 'text-[#020617]' : 'text-bgray-700 dark:text-gray-400 group-hover:text-bgray-900 dark:group-hover:text-white'}
                   `}>
                     {item.title}
                   </span>
@@ -163,12 +165,14 @@ export default function Sidebar() {
                           key={subIdx}
                           href={url}
                           className={`flex items-center gap-4 py-3 px-4 rounded-2xl text-[13px] font-black tracking-tight transition-all duration-300 relative group/sub
-                            ${subActive ? 'text-primary bg-primary/5 shadow-inner' : 'text-gray-500 hover:text-white hover:bg-white/[0.04]'}
+                            ${subActive 
+                              ? 'text-primary bg-primary/5 shadow-inner' 
+                              : 'text-bgray-600 dark:text-gray-400 hover:text-bgray-900 dark:hover:text-white hover:bg-bgray-50 dark:hover:bg-white/[0.04]'}
                           `}
                         >
                           {/* Submenu Indicator Dot */}
-                          <div className={`absolute left-[-31.5px] w-2 h-2 rounded-full border-2 border-[#020617] z-10 transition-all duration-500
-                            ${subActive ? 'bg-primary scale-125 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'bg-gray-700 group-hover/sub:bg-primary group-hover/sub:scale-110'}
+                          <div className={`absolute left-[-31.5px] w-2 h-2 rounded-full border-2 border-white dark:border-[#020617] z-10 transition-all duration-500
+                            ${subActive ? 'bg-primary scale-125 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'bg-bgray-400 dark:bg-gray-700 group-hover/sub:bg-primary group-hover/sub:scale-110'}
                           `} />
                           
                           <span className="relative z-10">{title}</span>

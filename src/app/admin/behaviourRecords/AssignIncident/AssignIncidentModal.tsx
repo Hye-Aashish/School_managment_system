@@ -92,7 +92,7 @@ export default function AssignIncidentModal({ isOpen, onClose, onRefresh, studen
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60bg-opacity-50">
       <div className="bg-white dark:bg-darkblack-600 rounded-lg w-full max-w-4xl overflow-hidden shadow-2xl">
         {/* Modal Header */}
         <div className="bg-indigo-600 px-6 py-3 flex justify-between items-center">

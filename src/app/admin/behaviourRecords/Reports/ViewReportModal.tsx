@@ -121,7 +121,7 @@ export default function ViewReportModal({ isOpen, onClose, studentId, studentNam
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 print:bg-white print:p-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60bg-opacity-50 print:bg-white print:p-0">
       <div className="bg-white dark:bg-darkblack-600 rounded-lg w-full max-w-6xl overflow-hidden shadow-2xl print:shadow-none print:w-full print:max-w-none print:rounded-none h-[90vh] flex flex-col">
         {/* Header */}
         <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center print:hidden">

@@ -191,87 +191,105 @@ export default function StudentFeeDetail() {
                 </table>
             </div>
 
-            {/* Simple Payment Modal */}
+            {/* Premium Payment Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 font-inter">
-                    <div className="bg-white dark:bg-darkblack-600 rounded-xl w-full max-w-[800px] overflow-hidden shadow-2xl">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 md:p-10 font-inter">
+                    <div className="bg-white dark:bg-darkblack-600 rounded-2xl w-full max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 dark:border-darkblack-400 transform scale-100 transition-all duration-300">
                         {/* Header */}
-                        <div className="bg-[#6366f1] p-4 flex justify-between items-center">
-                            <h3 className="text-white text-lg font-medium truncate pr-4">
-                                {student?.admission_no}-{student?.fname} ({student?.fname} {student?.lname} ({student?.admission_no}) - {selectedMaster?.fee_group?.name}): {student?.fname} {student?.lname} ({student?.admission_no}) - {selectedMaster?.fee_group?.name}
-                            </h3>
-                            <button onClick={() => setShowPaymentModal(false)} className="text-white hover:text-gray-200">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <div className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-900 dark:to-violet-900 p-5 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-white text-lg font-bold truncate pr-4">
+                                    Collect Fees: {student?.fname} {student?.lname}
+                                </h3>
+                                <p className="text-xs text-indigo-100 mt-0.5">
+                                    Admission No: {student?.admission_no} | Class: {student?.class} ({student?.section})
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setShowPaymentModal(false)} 
+                                className="text-indigo-100 hover:text-white transition-colors bg-white/10 p-1.5 rounded-lg"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-6">
-                            {/* Fees Display */}
-                            <div className="grid grid-cols-4 items-center">
-                                <label className="text-foreground text-sm col-span-1">Fees ($)</label>
-                                <div className="text-foreground font-medium col-span-3">{(selectedMaster?.amount || 0).toFixed(2)}</div>
+                        <div className="flex-grow p-6 space-y-5 overflow-y-auto">
+                            {/* Info Cards Row */}
+                            <div className="grid grid-cols-3 gap-4 bg-bgray-50 dark:bg-darkblack-500/50 p-4 rounded-xl">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fee Type</span>
+                                    <span className="text-sm font-semibold text-foreground truncate mt-1">{selectedMaster?.fee_type?.name || selectedMaster?.fee_group?.name}</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Amount</span>
+                                    <span className="text-sm font-semibold text-foreground mt-1">₹{(selectedMaster?.amount || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Current Balance</span>
+                                    <span className="text-sm font-semibold text-red-500 mt-1">₹{(selectedMaster?.amount - getMasterStatus(selectedMaster?._id) || 0).toFixed(2)}</span>
+                                </div>
                             </div>
 
-                            {/* Date Field */}
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-foreground text-sm col-span-1">Date <span className="text-red-500">*</span></label>
-                                <input
-                                    type="date"
-                                    value={paymentDate}
-                                    onChange={(e) => setPaymentDate(e.target.value)}
-                                    className="col-span-3 w-full p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkblack-500 text-sm focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                                />
+                            {/* Inputs Row 1: Date & Paying Amount */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Date <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="date"
+                                        value={paymentDate}
+                                        onChange={(e) => setPaymentDate(e.target.value)}
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-darkblack-400 rounded-xl bg-white dark:bg-darkblack-500 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                    />
+                                </div>
+                                <div className="flex flex-col space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Paying Amount (₹) <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="number"
+                                        value={payingAmount}
+                                        onChange={(e) => setPayingAmount(Number(e.target.value))}
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-darkblack-400 rounded-xl bg-white dark:bg-darkblack-500 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                    />
+                                </div>
                             </div>
 
-                            {/* Paying Amount */}
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <label className="text-foreground text-sm col-span-1">Paying Amount ($) <span className="text-red-500">*</span></label>
-                                <input
-                                    type="number"
-                                    value={payingAmount}
-                                    onChange={(e) => setPayingAmount(Number(e.target.value))}
-                                    className="col-span-3 w-full p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkblack-500 text-sm focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                                />
-                            </div>
-
-                            {/* Discount Group */}
-                            <div className="grid grid-cols-4 gap-4">
-                                <label className="text-foreground text-sm col-span-1 pt-1">Discount Group</label>
-                                <div className="col-span-3 space-y-4">
-                                    <div className="flex justify-between text-[11px] font-bold text-foreground opacity-70 uppercase tracking-tight">
-                                        <span className="w-1/2">Fees Discount</span>
+                            {/* Discount Group Selection */}
+                            <div className="flex flex-col space-y-2 border border-gray-100 dark:border-darkblack-400 p-4 rounded-xl bg-bgray-50/50 dark:bg-darkblack-500/10">
+                                <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Apply Discount Group</label>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                        <span className="w-1/2">Discount Name</span>
                                         <span className="w-1/4 text-center">Available Count</span>
                                         <span className="w-1/4 text-right">Value</span>
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1">
                                         {(data?.discounts || []).map((disc: any) => (
-                                            <div key={disc._id} className="flex items-center justify-between text-sm">
-                                                <label className="flex items-center space-x-3 w-1/2 cursor-pointer">
+                                            <label key={disc._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-bgray-100 dark:hover:bg-darkblack-500 cursor-pointer transition-colors">
+                                                <div className="flex items-center space-x-3 w-1/2">
                                                     <input
                                                         type="checkbox"
-                                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500/20 border-gray-300 dark:border-darkblack-400"
                                                         checked={selectedDiscounts.includes(disc._id)}
                                                         onChange={() => handleDiscountToggle(disc)}
                                                     />
-                                                    <span className="text-foreground">{disc.name} ({disc.discount_code})</span>
-                                                </label>
-                                                <span className="w-1/4 text-center text-foreground opacity-80">{disc.use_count}</span>
-                                                <span className="w-1/4 text-right font-medium text-foreground">
-                                                    {disc.type === "percentage" ? `${disc.percentage}%` : `$${disc.amount}`}
+                                                    <span className="text-sm font-medium text-foreground">{disc.name} <span className="text-xs text-gray-400">({disc.discount_code})</span></span>
+                                                </div>
+                                                <span className="w-1/4 text-center text-sm text-foreground">{disc.use_count}</span>
+                                                <span className="w-1/4 text-right text-sm font-bold text-success-300">
+                                                    {disc.type === "percentage" ? `${disc.percentage}%` : `₹${disc.amount}`}
                                                 </span>
-                                            </div>
+                                            </label>
                                         ))}
                                         {(!data?.discounts || data.discounts.length === 0) && (
-                                            <p className="text-xs text-gray-400 italic">No discounts available</p>
+                                            <p className="text-xs text-gray-400 italic text-center py-2">No discounts available</p>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Discount and Fine Row */}
-                            <div className="grid grid-cols-4 gap-6">
-                                <div className="col-span-2 flex items-center gap-4 pl-[25%]">
-                                    <label className="text-foreground text-sm whitespace-nowrap">Discount ($) <span className="text-red-500">*</span></label>
+                            {/* Inputs Row 2: Discount & Fine */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Discount (₹) <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         value={discountAmount}
@@ -282,70 +300,78 @@ export default function StudentFeeDetail() {
                                             const balance = selectedMaster.amount - paid;
                                             setPayingAmount(Math.max(0, balance + fineAmount - val));
                                         }}
-                                        className="w-full p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkblack-500 text-sm"
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-darkblack-400 rounded-xl bg-white dark:bg-darkblack-500 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none dark:text-white"
                                     />
                                 </div>
-                                <div className="col-span-2 flex items-center gap-4">
-                                    <label className="text-foreground text-sm whitespace-nowrap">Fine ($) <span className="text-red-500">*</span></label>
+                                <div className="flex flex-col space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Fine (₹) <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         value={fineAmount}
                                         onChange={(e) => handleFineChange(Number(e.target.value))}
-                                        className="w-full p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkblack-500 text-sm"
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-darkblack-400 rounded-xl bg-white dark:bg-darkblack-500 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none dark:text-white"
                                     />
                                 </div>
                             </div>
 
                             {/* Payment Mode */}
-                            <div className="grid grid-cols-4 items-center">
-                                <label className="text-gray-600 dark:text-gray-400 text-sm col-span-1">Payment Mode</label>
-                                <div className="col-span-3 flex flex-wrap gap-6">
-                                    {["Cash", "Cheque", "DD", "Bank Transfer", "UPI", "Card"].map((mode) => (
-                                        <label key={mode} className="flex items-center space-x-2.5 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="paymentMode"
-                                                value={mode}
-                                                checked={paymentMode === mode}
-                                                onChange={(e) => setPaymentMode(e.target.value)}
-                                                className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                                            />
-                                            <span className="text-sm text-foreground font-medium">{mode}</span>
-                                        </label>
-                                    ))}
+                            <div className="flex flex-col space-y-2">
+                                <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Payment Mode</label>
+                                <div className="flex flex-wrap gap-2.5">
+                                    {["Cash", "Cheque", "DD", "Bank Transfer", "UPI", "Card"].map((mode) => {
+                                        const isSelected = paymentMode === mode;
+                                        return (
+                                            <label key={mode} className={`flex items-center px-4 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer transition-all duration-200 ${
+                                                isSelected 
+                                                    ? "bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-950/30 dark:border-indigo-500 dark:text-indigo-400"
+                                                    : "bg-white border-gray-200 text-gray-600 dark:bg-darkblack-500 dark:border-darkblack-400 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-darkblack-400"
+                                            }`}>
+                                                <input
+                                                    type="radio"
+                                                    name="paymentMode"
+                                                    value={mode}
+                                                    checked={isSelected}
+                                                    onChange={(e) => setPaymentMode(e.target.value)}
+                                                    className="hidden"
+                                                />
+                                                <span>{mode}</span>
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
                             {/* Note */}
-                            <div className="grid grid-cols-4 gap-4">
-                                <label className="text-foreground text-sm col-span-1 pt-2">Note</label>
+                            <div className="flex flex-col space-y-1">
+                                <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Note</label>
                                 <textarea
                                     value={note}
                                     onChange={(e) => setNote(e.target.value)}
-                                    rows={3}
-                                    className="col-span-3 w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkblack-500 text-sm focus:ring-1 focus:ring-indigo-500 focus:outline-none resize-none"
+                                    rows={2}
+                                    placeholder="Add any transaction details or comments..."
+                                    className="w-full p-3.5 border border-gray-200 dark:border-darkblack-400 rounded-xl bg-white dark:bg-darkblack-500 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none dark:text-white resize-none"
                                 />
                             </div>
                         </div>
 
                         {/* Footer Buttons */}
-                        <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-transparent">
+                        <div className="flex-shrink-0 p-5 border-t border-gray-100 dark:border-darkblack-400 flex justify-between items-center bg-gray-50 dark:bg-darkblack-600/50">
                             <button
                                 onClick={() => setShowPaymentModal(false)}
-                                className="px-6 py-2 bg-[#6366f1] text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm"
+                                className="px-5 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-darkblack-500 border border-gray-200 dark:border-darkblack-400 rounded-xl hover:bg-gray-50 dark:hover:bg-darkblack-400 transition-colors shadow-sm"
                             >
                                 Cancel
                             </button>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => handleCollectPayment(false)}
-                                    className="px-6 py-2 bg-[#6366f1] text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm"
+                                    className="px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all rounded-xl shadow-md shadow-indigo-600/10 active:scale-95"
                                 >
                                     $ Collect Fees
                                 </button>
                                 <button
                                     onClick={() => handleCollectPayment(true)}
-                                    className="px-6 py-2 bg-[#6366f1] text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm"
+                                    className="px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-all rounded-xl shadow-md shadow-violet-600/10 active:scale-95"
                                 >
                                     $ Collect & Print
                                 </button>

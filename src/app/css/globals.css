@@ -2,15 +2,17 @@
 @import "slick-carousel/slick/slick.css";
 @import "slick-carousel/slick/slick-theme.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #f8fafc;
+  --background: #ffffff;
   --foreground: #0f172a;
   --primary: #059669;
   --primary-hover: #047857;
   --primary-glow: rgba(5, 150, 105, 0.15);
   --card-bg: #ffffff;
   --card-border: rgba(226, 232, 240, 0.8);
-  --sidebar-bg: #0f172a;
+  --sidebar-bg: #ffffff;
   --header-bg: rgba(255, 255, 255, 0.7);
   --accent: #6366f1;
   --sidebar-width: 0px; 
@@ -274,7 +276,6 @@ html, body {
 .bg-blue-500 svg, .bg-blue-500 i,
 .bg-success-300 svg, .bg-success-300 i,
 .btn-primary-modern svg, .btn-primary-modern i {
-  fill: #000000 !important;
   color: #000000 !important;
 }
 
@@ -285,9 +286,6 @@ aside svg path {
   fill: transparent !important;
 }
 
-aside .text-gray-400 svg { color: #94a3b8 !important; }
-aside .text-primary svg { color: var(--primary) !important; }
-aside button:hover svg { color: #ffffff !important; }
 /* Dynamic Animations for Login & Dashboard */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

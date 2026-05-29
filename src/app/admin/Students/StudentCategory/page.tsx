@@ -15,7 +15,8 @@ export default function StudentCategory() {
      };
 
      const onExport = (type: ExportType) => {
-          const exportData = categories.map(c => ({
+          const exportData = categories.map((c, i) => ({
+               "Category ID": i + 1,
                "Category Name": c.category
           }));
           handleExport(type, exportData, "Student_Categories");
@@ -177,19 +178,25 @@ export default function StudentCategory() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <th className="py-5 px-6 xl:px-0 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Category Name</th>
+                                                            <th className="py-5 px-6 xl:px-0 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Category ID</th>
                                                             <th className="py-5 px-6 xl:px-0 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50 pr-4">Action</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
                                                        {categories.length === 0 ? (
                                                             <tr>
-                                                                 <td colSpan={2} className="text-center py-10 text-bgray-500">No categories found.</td>
+                                                                 <td colSpan={3} className="text-center py-10 text-bgray-500">No categories found.</td>
                                                             </tr>
                                                        ) : categories.map((cat, idx) => (
                                                             <tr key={cat._id || idx} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-all">
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
                                                                            {cat.category}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                           {idx + 1}
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0 text-right">

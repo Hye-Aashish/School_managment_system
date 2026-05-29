@@ -1,13 +1,40 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+
+
 
 export default function AddLeaveType() {
-     const leaveTypes = [
+     const [leaveTypes, setLeaveTypes] = useState([
           { id: 1, name: "Medical Leave" },
           { id: 2, name: "Casual Leave" },
           { id: 3, name: "Maternity Leave" },
           { id: 4, name: "Sick Leave" },
-     ];
+     ]);
+
+     const [name, setName] = useState("");
+     const [editingId, setEditingId] = useState<number | null>(null);
+
+     const handleSave = () => {
+          if (!name.trim()) return;
+          if (editingId !== null) {
+               setLeaveTypes(prev => prev.map(t => t.id === editingId ? { ...t, name } : t));
+               setEditingId(null);
+          } else {
+               setLeaveTypes(prev => [...prev, { id: Date.now(), name }]);
+          }
+          setName("");
+     };
+
+     const handleEdit = (type: { id: number, name: string }) => {
+          setName(type.name);
+          setEditingId(type.id);
+     };
+
+     const handleDelete = (id: number) => {
+          if (confirm("Are you sure you want to delete this leave type?")) {
+               setLeaveTypes(prev => prev.filter(t => t.id !== id));
+          }
+     };
 
      return (
           <>
@@ -34,9 +61,10 @@ export default function AddLeaveType() {
                                    {/* Save Button */}
                                    <button
                                         type="button"
-                                        className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
+                                        onClick={handleSave}
+                                        className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full uppercase tracking-wider text-sm shadow-md shadow-success-300/10"
                                    >
-                                        Save
+                                        {editingId !== null ? "Update" : "Save"}
                                    </button>
                               </div>
                          </div>

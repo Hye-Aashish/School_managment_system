@@ -22,7 +22,10 @@ export default function FeesForward() {
           const fetchClasses = async () => {
                try {
                     const res = await fetch("/api/classes");
-                    if (res.ok) setClasses(await res.json());
+                    if (res.ok) {
+                         const json = await res.json();
+                         setClasses(json.data ? json.data.map((c: any) => c.name || c.className) : []);
+                    }
                } catch (err) {
                     console.error("Failed to fetch classes");
                }
@@ -39,7 +42,10 @@ export default function FeesForward() {
           const fetchSections = async () => {
                try {
                     const res = await fetch(`/api/sections?class=${selectedClass}`);
-                    if (res.ok) setSections(await res.json());
+                    if (res.ok) {
+                         const json = await res.json();
+                         setSections(json.data ? json.data.map((s: any) => s.name || s.sectionName) : []);
+                    }
                } catch (err) {
                     console.error("Failed to fetch sections");
                }
@@ -56,7 +62,7 @@ export default function FeesForward() {
                const res = await fetch(`/api/students?class=${selectedClass}&section=${selectedSection}&limit=1000`);
                if (res.ok) {
                     const data = await res.json();
-                    setStudents(data.data || []);
+                    setStudents(data.data?.students || []);
                } else {
                     setError("Failed to fetch students");
                }

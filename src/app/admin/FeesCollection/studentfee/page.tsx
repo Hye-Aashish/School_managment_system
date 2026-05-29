@@ -7,42 +7,64 @@ import autoTable from "jspdf-autotable";
 export default function StudentFee() {
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
      const [students, setStudents] = useState<any[]>([]);
-     const [classes, setClasses] = useState<string[]>(["1st", "2nd", "3rd", "4th", "5th"]); // Fallback classes
-     const [sections, setSections] = useState<string[]>(["A", "B", "C", "D"]); // Fallback sections
+     const [classes, setClasses] = useState<string[]>([]);
+     const [sections, setSections] = useState<string[]>([]);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
      const [searchQuery, setSearchQuery] = useState("");
      const [selectedClass, setSelectedClass] = useState<string | null>(null);
      const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
-      const fetchStudents = async () => {
-           setLoading(true);
-           try {
-                let url = "/api/students?";
-                if (selectedClass) url += `class=${selectedClass}&`;
-                if (selectedSection) url += `section=${selectedSection}&`;
-                if (searchQuery) url += `search=${searchQuery}&`;
+     // Fetch Classes & Sections
+     useEffect(() => {
+          const fetchData = async () => {
+               try {
+                    const [classRes, sectionRes] = await Promise.all([
+                         fetch("/api/classes"),
+                         fetch("/api/sections")
+                    ]);
+                    if (classRes.ok) {
+                        const json = await classRes.json();
+                        setClasses(json.data ? json.data.map((c: any) => c.name || c.className) : []);
+                    }
+                    if (sectionRes.ok) {
+                        const json = await sectionRes.json();
+                        setSections(json.data ? json.data.map((s: any) => s.name || s.sectionName) : []);
+                    }
+               } catch (err) {
+                    console.error("Failed to fetch classes/sections", err);
+               }
+          };
+          fetchData();
+     }, []);
 
-                const res = await fetch(url);
-                if (res.ok) {
-                     const result = await res.json();
-                     setStudents(result.data.students || []);
-                     setFilteredStudents(result.data.students || []);
-                }
-           } catch (err) {
-                setError("Failed to fetch students");
-           } finally {
-                setLoading(false);
-           }
-      };
+     const fetchStudents = async () => {
+          setLoading(true);
+          try {
+               let url = "/api/students?";
+               if (selectedClass) url += `class=${selectedClass}&`;
+               if (selectedSection) url += `section=${selectedSection}&`;
+               if (searchQuery) url += `search=${searchQuery}&`;
 
-      useEffect(() => {
-           fetchStudents();
-      }, [selectedClass, selectedSection, searchQuery]);
+               const res = await fetch(url);
+               if (res.ok) {
+                    const result = await res.json();
+                    setStudents(result.data.students || []);
+               }
+          } catch (err) {
+               setError("Failed to fetch students");
+          } finally {
+               setLoading(false);
+          }
+     };
 
-      const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
-           setOpenFilter(openFilter === type ? null : type);
-      };
+     useEffect(() => {
+          fetchStudents();
+     }, [selectedClass, selectedSection, searchQuery]);
+
+     const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
+          setOpenFilter(openFilter === type ? null : type);
+     };
 
       const handleExport = (type: "Copy" | "Excel" | "CSV" | "PDF" | "Print") => {
            const exportData = students.map(s => ({
@@ -144,7 +166,7 @@ export default function StudentFee() {
                                                   </label>
                                              </div>
                                         </div>
-                                        <div className="relative">
+                                        <div className="relative w-44">
                                              <button
                                                   type="button"
                                                   className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
@@ -192,7 +214,7 @@ export default function StudentFee() {
                                              </div>
                                         </div>
 
-                                        <div className="relative">
+                                        <div className="relative w-44">
                                              <button
                                                   type="button"
                                                   className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"
@@ -240,7 +262,7 @@ export default function StudentFee() {
                                              </div>
                                         </div>
 
-                                        <div className="relative">
+                                        <div className="relative w-36">
                                              <button
                                                   type="button"
                                                   className="w-full h-full rounded-lg bg-bgray-200 px-4 flex justify-between items-center relative dark:bg-darkblack-500"

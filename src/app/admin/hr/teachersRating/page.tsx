@@ -1,8 +1,8 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 
 export default function TeacherReview() {
-     const reviewData = [
+     const [reviewData, setReviewData] = useState([
           {
                id: 1,
                staffId: "9002",
@@ -98,67 +98,31 @@ export default function TeacherReview() {
                staffId: "90006",
                name: "Jason Sharlton ( 90006 )",
                rating: 2,
-               comment: "Very nice",
+               comment: "gshsh",
                status: "Approved",
-               studentName: "Devin Coinneach ( 18014 )",
+               studentName: "Kavya Roy ( 18009 )",
                hasApprove: false,
           },
           {
                id: 11,
                staffId: "90006",
                name: "Jason Sharlton ( 90006 )",
-               rating: 2,
-               comment: "Good",
+               rating: 3,
+               comment: "good",
                status: "Approved",
-               studentName: "Henry Taylor ( 123123 )",
+               studentName: "Edward Thomas ( 180001 1 )",
                hasApprove: false,
           },
-     ];
+     ]);
 
-     const renderStars = (rating: number) => {
-          const stars = [];
-          for (let i = 1; i <= 5; i++) {
-               stars.push(
-                    <span key={i}>
-                         {i <= rating ? (
-                              <svg
-                                   width="20"
-                                   height="20"
-                                   viewBox="0 0 20 20"
-                                   fill="none"
-                                   xmlns="http://www.w3.org/2000/svg"
-                              >
-                                   <path
-                                        d="M10 1.66667L12.575 6.88334L18.3333 7.725L14.1667 11.7833L15.15 17.5167L10 14.8083L4.85 17.5167L5.83333 11.7833L1.66667 7.725L7.425 6.88334L10 1.66667Z"
-                                        fill="#FFA500"
-                                        stroke="#FFA500"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                   />
-                              </svg>
-                         ) : (
-                              <svg
-                                   width="20"
-                                   height="20"
-                                   viewBox="0 0 20 20"
-                                   fill="none"
-                                   xmlns="http://www.w3.org/2000/svg"
-                              >
-                                   <path
-                                        d="M10 1.66667L12.575 6.88334L18.3333 7.725L14.1667 11.7833L15.15 17.5167L10 14.8083L4.85 17.5167L5.83333 11.7833L1.66667 7.725L7.425 6.88334L10 1.66667Z"
-                                        fill="#1F2937"
-                                        stroke="#1F2937"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                   />
-                              </svg>
-                         )}
-                    </span>
-               );
+     const handleApprove = (id: number) => {
+          setReviewData(prev => prev.map(r => r.id === id ? { ...r, status: "Approved", hasApprove: false } : r));
+     };
+
+     const handleDelete = (id: number) => {
+          if (confirm("Are you sure you want to delete this teacher review?")) {
+               setReviewData(prev => prev.filter(r => r.id !== id));
           }
-          return <div className="flex space-x-1">{stars}</div>;
      };
 
      return (
@@ -529,6 +493,7 @@ export default function TeacherReview() {
                                                                  )}
                                                                  <button
                                                                       type="button"
+                                                                      onClick={() => handleDelete(review.id)}
                                                                       className="text-bgray-900 dark:text-white hover:text-red-500 transition-colors"
                                                                       title="Delete"
                                                                  >

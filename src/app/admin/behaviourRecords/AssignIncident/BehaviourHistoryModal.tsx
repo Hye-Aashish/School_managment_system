@@ -67,7 +67,7 @@ export default function BehaviourHistoryModal({ isOpen, onClose, onRefresh, stud
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60bg-opacity-50">
       <div className="bg-white dark:bg-darkblack-600 rounded-lg w-full max-w-5xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-bgray-900 dark:text-white">Behaviour History: {studentName}</h2>

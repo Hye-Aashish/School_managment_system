@@ -23,8 +23,14 @@ export default function FeeSearch() {
                          fetch("/api/sections"),
                          fetch("/api/fees-group")
                     ]);
-                    if (cRes.ok) setClasses(await cRes.json());
-                    if (sRes.ok) setSections(await sRes.json());
+                    if (cRes.ok) {
+                         const json = await cRes.json();
+                         setClasses(json.data ? json.data.map((c: any) => c.name || c.className) : []);
+                    }
+                    if (sRes.ok) {
+                         const json = await sRes.json();
+                         setSections(json.data ? json.data.map((s: any) => s.name || s.sectionName) : []);
+                    }
                     if (fgRes.ok) setFeesGroups(await fgRes.json());
                } catch (err) { console.error(err); }
           };

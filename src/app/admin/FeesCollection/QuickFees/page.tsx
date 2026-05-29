@@ -35,11 +35,11 @@ export default function QuickFeesMaster() {
                     ]);
                     if (classRes.ok) {
                         const json = await classRes.json();
-                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                        setClasses(json.data ? json.data.map((c: any) => c.name || c.className) : []);
                      }
                     if (sectionRes.ok) {
                         const json = await sectionRes.json();
-                        setSections(json.data ? json.data.map((s: any) => s.sectionName) : []);
+                        setSections(json.data ? json.data.map((s: any) => s.name || s.sectionName) : []);
                      }
                } catch (err) { console.error(err); }
           };
@@ -48,6 +48,7 @@ export default function QuickFeesMaster() {
 
      // Fetch Students when Class/Section changes
      useEffect(() => {
+          setSelectedStudent(null);
           if (selectedClass !== "Select Class" && selectedSection !== "Select Section") {
                const fetchStudents = async () => {
                     try {
@@ -59,6 +60,8 @@ export default function QuickFeesMaster() {
                     } catch (err) { console.error(err); }
                };
                fetchStudents();
+          } else {
+               setStudents([]);
           }
      }, [selectedClass, selectedSection]);
 
