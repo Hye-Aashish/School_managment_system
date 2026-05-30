@@ -64,7 +64,7 @@ export default function AttendanceReport() {
                     attData.data.forEach((a: any) => attMap.set(a.student, a));
                }
 
-               const merged = (stuData.data || []).map((s: any) => {
+               const merged = (stuData.data?.students || stuData.data || []).map((s: any) => {
                     const record = attMap.get(s._id);
                     return {
                          id: s._id,

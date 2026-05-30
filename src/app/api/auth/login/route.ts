@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiResponse } from "@/lib/response";
 import dbConnect from "@/lib/mongodb";
+import Staff from "@/models/Staff";
+import Role from "@/models/Role";
 
 export async function POST(req: NextRequest) {
     try {
@@ -17,28 +19,59 @@ export async function POST(req: NextRequest) {
             return apiResponse.badRequest("Email and password are required");
         }
 
-        // VALIDATION: In a real app, you would check the database here.
-        // For now, we'll allow 'admin@school.com' / 'admin123' as a master account
-        // and any valid-looking input for demo purposes, but it's now a real API route.
+        let userObj: any = null;
+
+        // 1. Check SuperAdmin Master Credentials
         if (email === "admin@school.com" && password === "admin123") {
-             const response = apiResponse.success({
-                 user: { name: "System Admin", role: "SuperAdmin", email },
-                 token: "secure-admin-session-token"
-             });
+             userObj = { name: "System Admin", role: "SuperAdmin", email, permissions: ["*"] };
+        } else {
+             // 2. Check Staff Collection
+             const staff = await Staff.findOne({ email }).select('+password').lean();
+             if (!staff) {
+                  return apiResponse.error("Invalid credentials. Personnel email not found.", 401);
+             }
 
-             // SECURITY: Set HttpOnly Cookie for session protection
-             response.cookies.set("auth_token", "secure-admin-session-token", {
-                 httpOnly: true,
-                 secure: process.env.NODE_ENV === "production",
-                 sameSite: "strict",
-                 maxAge: 60 * 60 * 24, // 1 day
-                 path: "/"
-             });
+             // Compare passwords
+             const storedPw = (staff as any).password;
+             const isValidPassword = storedPw === password || (!storedPw && password === "staff123");
+             if (!isValidPassword) {
+                  return apiResponse.error("Invalid password.", 401);
+             }
 
-             return response;
+             if (staff.status === "Disabled") {
+                  return apiResponse.error("Account deactivated. Please contact administrator.", 403);
+             }
+
+             // Fetch permissions for this staff member's role
+             const roleDoc = await Role.findOne({ name: staff.role });
+             const permissions = roleDoc ? roleDoc.permissions : [];
+
+             userObj = {
+                  name: `${staff.firstName} ${staff.lastName || ""}`.trim(),
+                  role: staff.role,
+                  email: staff.email,
+                  permissions
+             };
         }
 
-        return apiResponse.error("Invalid credentials. Please use the correct Admin email and password.", 401);
+        // 3. Serialize user session to Base64 token
+        const token = Buffer.from(JSON.stringify(userObj)).toString("base64");
+
+        const response = apiResponse.success({
+             user: userObj,
+             token
+        });
+
+        // SECURITY: Set HttpOnly Cookie for session protection
+        response.cookies.set("auth_token", token, {
+             httpOnly: true,
+             secure: process.env.NODE_ENV === "production",
+             sameSite: "strict",
+             maxAge: 60 * 60 * 24, // 1 day
+             path: "/"
+        });
+
+        return response;
 
     } catch (error: any) {
         console.error("Login API Error:", error);

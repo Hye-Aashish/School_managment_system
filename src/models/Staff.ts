@@ -22,6 +22,7 @@ export interface IStaff extends Document {
     qualification: string;
     workExperience: string;
     note: string;
+    password?: string;
     status: "Active" | "Disabled";
     created_at: Date;
 }
@@ -37,6 +38,7 @@ const StaffSchema: Schema = new Schema({
     fatherName: { type: String },
     motherName: { type: String },
     email: { type: String },
+    password: { type: String, default: "staff123" },
     gender: { type: String },
     dob: { type: String },
     dateOfJoining: { type: String },

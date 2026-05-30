@@ -37,9 +37,21 @@ export async function PUT(req: NextRequest) {
     try {
         const body = await req.json();
         const { _id, ...updateData } = body;
-        const updated = await Staff.findByIdAndUpdate(_id, updateData, { new: true });
+
+        // Use native driver to ensure all fields (including password) are persisted
+        const mongoose = (await import("mongoose")).default;
+        const ObjectId = mongoose.Types.ObjectId;
+        const collection = mongoose.connection.db.collection("staffs");
+        
+        await collection.updateOne(
+            { _id: new ObjectId(_id) },
+            { $set: updateData }
+        );
+        
+        const updated = await collection.findOne({ _id: new ObjectId(_id) });
         return NextResponse.json({ success: true, data: updated });
     } catch (error) {
+        console.error(error);
         return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -2,20 +2,61 @@
 import React, { useState, useEffect, useMemo } from "react";
 
 export default function StaffDirectory() {
+     const [rolesList, setRolesList] = useState<any[]>([]);
      const [staff, setStaff] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
      const [isModalOpen, setIsModalOpen] = useState(false);
      const [searchQuery, setSearchQuery] = useState("");
      const [roleFilter, setRoleFilter] = useState("All");
      
-     const [formData, setFormData] = useState({
+     const [isEditMode, setIsEditMode] = useState(false);
+     const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
+
+     const emptyForm = {
           staffId: "", role: "Teacher", designation: "", department: "",
           firstName: "", lastName: "", fatherName: "", motherName: "",
           email: "", gender: "Male", dob: "", dateOfJoining: "",
           phone: "", emergencyContact: "", maritalStatus: "Single",
           currentAddress: "", permanentAddress: "", qualification: "",
-          workExperience: ""
-     });
+          workExperience: "", password: ""
+     };
+
+     const [formData, setFormData] = useState(emptyForm);
+
+     const openCreateModal = () => {
+          setFormData(emptyForm);
+          setIsEditMode(false);
+          setEditingStaffId(null);
+          setIsModalOpen(true);
+     };
+
+     const openEditModal = (s: any) => {
+          setFormData({
+               staffId: s.staffId || "",
+               role: s.role || "Teacher",
+               designation: s.designation || "",
+               department: s.department || "",
+               firstName: s.firstName || "",
+               lastName: s.lastName || "",
+               fatherName: s.fatherName || "",
+               motherName: s.motherName || "",
+               email: s.email || "",
+               gender: s.gender || "Male",
+               dob: s.dob || "",
+               dateOfJoining: s.dateOfJoining || "",
+               phone: s.phone || "",
+               emergencyContact: s.emergencyContact || "",
+               maritalStatus: s.maritalStatus || "Single",
+               currentAddress: s.currentAddress || "",
+               permanentAddress: s.permanentAddress || "",
+               qualification: s.qualification || "",
+               workExperience: s.workExperience || "",
+               password: ""
+          });
+          setIsEditMode(true);
+          setEditingStaffId(s._id);
+          setIsModalOpen(true);
+     };
 
      const fetchStaff = async () => {
           setLoading(true);
@@ -25,17 +66,56 @@ export default function StaffDirectory() {
           setLoading(false);
      };
 
-     useEffect(() => { fetchStaff(); }, []);
+     const fetchRoles = async () => {
+          try {
+               const res = await fetch("/api/roles");
+               const data = await res.json();
+               if (data.success && data.data.length > 0) {
+                    setRolesList(data.data);
+                    setFormData(prev => ({ ...prev, role: data.data[0].name }));
+               }
+          } catch (err) {
+               console.error("Failed to fetch roles:", err);
+          }
+     };
+
+     useEffect(() => { 
+          fetchStaff(); 
+          fetchRoles();
+     }, []);
 
      const handleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
-          const res = await fetch("/api/staff", {
-               method: "POST",
+          const url = "/api/staff";
+          const method = isEditMode ? "PUT" : "POST";
+          
+          const payload: any = { ...formData };
+          if (isEditMode) {
+               payload._id = editingStaffId;
+               if (!payload.password) {
+                    delete payload.password;
+               }
+          } else {
+               if (!payload.password) {
+                    payload.password = "staff123";
+               }
+          }
+
+          const res = await fetch(url, {
+               method,
                headers: { "Content-Type": "application/json" },
-               body: JSON.stringify(formData)
+               body: JSON.stringify(payload)
           });
           if (res.ok) {
                setIsModalOpen(false);
+               fetchStaff();
+          }
+     };
+
+     const handleDeleteStaff = async (id: string) => {
+          if (!confirm("Are you sure you want to remove this staff member?")) return;
+          const res = await fetch(`/api/staff?id=${id}`, { method: "DELETE" });
+          if (res.ok) {
                fetchStaff();
           }
      };
@@ -84,7 +164,7 @@ export default function StaffDirectory() {
                               </div>
                          </div>
                          <button 
-                              onClick={() => setIsModalOpen(true)}
+                              onClick={openCreateModal}
                               className="px-8 h-12 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 transition-all shadow-lg shadow-success-300/20 flex items-center gap-2 shrink-0 uppercase tracking-widest text-[10px]"
                          >
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -125,8 +205,16 @@ export default function StaffDirectory() {
                                         </div>
                                         
                                         <div className="flex gap-2 w-full mt-6">
-                                             <button className="flex-1 h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-[10px] font-black uppercase text-bgray-500 hover:bg-success-300 hover:text-white transition-all">Profile</button>
-                                             <button className="w-10 h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all">
+                                             <button 
+                                                  onClick={() => openEditModal(s)}
+                                                  className="flex-1 h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-[10px] font-black uppercase text-bgray-500 hover:bg-success-300 hover:text-white transition-all"
+                                             >
+                                                  Profile
+                                             </button>
+                                             <button 
+                                                  onClick={() => handleDeleteStaff(s._id)}
+                                                  className="w-10 h-10 bg-bgray-50 dark:bg-darkblack-500 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                             >
                                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                              </button>
                                         </div>
@@ -148,8 +236,8 @@ export default function StaffDirectory() {
                          <div className="relative bg-white dark:bg-darkblack-600 rounded-[40px] w-full max-w-4xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-success-300/20">
                               <div className="p-8 border-b border-bgray-100 dark:border-darkblack-400 flex justify-between items-center bg-bgray-50/50">
                                    <div>
-                                        <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">Personnel onboarding</h3>
-                                        <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest">Adding new member to institutional workforce</p>
+                                        <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">{isEditMode ? "Modify Profile" : "Personnel onboarding"}</h3>
+                                        <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest">{isEditMode ? "Editing details of existing institutional workforce member" : "Adding new member to institutional workforce"}</p>
                                    </div>
                                    <button onClick={() => setIsModalOpen(false)} className="bg-white p-3 rounded-2xl shadow-sm text-bgray-400 hover:text-red-500 transition-colors border border-bgray-200">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -164,15 +252,32 @@ export default function StaffDirectory() {
                                         <div className="space-y-1.5">
                                              <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Role *</label>
                                              <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30">
-                                                  <option value="Admin">Admin</option>
-                                                  <option value="Teacher">Teacher</option>
-                                                  <option value="Accountant">Accountant</option>
-                                                  <option value="Librarian">Librarian</option>
+                                                  {rolesList.length > 0 ? (
+                                                       rolesList.map(r => <option key={r._id} value={r.name}>{r.name}</option>)
+                                                  ) : (
+                                                       <>
+                                                            <option value="Admin">Admin</option>
+                                                            <option value="Teacher">Teacher</option>
+                                                            <option value="Accountant">Accountant</option>
+                                                            <option value="Librarian">Librarian</option>
+                                                       </>
+                                                  )}
                                              </select>
                                         </div>
                                         <div className="space-y-1.5">
                                              <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Department</label>
                                              <input value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="Science" />
+                                        </div>
+                                   </div>
+                                    
+                                   <div className="grid grid-cols-2 gap-6 mb-8">
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Designation</label>
+                                             <input value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="e.g. Senior Lecturer" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Qualification</label>
+                                             <input value={formData.qualification} onChange={e => setFormData({...formData, qualification: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder="e.g. M.Sc. Physics" />
                                         </div>
                                    </div>
                                    
@@ -187,10 +292,14 @@ export default function StaffDirectory() {
                                         </div>
                                    </div>
 
-                                   <div className="grid grid-cols-3 gap-6 mb-8">
+                                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                                         <div className="space-y-1.5">
                                              <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Email Address</label>
                                              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">{isEditMode ? "Change Password" : "Login Password"}</label>
+                                             <input required={!isEditMode} type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder={isEditMode ? "Leave blank to preserve" : "staff123"} />
                                         </div>
                                         <div className="space-y-1.5">
                                              <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Phone Number</label>
@@ -207,7 +316,7 @@ export default function StaffDirectory() {
 
                                    <div className="flex justify-end gap-3 pt-4 border-t border-bgray-100 dark:border-darkblack-400 mt-8">
                                         <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 h-14 bg-bgray-50 dark:bg-darkblack-500 text-bgray-500 font-black rounded-2xl hover:bg-bgray-100 transition-all uppercase tracking-widest text-[10px]">Discard</button>
-                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-2xl hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">Finalize registration</button>
+                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-2xl hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">{isEditMode ? "Save changes" : "Finalize registration"}</button>
                                    </div>
                               </form>
                          </div>

@@ -271,6 +271,7 @@ export const menu: MenuItem[] = [
         icon: <Users2 size={20} />,
         dropdown: true,
         submenu: [
+            { title: "Roles & Permissions", url: "/admin/hr/roles" },
             { title: "Staff Directory", url: "/admin/hr/staffDirectory" },
             { title: "Staff Attendance", url: "/admin/hr/staffAttendance" },
             { title: "Payroll", url: "/admin/hr/payroll" },

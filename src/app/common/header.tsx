@@ -11,6 +11,20 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [user, setUser] = useState<any>({ name: "System Admin", role: "SuperAdmin" });
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.success) setUser(data.data);
+      } catch (err) {
+        console.error("Failed to fetch user session:", err);
+      }
+    };
+    fetchMe();
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -153,13 +167,13 @@ export default function Header() {
             {/* User Profile */}
             <div className="pl-4 border-l border-gray-100 dark:border-white/10 flex items-center gap-4 group cursor-pointer">
                 <div className="text-right hidden sm:block">
-                    <p className="text-sm font-black text-bgray-900 dark:text-white leading-tight">Amit Sharam</p>
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-tighter">Chief Administrator</p>
+                    <p className="text-sm font-black text-bgray-900 dark:text-white leading-tight">{user.name}</p>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-tighter">{user.role}</p>
                 </div>
                 <div className="relative">
                     <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-emerald-400 p-0.5 shadow-lg shadow-primary/20">
                         <div className="w-full h-full rounded-[10px] bg-white dark:bg-darkblack-600 overflow-hidden flex items-center justify-center font-black text-primary text-sm">
-                            AS
+                            {user.name ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "SA"}
                         </div>
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-success-500 border-4 border-white dark:border-darkblack-600" />

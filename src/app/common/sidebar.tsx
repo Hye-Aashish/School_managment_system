@@ -12,9 +12,20 @@ export default function Sidebar() {
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<any>({ role: "SuperAdmin", permissions: ["*"] });
 
   useEffect(() => {
     setMounted(true);
+    const fetchMe = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.success) setUser(data.data);
+      } catch (err) {
+        console.error("Failed to load user session:", err);
+      }
+    };
+    fetchMe();
   }, []);
 
   const isMenuActive = (menuItem: any, index: number) => {
@@ -92,8 +103,15 @@ export default function Sidebar() {
 
         {/* Navigation Section - Floating Capsule Style */}
         <div className="flex-1 overflow-y-auto pt-8 pb-10 px-4 custom-scrollbar space-y-2 sidebar-animate-items relative z-10">
-          {menu.map((item, idx) => {
-            const isActive = activeMenu === idx;
+          {menu
+            .map((item, idx) => ({ ...item, originalIndex: idx }))
+            .filter(item => {
+              if (user.role === "SuperAdmin" || user.role === "Admin" || user.permissions?.includes("*")) return true;
+              return user.permissions?.includes(item.title);
+            })
+            .map((item) => {
+              const idx = item.originalIndex;
+              const isActive = activeMenu === idx;
             const hasSubmenu = item.dropdown && item.submenu && item.submenu.length > 0;
 
             return (

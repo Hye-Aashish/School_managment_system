@@ -32,6 +32,18 @@ export async function POST(req: NextRequest) {
     }
 }
 
+export async function PUT(req: NextRequest) {
+    await dbConnect();
+    try {
+        const body = await req.json();
+        const { _id, ...updateData } = body;
+        const updated = await Book.findByIdAndUpdate(_id, updateData, { new: true });
+        return NextResponse.json({ success: true, data: updated });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
 export async function DELETE(req: NextRequest) {
     await dbConnect();
     try {

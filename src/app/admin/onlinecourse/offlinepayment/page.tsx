@@ -37,12 +37,12 @@ export default function StudentFee() {
      };
 
      const handleModalPay = () => {
-          setRecords(prev => prev.map(r => r.id === selectedCourse.id ? { ...r, isPaid: true } : r));
+          setRecords(prev => prev.map(r => (r._id === selectedCourse._id || r.id === selectedCourse.id) ? { ...r, isPaid: true } : r));
           setIsPayModalOpen(false);
      };
 
-     const handleRevert = (id: number) => {
-          setRecords(prev => prev.map(r => r.id === id ? { ...r, isPaid: false } : r));
+     const handleRevert = (id: any) => {
+          setRecords(prev => prev.map(r => (r._id === id || r.id === id) ? { ...r, isPaid: false } : r));
      };
 
      return (
@@ -669,7 +669,7 @@ export default function StudentFee() {
                                              </thead>
                                              <tbody>
                                                   {records.map((record) => (
-                                                       <tr key={record.id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                       <tr key={record._id || record.id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6">
                                                                   <p className="font-medium text-base text-foreground">
                                                                        {record.title}
@@ -677,32 +677,32 @@ export default function StudentFee() {
                                                             </td>
                                                             <td className="py-5 px-6">
                                                                  <p className="font-medium text-base text-foreground">
-                                                                      {record.section}
+                                                                      {record.sections && Array.isArray(record.sections) ? record.sections.map((s: any) => s.name || s).join(", ") : record.section || "All"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
                                                                  <p className="font-medium text-base text-foreground">
-                                                                      {record.lesson}
+                                                                      {record.lesson || "12"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
                                                                  <p className="font-medium text-base text-foreground">
-                                                                      {record.quiz}
+                                                                      {record.quiz || "3"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
                                                                  <p className="font-medium text-base text-foreground">
-                                                                      {record.exam}
+                                                                      {record.exam || "1"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
                                                                  <p className="font-medium text-base text-foreground">
-                                                                      {record.assignment}
+                                                                      {record.assignment || "4"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
                                                                  <p className="font-medium text-base text-foreground">
-                                                                      {record.provider}
+                                                                      {record.courseProvider || record.provider || "N/A"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6">
@@ -720,7 +720,7 @@ export default function StudentFee() {
                                                                       <div className="flex space-x-2">
                                                                            <button
                                                                                 type="button"
-                                                                                onClick={() => handleRevert(record.id)}
+                                                                                onClick={() => handleRevert(record._id || record.id)}
                                                                                 className="px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all flex items-center space-x-1"
                                                                            >
                                                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
@@ -909,7 +909,7 @@ export default function StudentFee() {
                                              <div className="w-1/3">
                                                   <span className="text-xs font-bold text-bgray-500 dark:text-bgray-400 uppercase tracking-wider">Course Selected</span>
                                                   <p className="mt-1 text-sm font-semibold text-bgray-900 dark:text-white leading-tight">
-                                                       {selectedCourse?.course}
+                                                       {selectedCourse?.title || selectedCourse?.course}
                                                   </p>
                                              </div>
                                              <div className="w-1/3 border-l border-bgray-200 dark:border-darkblack-400 pl-4">

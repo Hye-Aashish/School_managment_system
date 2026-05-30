@@ -5,6 +5,7 @@ import OnlineCourse from "@/models/OnlineCourse";
 import "@/models/Class";
 import "@/models/Section";
 import "@/models/Staff";
+import "@/models/CourseCategory";
 
 
 export async function GET() {

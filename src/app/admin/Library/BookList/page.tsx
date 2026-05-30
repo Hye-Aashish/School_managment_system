@@ -5,12 +5,16 @@ export default function BookList() {
      const [books, setBooks] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
      const [isModalOpen, setIsModalOpen] = useState(false);
+     const [isEditMode, setIsEditMode] = useState(false);
+     const [editingBookId, setEditingBookId] = useState<string | null>(null);
      
-     const [formData, setFormData] = useState({
+     const emptyForm = {
           title: "", bookNo: "", isbn: "", publisher: "", author: "",
           subject: "", rackNo: "", qty: 1, price: 0, postDate: new Date().toISOString().split('T')[0],
           description: ""
-     });
+     };
+
+     const [formData, setFormData] = useState(emptyForm);
 
      const fetchBooks = async () => {
           setLoading(true);
@@ -22,20 +26,48 @@ export default function BookList() {
 
      useEffect(() => { fetchBooks(); }, []);
 
+     const openCreateModal = () => {
+          setFormData(emptyForm);
+          setIsEditMode(false);
+          setEditingBookId(null);
+          setIsModalOpen(true);
+     };
+
+     const openEditModal = (b: any) => {
+          setFormData({
+               title: b.title || "",
+               bookNo: b.bookNo || "",
+               isbn: b.isbn || "",
+               publisher: b.publisher || "",
+               author: b.author || "",
+               subject: b.subject || "",
+               rackNo: b.rackNo || "",
+               qty: b.qty || 1,
+               price: b.price || 0,
+               postDate: b.postDate ? b.postDate.split('T')[0] : new Date().toISOString().split('T')[0],
+               description: b.description || ""
+          });
+          setIsEditMode(true);
+          setEditingBookId(b._id);
+          setIsModalOpen(true);
+     };
+
      const handleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
-          const res = await fetch("/api/books", {
-               method: "POST",
+          const url = "/api/books";
+          const method = isEditMode ? "PUT" : "POST";
+          const payload = isEditMode ? { ...formData, _id: editingBookId } : formData;
+
+          const res = await fetch(url, {
+               method,
                headers: { "Content-Type": "application/json" },
-               body: JSON.stringify(formData)
+               body: JSON.stringify(payload)
           });
           if (res.ok) {
                setIsModalOpen(false);
-               setFormData({
-                    title: "", bookNo: "", isbn: "", publisher: "", author: "",
-                    subject: "", rackNo: "", qty: 1, price: 0, postDate: new Date().toISOString().split('T')[0],
-                    description: ""
-               });
+               setFormData(emptyForm);
+               setIsEditMode(false);
+               setEditingBookId(null);
                fetchBooks();
           }
      };
@@ -59,7 +91,7 @@ export default function BookList() {
                               <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">Unified repository for institutional literary assets</p>
                          </div>
                          <button 
-                              onClick={() => setIsModalOpen(true)}
+                              onClick={openCreateModal}
                               className="px-8 h-12 bg-success-300 text-white font-black rounded-xl hover:bg-success-400 transition-all shadow-lg shadow-success-300/20 flex items-center gap-2 shrink-0 uppercase tracking-widest text-[10px]"
                          >
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -111,10 +143,15 @@ export default function BookList() {
                                                        <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Rack: {b.rackNo || "N/A"}</span>
                                                   </td>
                                                   <td className="px-8 py-7 text-right">
-                                                       <button onClick={() => deleteBook(b._id)} className="p-3 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-bgray-400 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
-                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                                       </button>
-                                                  </td>
+                                                        <div className="flex items-center justify-end gap-2">
+                                                             <button onClick={() => openEditModal(b)} className="p-2.5 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-bgray-400 hover:bg-success-300 hover:text-white transition-all" title="Edit Book">
+                                                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                             </button>
+                                                             <button onClick={() => deleteBook(b._id)} className="p-2.5 bg-bgray-50 dark:bg-darkblack-500 rounded-xl text-red-400 hover:bg-red-500 hover:text-white transition-all" title="Delete Book">
+                                                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                             </button>
+                                                        </div>
+                                                   </td>
                                              </tr>
                                         ))
                                    ) : (
@@ -131,8 +168,8 @@ export default function BookList() {
                          <div className="absolute inset-0 bg-bgray-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
                          <div className="relative bg-white dark:bg-darkblack-600 rounded-[40px] w-full max-w-4xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-success-300/20">
                               <div className="p-8 border-b border-bgray-100 dark:border-darkblack-400 bg-bgray-50/50">
-                                   <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">Literary Asset Registration</h3>
-                                   <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">Onboarding new literary material to institutional catalog</p>
+                                   <h3 className="text-2xl font-black dark:text-white uppercase tracking-tighter">{isEditMode ? "Modify Catalog Entry" : "Literary Asset Registration"}</h3>
+                                    <p className="text-[10px] font-bold text-bgray-400 uppercase tracking-widest mt-1">{isEditMode ? "Editing details of existing literary material" : "Onboarding new literary material to institutional catalog"}</p>
                               </div>
                               <form onSubmit={handleSubmit} className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar space-y-8">
                                    <div className="grid grid-cols-2 gap-8">
@@ -178,7 +215,7 @@ export default function BookList() {
 
                                    <div className="flex justify-end gap-3 pt-6 border-t border-bgray-100 dark:border-darkblack-400 mt-6">
                                         <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 h-14 bg-bgray-50 dark:bg-darkblack-500 text-bgray-500 font-black rounded-[20px] hover:bg-bgray-100 transition-all uppercase tracking-widest text-[10px]">Discard</button>
-                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-[20px] hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">Commit to Catalog</button>
+                                        <button type="submit" className="px-12 h-14 bg-success-300 text-white font-black rounded-[20px] hover:bg-success-400 shadow-xl shadow-success-300/20 transition-all uppercase tracking-widest text-[10px]">{isEditMode ? "Save Changes" : "Commit to Catalog"}</button>
                                    </div>
                               </form>
                          </div>
