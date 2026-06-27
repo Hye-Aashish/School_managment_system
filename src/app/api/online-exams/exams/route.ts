@@ -30,6 +30,32 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const exam = await OnlineExam.create(body);
+
+        // 🔔 Fire push notification
+        const targetClass = body.class || body.className;
+        const targetSection = body.section;
+        const title = "📝 New Online Exam Scheduled";
+        const message = `${body.title || "A new exam"} is scheduled. Check the Online Exams section.`;
+        const route = "/exams";
+
+        import("@/lib/fcm").then(({ sendNotificationToStudents }) => {
+            import("@/models/Notification").then(({ default: Notification }) => {
+                const targetType = targetSection ? "section" : (targetClass ? "class" : "all");
+                sendNotificationToStudents({
+                    targetType,
+                    targetClass,
+                    targetSection,
+                    payload: { title, body: message, data: { type: "exam", route, title, body: message } },
+                }).then(({ tokens }) => {
+                    Notification.create({
+                        title, message, type: "exam", route,
+                        targetType, targetClass, targetSection,
+                        sentBy: "system", recipientCount: tokens.length, readBy: [],
+                    }).catch(console.error);
+                }).catch(console.error);
+            });
+        }).catch(console.error);
+
         return NextResponse.json({ success: true, data: exam });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });

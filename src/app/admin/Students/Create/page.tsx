@@ -239,7 +239,7 @@ export default function CreateStudent() {
                                                   </div>
                                                   <div className="grid 2xl:grid-cols-4 md:grid-cols-3 grid-cols-1 gap-6">
                                                         <div className="flex flex-col gap-2">
-                                                             <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">Student Photo</label>
+                                                             <label className="text-base text-bgray-600 dark:text-white font-medium">Student Photo</label>
                                                              <div className="flex items-center gap-4">
                                                                   <div className="w-14 h-14 rounded-lg bg-bgray-50 dark:bg-darkblack-500 flex items-center justify-center text-bgray-400 overflow-hidden border border-success-300">
                                                                        {formData.photo ? (
@@ -391,7 +391,7 @@ export default function CreateStudent() {
 function Field({ label, name, type = "text", value, onChange, required = false }: FieldProps) {
      return (
           <div className="flex flex-col gap-2">
-               <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">
+               <label className="text-base text-bgray-600 dark:text-white font-medium">
                     {label}
                </label>
                <input
@@ -409,7 +409,7 @@ function Field({ label, name, type = "text", value, onChange, required = false }
 function SelectField({ label, name, options, value, onChange, required = false }: SelectFieldProps) {
      return (
           <div className="flex flex-col gap-2">
-               <label className="text-base text-bgray-600 dark:text-bgray-50 font-medium">
+               <label className="text-base text-bgray-600 dark:text-white font-medium">
                     {label}
                </label>
                <select

@@ -18,7 +18,7 @@ export default function StaffDirectory() {
           email: "", gender: "Male", dob: "", dateOfJoining: "",
           phone: "", emergencyContact: "", maritalStatus: "Single",
           currentAddress: "", permanentAddress: "", qualification: "",
-          workExperience: "", password: ""
+          workExperience: "", password: "", status: "Active"
      };
 
      const [formData, setFormData] = useState(emptyForm);
@@ -51,7 +51,8 @@ export default function StaffDirectory() {
                permanentAddress: s.permanentAddress || "",
                qualification: s.qualification || "",
                workExperience: s.workExperience || "",
-               password: ""
+               password: "",
+               status: s.status || "Active"
           });
           setIsEditMode(true);
           setEditingStaffId(s._id);
@@ -122,8 +123,10 @@ export default function StaffDirectory() {
 
      const filteredStaff = useMemo(() => {
           return staff.filter(s => {
-               const matchesSearch = `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                   s.staffId.toLowerCase().includes(searchQuery.toLowerCase());
+               const fullName = `${s.firstName || ""} ${s.lastName || ""}`.toLowerCase();
+               const idString = String(s.staffId || "").toLowerCase();
+               const searchStr = searchQuery.toLowerCase();
+               const matchesSearch = fullName.includes(searchStr) || idString.includes(searchStr);
                const matchesRole = roleFilter === "All" || s.role === roleFilter;
                return matchesSearch && matchesRole;
           });
@@ -300,6 +303,13 @@ export default function StaffDirectory() {
                                         <div className="space-y-1.5">
                                              <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">{isEditMode ? "Change Password" : "Login Password"}</label>
                                              <input required={!isEditMode} type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" placeholder={isEditMode ? "Leave blank to preserve" : "staff123"} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                             <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Status</label>
+                                             <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30">
+                                                  <option value="Active">Active</option>
+                                                  <option value="Disabled">Disabled</option>
+                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
                                              <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest">Phone Number</label>

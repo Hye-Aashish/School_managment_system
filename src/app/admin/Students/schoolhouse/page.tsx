@@ -259,7 +259,7 @@ export default function SchoolHouse() {
                                                             >
                                                                  <div className="w-full flex space-x-2.5 items-center">
                                                                       <span
-                                                                           className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                           className="text-base font-medium text-bgray-600 dark:text-white"
                                                                       >Name</span>
                                                                       <span>
                                                                            <svg
@@ -303,7 +303,7 @@ export default function SchoolHouse() {
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                       >Description</span
                                                                       >
                                                                       <span>
@@ -349,7 +349,7 @@ export default function SchoolHouse() {
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
                                                                       <span
-                                                                           className="text-base font-medium text-bgray-600 dark:text-gray-50"
+                                                                           className="text-base font-medium text-bgray-600 dark:text-white"
                                                                       >
                                                                            House ID</span
                                                                       >
@@ -396,7 +396,7 @@ export default function SchoolHouse() {
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
                                                                       <span
-                                                                           className="text-base font-medium text-bgray-600 dark:text-gray-50"
+                                                                           className="text-base font-medium text-bgray-600 dark:text-white"
                                                                       >
                                                                            Action</span
                                                                       >
@@ -408,17 +408,17 @@ export default function SchoolHouse() {
                                                        {houses.map((house, idx) => (
                                                             <tr key={house._id || idx} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                            {house.house_name}
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                            {house.description}
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                            {idx + 1}
                                                                       </p>
                                                                  </td>
@@ -485,7 +485,7 @@ export default function SchoolHouse() {
                                                   className="w-full flex lg:justify-between justify-center items-center"
                                              >
                                                   <div className="lg:flex hidden space-x-4 items-center">
-                                                       <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
+                                                       <span className="text-bgray-600 dark:text-white text-sm font-semibold"
                                                        >Show result:</span
                                                        >
                                                        <div className="relative">
@@ -494,7 +494,7 @@ export default function SchoolHouse() {
                                                                  className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                                  onClick={() => toggleFilter("pagination")}
                                                             >
-                                                                 <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50"
+                                                                 <span className="text-sm font-semibold text-bgray-900 dark:text-white"
                                                                  >3</span
                                                                  >
                                                                  <span>
@@ -566,7 +566,7 @@ export default function SchoolHouse() {
                                                        <div className="flex items-center">
                                                             <button
                                                                  type="button"
-                                                                 className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                                 className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                             >
                                                                  1
                                                             </button>

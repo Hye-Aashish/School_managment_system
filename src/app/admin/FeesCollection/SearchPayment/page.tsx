@@ -334,9 +334,32 @@ export default function SearchPayments() {
                                                                       {p.fee_master?.fee_type?.name || "N/A"}
                                                                  </td>
                                                                  <td className="py-4 px-4 text-sm">
-                                                                      <span className="px-3 py-1 text-[10px] font-bold text-white rounded bg-[#2f54eb] uppercase tracking-wider">
-                                                                           {p.payment_mode || "Online"}
-                                                                      </span>
+                                                                      <div className="flex flex-col gap-1 items-start">
+                                                                           <span className="px-3 py-1 text-[10px] font-bold text-white rounded bg-[#2f54eb] uppercase tracking-wider">
+                                                                                {p.payment_mode || "Online"}
+                                                                           </span>
+                                                                           {p.reference_no && (
+                                                                                <span className="text-[11px] text-gray-500 font-semibold" title={p.reference_no}>
+                                                                                     Ref: {p.reference_no}
+                                                                                </span>
+                                                                           )}
+                                                                           {p.online_payment_id && (
+                                                                                <span className="text-[9px] text-gray-400 font-mono" title={p.online_payment_id}>
+                                                                                     ID: {p.online_payment_id.length > 15 ? p.online_payment_id.substring(0,12) + "..." : p.online_payment_id}
+                                                                                </span>
+                                                                           )}
+                                                                           {p.attachment_url && (
+                                                                                <a 
+                                                                                     href={p.attachment_url} 
+                                                                                     target="_blank" 
+                                                                                     rel="noopener noreferrer"
+                                                                                     className="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-0.5 mt-0.5"
+                                                                                >
+                                                                                     <svg className="inline" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                                                                     Receipt
+                                                                                </a>
+                                                                           )}
+                                                                      </div>
                                                                  </td>
                                                                  <td className="py-4 px-4 text-sm font-bold text-gray-900 dark:text-white">
                                                                       ${(p.amount_paid || 0).toFixed(2)}
@@ -401,7 +424,7 @@ export default function SearchPayments() {
                                              className="w-full flex lg:justify-between justify-center items-center"
                                         >
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
+                                                  <span className="text-bgray-600 dark:text-white text-sm font-semibold"
                                                   >Show result:</span
                                                   >
                                                   <div className="relative">
@@ -410,7 +433,7 @@ export default function SearchPayments() {
                                                             className="px-2.5 py-3.5 border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                             onClick={() => toggleFilter("pagination")}
                                                        >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50"
+                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-white"
                                                             >6</span
                                                             >
                                                             <span>
@@ -455,7 +478,7 @@ export default function SearchPayments() {
                                                        </span>
                                                   </button>
                                                   <div className="flex items-center">
-                                                       <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">1</button>
+                                                       <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white">1</button>
                                                        <button type="button" className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500">2</button>
                                                        <span className="text-bgray-500 text-sm">. . . .</span>
                                                        <button type="button" className="rounded-lg text-bgray-500 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 hover:bg-success-50 hover:text-success-300 transition duration-300 ease-in-out dark:hover:bg-darkblack-500">20</button>
@@ -504,6 +527,25 @@ export default function SearchPayments() {
                                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Payment Info</p>
                                              <p className="text-sm font-semibold text-gray-900 dark:text-white">Date: {selectedPayment.date}</p>
                                              <p className="text-sm font-semibold text-gray-900 dark:text-white">Mode: {selectedPayment.payment_mode}</p>
+                                             {selectedPayment.reference_no && (
+                                                  <p className="text-xs text-gray-500 font-medium">Ref: {selectedPayment.reference_no}</p>
+                                             )}
+                                             {selectedPayment.online_payment_id && (
+                                                  <p className="text-[10px] text-gray-400 font-mono">ID: {selectedPayment.online_payment_id}</p>
+                                             )}
+                                             {selectedPayment.attachment_url && (
+                                                  <div className="mt-1">
+                                                       <a 
+                                                            href={selectedPayment.attachment_url} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-indigo-600 hover:underline inline-flex items-center gap-1 font-bold"
+                                                       >
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                                            View Attachment
+                                                       </a>
+                                                  </div>
+                                             )}
                                              <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded uppercase mt-2 ${selectedPayment.status === "Refunded" ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
                                                   {selectedPayment.status || "Success"}
                                              </span>
@@ -591,6 +633,8 @@ export default function SearchPayments() {
                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Transaction Details</p>
                                    <p className="font-bold">Date: {selectedPayment.date}</p>
                                    <p className="font-bold">Mode: {selectedPayment.payment_mode}</p>
+                                   {selectedPayment.reference_no && <p className="text-sm">Ref: {selectedPayment.reference_no}</p>}
+                                   {selectedPayment.online_payment_id && <p className="text-xs text-gray-500">ID: {selectedPayment.online_payment_id}</p>}
                               </div>
                          </div>
                          <div className="border-y border-gray-200 py-10 mb-10 space-y-4">

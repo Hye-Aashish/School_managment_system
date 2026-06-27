@@ -3,27 +3,67 @@ import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import Pagination from "../../components/Pagination";
 
 export default function OfflinePayment() {
      const [payments, setPayments] = useState<any[]>([]);
-     const [filteredPayments, setFilteredPayments] = useState<any[]>([]);
      const [loading, setLoading] = useState(true);
      const [searchTerm, setSearchTerm] = useState("");
      const [openFilter, setOpenFilter] = useState<string | null>(null);
      const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
 
+     const [classes, setClasses] = useState<any[]>([]);
+     const [selectedClass, setSelectedClass] = useState("");
+     const [selectedSection, setSelectedSection] = useState("");
+     const [selectedStatus, setSelectedStatus] = useState("");
+     
+     const [currentPage, setCurrentPage] = useState(1);
+     const [totalPages, setTotalPages] = useState(1);
+     const [limit, setLimit] = useState(10);
+     const [totalEntries, setTotalEntries] = useState(0);
+
+     const [debouncedSearch, setDebouncedSearch] = useState("");
+     useEffect(() => {
+          const handler = setTimeout(() => {
+               setDebouncedSearch(searchTerm);
+               setCurrentPage(1);
+          }, 300);
+          return () => clearTimeout(handler);
+     }, [searchTerm]);
+
      const toggleFilter = (type: string) => {
           setOpenFilter(openFilter === type ? null : type);
+     };
+
+     const fetchClasses = async () => {
+          try {
+               const res = await fetch("/api/classes");
+               const data = await res.json();
+               if (data.success) {
+                    setClasses(data.data || []);
+               }
+          } catch (error) {
+               console.error("Error fetching classes:", error);
+          }
      };
 
      const fetchPayments = async () => {
           setLoading(true);
           try {
-               const res = await fetch("/api/offline-payment");
+               const params = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: limit.toString(),
+                    ...(selectedClass && { class: selectedClass }),
+                    ...(selectedSection && { section: selectedSection }),
+                    ...(debouncedSearch && { search: debouncedSearch }),
+                    ...(selectedStatus && { status: selectedStatus }),
+               });
+               const res = await fetch(`/api/offline-payment?${params.toString()}`);
                const data = await res.json();
                if (res.ok) {
-                    setPayments(data);
-                    setFilteredPayments(data);
+                    setPayments(data.data || []);
+                    setTotalPages(data.totalPages || 1);
+                    setTotalEntries(data.totalEntries || 0);
                }
           } catch (err) {
                console.error("Failed to fetch payments", err);
@@ -33,18 +73,12 @@ export default function OfflinePayment() {
      };
 
      useEffect(() => {
-          fetchPayments();
+          fetchClasses();
      }, []);
 
      useEffect(() => {
-          const filtered = payments.filter(p => {
-               const studentName = `${p.student?.fname || ""} ${p.student?.lname || ""}`.toLowerCase();
-               const admissionNo = (p.student?.admission_no || "").toLowerCase();
-               const searchLower = searchTerm.toLowerCase();
-               return studentName.includes(searchLower) || admissionNo.includes(searchLower);
-          });
-          setFilteredPayments(filtered);
-     }, [searchTerm, payments]);
+          fetchPayments();
+     }, [currentPage, limit, selectedClass, selectedSection, debouncedSearch, selectedStatus]);
 
      const handleStatusUpdate = async (id: string, status: "Approved" | "Rejected") => {
           if (!window.confirm(`Are you sure you want to ${status.toLowerCase()} this payment?`)) return;
@@ -71,17 +105,17 @@ export default function OfflinePayment() {
      };
 
      const handleExport = (type: "Copy" | "Excel" | "CSV" | "PDF" | "Print") => {
-          const exportData = filteredPayments.map(p => ({
-               "Request ID": p._id.slice(-5),
+          const exportData = payments.map(p => ({
+               "Request ID": String(p._id || "").slice(-5),
                "Admission No": p.student?.admission_no || "N/A",
-               "Name": `${p.student?.fname} ${p.student?.lname}`,
-               "Class": `${p.student?.class}(${p.student?.section})`,
+               "Name": `${p.student?.fname || ""} ${p.student?.lname || ""}`,
+               "Class": `${p.student?.class || "N/A"} (${p.student?.section || "N/A"})`,
                "Payment Date": p.payment_date,
-               "Submit Date": new Date(p.submit_date).toLocaleString(),
-               "Amount": p.amount,
+               "Submit Date": new Date(p.submit_date).toLocaleDateString(),
+               "Amount ($)": Number(p.amount || 0).toFixed(2),
                "Status": p.status,
                "Status Date": p.status_date ? new Date(p.status_date).toLocaleString() : "-",
-               "Payment ID": p.payment_id || "-"
+               "Payment ID": p.payment_id || "N/A"
           }));
 
           if (type === "Copy") {
@@ -252,9 +286,9 @@ export default function OfflinePayment() {
                          <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600">
                               <h4 className="text-xl font-bold text-bgray-900 dark:text-white mb-6">Offline Bank Payments</h4>
                               <div className="flex flex-col space-y-5">
-                                   <div className="w-full flex h-14 space-x-4">
+                                   <div className="w-full flex flex-wrap gap-4">
                                         <div
-                                             className="w-full sm:block hidden border border-transparent focus-within:border-success-300 h-full bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]"
+                                             className="flex-1 min-w-[200px] h-14 sm:block hidden border border-transparent focus-within:border-success-300 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px]"
                                         >
                                              <div
                                                   className="flex w-full h-full items-center space-x-[15px]"
@@ -296,7 +330,52 @@ export default function OfflinePayment() {
                                              </div>
                                         </div>
 
-                                        <div className="relative">
+                                        <div className="relative h-14">
+                                             <button type="button" onClick={() => toggleFilter("class")} className="h-full px-5 rounded-lg bg-bgray-200 flex justify-between items-center gap-3 dark:bg-darkblack-500 border border-transparent hover:border-gray-300">
+                                                  <span className="text-sm font-medium text-bgray-600 dark:text-gray-300 whitespace-nowrap">{selectedClass || "All Classes"}</span>
+                                                  <svg width="12" height="12" viewBox="0 0 21 21" fill="none"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                             </button>
+                                             <div className={`rounded-lg w-[180px] shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-20 top-16 overflow-hidden border border-gray-100 dark:border-darkblack-400 transition-all ${openFilter === "class" ? "block scale-100" : "hidden scale-95 opacity-0"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">
+                                                       <li onClick={() => { setSelectedClass(""); setSelectedSection(""); setOpenFilter(null); setCurrentPage(1); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium">All Classes</li>
+                                                       {classes.map((cls: any) => (
+                                                            <li key={cls._id} onClick={() => { setSelectedClass(cls.name); setSelectedSection(""); setOpenFilter(null); setCurrentPage(1); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium">{cls.name}</li>
+                                                       ))}
+                                                  </ul>
+                                             </div>
+                                        </div>
+
+                                        <div className="relative h-14">
+                                             <button type="button" onClick={() => toggleFilter("section")} className="h-full px-5 rounded-lg bg-bgray-200 flex justify-between items-center gap-3 dark:bg-darkblack-500 border border-transparent hover:border-gray-300">
+                                                  <span className="text-sm font-medium text-bgray-600 dark:text-gray-300 whitespace-nowrap">{selectedSection || "All Sections"}</span>
+                                                  <svg width="12" height="12" viewBox="0 0 21 21" fill="none"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                             </button>
+                                             <div className={`rounded-lg w-[180px] shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-20 top-16 overflow-hidden border border-gray-100 dark:border-darkblack-400 transition-all ${openFilter === "section" ? "block scale-100" : "hidden scale-95 opacity-0"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">
+                                                       <li onClick={() => { setSelectedSection(""); setOpenFilter(null); setCurrentPage(1); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium">All Sections</li>
+                                                       {selectedClass && classes.find((c: any) => c.name === selectedClass)?.sections?.map((sec: any) => (
+                                                            <li key={sec._id || sec} onClick={() => { setSelectedSection(sec.name || sec); setOpenFilter(null); setCurrentPage(1); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium">{sec.name || sec}</li>
+                                                       ))}
+                                                  </ul>
+                                             </div>
+                                        </div>
+
+                                        <div className="relative h-14">
+                                             <button type="button" onClick={() => toggleFilter("status")} className="h-full px-5 rounded-lg bg-bgray-200 flex justify-between items-center gap-3 dark:bg-darkblack-500 border border-transparent hover:border-gray-300">
+                                                  <span className="text-sm font-medium text-bgray-600 dark:text-gray-300 whitespace-nowrap">{selectedStatus || "All Status"}</span>
+                                                  <svg width="12" height="12" viewBox="0 0 21 21" fill="none"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                             </button>
+                                             <div className={`rounded-lg w-[150px] shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-20 top-16 overflow-hidden border border-gray-100 dark:border-darkblack-400 transition-all ${openFilter === "status" ? "block scale-100" : "hidden scale-95 opacity-0"}`}>
+                                                  <ul className="max-h-60 overflow-y-auto">
+                                                       <li onClick={() => { setSelectedStatus(""); setOpenFilter(null); setCurrentPage(1); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium">All Status</li>
+                                                       {["Pending", "Approved", "Rejected"].map((status: string) => (
+                                                            <li key={status} onClick={() => { setSelectedStatus(status); setOpenFilter(null); setCurrentPage(1); }} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-50 hover:dark:bg-darkblack-600 font-medium">{status}</li>
+                                                       ))}
+                                                  </ul>
+                                             </div>
+                                        </div>
+
+                                        <div className="relative h-14">
                                              <button
                                                   type="button"
                                                   className="h-full px-5 rounded-lg bg-bgray-200 flex justify-between items-center gap-3 dark:bg-darkblack-500 border border-transparent hover:border-gray-300 transition-colors"
@@ -349,12 +428,12 @@ export default function OfflinePayment() {
                                              <tbody className="divide-y divide-gray-100 dark:divide-darkblack-500">
                                                   {loading ? (
                                                        <tr><td colSpan={11} className="py-10 text-center text-bgray-500">Loading requests...</td></tr>
-                                                  ) : filteredPayments.length === 0 ? (
+                                                  ) : payments.length === 0 ? (
                                                        <tr><td colSpan={11} className="py-10 text-center text-bgray-500">No requests found.</td></tr>
                                                   ) : (
-                                                       filteredPayments.map((p) => (
-                                                            <tr key={p._id} className="hover:bg-gray-50 dark:hover:bg-darkblack-500 transition-colors">
-                                                                 <td className="py-4 px-4 text-sm font-medium">{p._id.slice(-5)}</td>
+                                                       payments.map((p) => (
+                                                            <tr key={p._id || Math.random()} className="hover:bg-gray-50 dark:hover:bg-darkblack-500 transition-colors">
+                                                                 <td className="py-4 px-4 text-sm font-medium">{String(p._id || "").slice(-5)}</td>
                                                                  <td className="py-4 px-4 text-sm font-medium">{p.student?.admission_no}</td>
                                                                  <td className="py-4 px-4 text-sm font-bold text-bgray-900 dark:text-white">
                                                                       {p.student?.fname} {p.student?.lname}
@@ -366,7 +445,7 @@ export default function OfflinePayment() {
                                                                  <td className="py-4 px-4 text-sm text-gray-500">
                                                                       {new Date(p.submit_date).toLocaleDateString()}
                                                                  </td>
-                                                                 <td className="py-4 px-4 text-sm font-bold">${p.amount?.toFixed(2)}</td>
+                                                                 <td className="py-4 px-4 text-sm font-bold">${Number(p.amount || 0).toFixed(2)}</td>
                                                                  <td className="py-4 px-4">
                                                                       <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white rounded-full ${getStatusColor(p.status)}`}>
                                                                            {p.status}
@@ -424,30 +503,14 @@ export default function OfflinePayment() {
                                         </table>
                                    </div>
 
-                                   <div className="pagination-content w-full flex justify-between items-center py-4 border-t border-gray-100 dark:border-darkblack-400">
-                                        <div className="flex items-center space-x-2">
-                                             <span className="text-sm text-bgray-600 dark:text-bgray-50 font-medium">Show result:</span>
-                                             <select className="bg-bgray-100 dark:bg-darkblack-500 border-none rounded text-xs py-1">
-                                                  <option>10</option>
-                                                  <option>20</option>
-                                                  <option>50</option>
-                                             </select>
-                                        </div>
-                                        <div className="flex items-center space-x-1">
-                                             <button className="p-2 border border-gray-200 dark:border-darkblack-400 rounded-lg hover:bg-gray-50">
-                                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="rotate-180">
-                                                       <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                             <button className="px-3 py-1 bg-success-300 text-white rounded-lg text-sm font-bold">1</button>
-                                             <button className="px-3 py-1 hover:bg-gray-100 dark:hover:bg-darkblack-600 rounded-lg text-sm">2</button>
-                                             <button className="p-2 border border-gray-200 dark:border-darkblack-400 rounded-lg hover:bg-gray-50">
-                                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                       <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                  </svg>
-                                             </button>
-                                        </div>
-                                   </div>
+                                   <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        onPageChange={setCurrentPage}
+                                        limit={limit}
+                                        onLimitChange={setLimit}
+                                        totalEntries={totalEntries}
+                                   />
                               </div>
                          </div>
                     </section>

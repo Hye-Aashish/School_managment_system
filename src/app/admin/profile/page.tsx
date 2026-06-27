@@ -320,7 +320,7 @@ export default function ProfilePage() {
                                         <form action="">
                                              <div className="grid 2xl:grid-cols-2 grid-cols-1 gap-6">
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium">First Name</label
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium">First Name</label
                                                        >
                                                        <input
                                                             type="text"
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium">Last Name</label>
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium">Last Name</label>
                                                        <input
                                                             type="text"
                                                             className="bg-bgray-50 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg h-14 border-0 focus:border focus:border-success-300 focus:ring-0"
@@ -338,7 +338,7 @@ export default function ProfilePage() {
                                                   </div>
                                                   <div className="flex flex-col gap-2">
                                                        <label
-                                                            className="text-base text-bgray-600 dark:text-bgray-50  font-medium"
+                                                            className="text-base text-bgray-600 dark:text-white  font-medium"
                                                        >Email</label>
                                                        <input
                                                             type="text"
@@ -347,7 +347,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium">Phone Number (Optional)</label
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium">Phone Number (Optional)</label
                                                        >
                                                        <input
                                                             type="text"
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                                              </h4>
                                              <div className="grid 2xl:grid-cols-2 grid-cols-1 gap-6">
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium">Country or Region</label>
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium">Country or Region</label>
                                                        <input
                                                             type="text"
                                                             className="bg-bgray-50 dark:bg-darkblack-500 dark:text-white p-4 rounded-lg h-14 border-0 focus:border focus:border-success-300 focus:ring-0"
@@ -371,7 +371,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium"
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium"
                                                        >City</label>
                                                        <input
                                                             type="text"
@@ -381,7 +381,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium "
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium "
                                                        >Address</label>
                                                        <input
                                                             type="text"
@@ -390,7 +390,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium "
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium "
                                                        >Postal Code</label>
                                                        <input
                                                             type="text"
@@ -407,7 +407,7 @@ export default function ProfilePage() {
                                              <div className="grid 2xl:grid-cols-2 grid-cols-1 gap-6">
                                                   <div className="flex flex-col gap-2">
                                                        <label
-                                                            className="text-base text-bgray-600 dark:text-bgray-50  font-medium "
+                                                            className="text-base text-bgray-600 dark:text-white  font-medium "
                                                        >Facebook</label>
                                                        <input
                                                             type="text"
@@ -416,7 +416,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium "
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium "
                                                        >Twitter</label>
                                                        <input
                                                             type="text"
@@ -425,7 +425,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium "
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium "
                                                        >Linkedin</label>
                                                        <input
                                                             type="text"
@@ -434,7 +434,7 @@ export default function ProfilePage() {
                                                        />
                                                   </div>
                                                   <div className="flex flex-col gap-2">
-                                                       <label className="text-base text-bgray-600 dark:text-bgray-50  font-medium "
+                                                       <label className="text-base text-bgray-600 dark:text-white  font-medium "
                                                        >Youtube</label>
                                                        <input
                                                             type="text"
@@ -496,7 +496,7 @@ export default function ProfilePage() {
                                         <h4 className="font-bold text-lg text-bgray-800 dark:text-white mb-2">
                                              Update Cover
                                         </h4>
-                                        <p className="mb-4 text-bgray-500 dark:text-bgray-50">
+                                        <p className="mb-4 text-bgray-500 dark:text-white">
                                              Cover of at least Size
                                              <span className="text-bgray-900">1170x920 </span>
                                         </p>
@@ -1037,7 +1037,7 @@ export default function ProfilePage() {
                                              <h4 className="md:text-base text-sm  dark:text-white font-semibold mt-2">
                                                   All Invoice
                                              </h4>
-                                             <span className="text-base text-bgray-600 dark:text-bgray-50">1.4 MB</span>
+                                             <span className="text-base text-bgray-600 dark:text-white">1.4 MB</span>
                                         </div>
                                         <div
                                              className="flex flex-col items-center w-24 h-24 lg:w-44 lg:h-44"
@@ -1078,7 +1078,7 @@ export default function ProfilePage() {
                                              <h4 className="md:text-base text-sm  dark:text-white font-semibold mt-2">
                                                   Bank Stat..
                                              </h4>
-                                             <span className="text-sm text-bgray-600 dark:text-bgray-50">1.9 GB</span>
+                                             <span className="text-sm text-bgray-600 dark:text-white">1.9 GB</span>
                                         </div>
                                         <div
                                              className="flex flex-col items-center w-24 h-24 lg:w-44 lg:h-44"
@@ -1119,7 +1119,7 @@ export default function ProfilePage() {
                                              <h4 className="md:text-base text-sm  dark:text-white font-semibold mt-2">
                                                   vCard – Resume...
                                              </h4>
-                                             <span className="text-base text-bgray-600 dark:text-bgray-50">1.4 MB</span>
+                                             <span className="text-base text-bgray-600 dark:text-white">1.4 MB</span>
                                         </div>
                                         <div
                                              className="flex flex-col items-center w-24 h-24 lg:w-44 lg:h-44"
@@ -1159,7 +1159,7 @@ export default function ProfilePage() {
                                              <h4 className="md:text-base text-sm  dark:text-white font-semibold mt-2">
                                                   Project Brief
                                              </h4>
-                                             <span className="text-base text-bgray-600 dark:text-bgray-50">1.4 MB</span>
+                                             <span className="text-base text-bgray-600 dark:text-white">1.4 MB</span>
                                         </div>
                                         <div
                                              className="flex flex-col items-center w-24 h-24 lg:w-44 lg:h-44"
@@ -1195,7 +1195,7 @@ export default function ProfilePage() {
                                              <h4 className="md:text-base text-sm  dark:text-white font-semibold mt-2">
                                                   Brand Styles Guide
                                              </h4>
-                                             <span className="text-base text-bgray-600 dark:text-bgray-50">1.4 MB</span>
+                                             <span className="text-base text-bgray-600 dark:text-white">1.4 MB</span>
                                         </div>
                                    </div>
                               </div>
@@ -1237,7 +1237,7 @@ export default function ProfilePage() {
                                                   >Type</span
                                                   >
                                                   <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-base font-medium text-left"
+                                                       className="text-bgray-700 dark:text-white text-base font-medium text-left"
                                                   >Folder</span
                                                   >
                                              </li>
@@ -1246,7 +1246,7 @@ export default function ProfilePage() {
                                                   >Size</span
                                                   >
                                                   <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-base font-medium text-left"
+                                                       className="text-bgray-700 dark:text-white text-base font-medium text-left"
                                                   >500 MB</span
                                                   >
                                              </li>
@@ -1255,7 +1255,7 @@ export default function ProfilePage() {
                                                   >Owner</span
                                                   >
                                                   <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-base font-medium text-left"
+                                                       className="text-bgray-700 dark:text-white text-base font-medium text-left"
                                                   >BankCo.</span
                                                   >
                                              </li>
@@ -1264,7 +1264,7 @@ export default function ProfilePage() {
                                                   >Location</span
                                                   >
                                                   <span
-                                                       className="text-bgray-700 dark:text-bgray-50 text-base font-medium text-left"
+                                                       className="text-bgray-700 dark:text-white text-base font-medium text-left"
                                                   >My Files</span
                                                   >
                                              </li>
@@ -1379,7 +1379,7 @@ export default function ProfilePage() {
                                         <h4 className="text-base font-bold text-bgray-900 dark:text-white mb-2">
                                              Credit or Debit Card
                                         </h4>
-                                        <p className="text-sm dark:text-bgray-50">
+                                        <p className="text-sm dark:text-white">
                                              Offers payment processing software for e-commerce
                                              websites and mobile applications.
                                         </p>
@@ -1417,7 +1417,7 @@ export default function ProfilePage() {
                                         <h4 className="text-base font-bold text-bgray-900 dark:text-white mb-2">
                                              PayPal
                                         </h4>
-                                        <p className="text-sm dark:text-bgray-50">
+                                        <p className="text-sm dark:text-white">
                                              Offers payment processing software for e-commerce
                                              websites and mobile applications.
                                         </p>
@@ -1455,7 +1455,7 @@ export default function ProfilePage() {
                                         <h4 className="text-base font-bold text-bgray-900 dark:text-white mb-2">
                                              American Express
                                         </h4>
-                                        <p className="text-sm dark:text-bgray-50">
+                                        <p className="text-sm dark:text-white">
                                              Offers payment processing software for e-commerce
                                              websites and mobile applications.
                                         </p>
@@ -1494,7 +1494,7 @@ export default function ProfilePage() {
                                         <h4 className="text-base font-bold text-bgray-900 dark:text-white mb-2">
                                              Amazon
                                         </h4>
-                                        <p className="text-sm dark:text-bgray-50">
+                                        <p className="text-sm dark:text-white">
                                              Offers payment processing software for e-commerce
                                              websites and mobile applications.
                                         </p>
@@ -2017,7 +2017,7 @@ export default function ProfilePage() {
                                    <h3 className="text-2xl font-bold text-bgray-900 dark:text-white mb-3">
                                         Password
                                    </h3>
-                                   <p className="text-sm fotn-medium text-bgray-500 dark:text-bgray-50">
+                                   <p className="text-sm fotn-medium text-bgray-500 dark:text-white">
                                         Change or view your password.
                                    </p>
                                    <form action="" className="mt-6">

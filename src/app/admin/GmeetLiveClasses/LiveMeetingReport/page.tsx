@@ -27,28 +27,32 @@ export default function LiveMeetingReport() {
   const [openFilter, setOpenFilter] = useState<"class" | "section" | null>(null);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
-
-  const classList = ["All","Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10"];
-  const sectionList = ["All","A","B","C","D","E"];
+  const [classes, setClasses] = useState<any[]>([]);
 
   const toggleFilter = (type: "class" | "section") => {
     setOpenFilter(openFilter === type ? null : type);
   };
 
   useEffect(() => {
-    const fetchMeetings = async () => {
+    const fetchMeetingsAndClasses = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/gmeet-live-meetings");
-        const data = await res.json();
-        if (data.success) setLiveMeetingReportData(data.data);
+        const [resClasses, resMeetings] = await Promise.all([
+          fetch("/api/classes"),
+          fetch("/api/gmeet-live-meetings")
+        ]);
+        const dataClasses = await resClasses.json();
+        const dataMeetings = await resMeetings.json();
+        
+        if (dataClasses.success) setClasses(dataClasses.data || []);
+        if (dataMeetings.success) setLiveMeetingReportData(dataMeetings.data || []);
       } catch (error) {
-        console.error("Failed to fetch meetings:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchMeetings();
+    fetchMeetingsAndClasses();
   }, []);
 
   const filtered = liveMeetingReportData.filter((item) => {
@@ -79,7 +83,7 @@ export default function LiveMeetingReport() {
     item.description,
     new Date(item.dateTime).toLocaleString(),
     item.createdBy,
-    "0",
+    (item.joinList?.length || 0).toString(),
   ];
 
   const handleCopy = () => {
@@ -168,7 +172,7 @@ export default function LiveMeetingReport() {
                       <thead>
                         <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500">
                           {["Admission No", "Student Name", "Father Name", "Last Join"].map(h => (
-                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-bgray-50">{h}</th>
+                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-white">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -193,12 +197,12 @@ export default function LiveMeetingReport() {
                     </span>
                     <div className="flex items-center gap-1">
                       <button type="button" disabled={joinPage === 1} onClick={() => setJoinPage(p => p - 1)}
-                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
                         <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M12.72 5L7.72 10L12.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                       <button type="button" className="w-8 h-8 flex items-center justify-center rounded text-sm font-semibold text-white" style={{ backgroundColor: "#6654c0" }}>{joinPage}</button>
                       <button type="button" disabled={joinPage === totalPages} onClick={() => setJoinPage(p => p + 1)}
-                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
                         <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M7.72 5L12.72 10L7.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                     </div>
@@ -223,16 +227,17 @@ export default function LiveMeetingReport() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Class Dropdown */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Class <span className="text-error-300">*</span></label>
+                  <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2">Class <span className="text-error-300">*</span></label>
                   <div className="relative">
                     <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("class")}>
-                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedClass || "All"}</span>
+                      <span className="text-sm text-bgray-900 dark:text-white">{selectedClass || "All"}</span>
                       <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
                     </button>
                     <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
                       <ul className="max-h-48 overflow-y-auto">
-                        {classList.map((cls) => (
-                          <li key={cls} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(cls === "All" ? "" : cls); setOpenFilter(null); setCurrentPage(1); }}>{cls}</li>
+                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(""); setSelectedSection(""); setOpenFilter(null); setCurrentPage(1); }}>All</li>
+                        {classes.map((cls) => (
+                          <li key={cls._id || cls.name} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(cls.name); setSelectedSection(""); setOpenFilter(null); setCurrentPage(1); }}>{cls.name}</li>
                         ))}
                       </ul>
                     </div>
@@ -240,16 +245,17 @@ export default function LiveMeetingReport() {
                 </div>
                 {/* Section Dropdown */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Section <span className="text-error-300">*</span></label>
+                  <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2">Section <span className="text-error-300">*</span></label>
                   <div className="relative">
                     <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("section")}>
-                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedSection || "All"}</span>
+                      <span className="text-sm text-bgray-900 dark:text-white">{selectedSection || "All"}</span>
                       <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
                     </button>
                     <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"}`}>
                       <ul className="max-h-48 overflow-y-auto">
-                        {sectionList.map((section) => (
-                          <li key={section} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(section === "All" ? "" : section); setOpenFilter(null); setCurrentPage(1); }}>{section}</li>
+                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(""); setOpenFilter(null); setCurrentPage(1); }}>All</li>
+                        {selectedClass && classes.find(c => c.name === selectedClass)?.sections?.map((sec: any) => (
+                          <li key={sec._id || sec} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(sec.name || sec); setOpenFilter(null); setCurrentPage(1); }}>{sec.name || sec}</li>
                         ))}
                       </ul>
                     </div>
@@ -314,27 +320,27 @@ export default function LiveMeetingReport() {
                       {["Meeting Title","Description","Date Time","Created By","Total Join"].map((label) => (
                         <td key={label} className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">{label}</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">{label}</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
                       ))}
-                      <td className="py-4 px-4"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span></td>
+                      <td className="py-4 px-4"><span className="text-sm font-semibold text-bgray-600 dark:text-white">Action</span></td>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
-                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-bgray-50">Loading...</td></tr>
+                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-white">Loading...</td></tr>
                     ) : filtered.length === 0 ? (
-                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-bgray-50">{searchQuery ? "No matching meetings found." : "No meetings found."}</td></tr>
+                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-white">{searchQuery ? "No matching meetings found." : "No meetings found."}</td></tr>
                     ) : (
                       paginated.map((item) => (
                         <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.meetingTitle}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.description}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{new Date(item.dateTime).toLocaleString()}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">0</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.meetingTitle}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.description}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{new Date(item.dateTime).toLocaleString()}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.createdBy}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.joinList?.length || 0}</p></td>
                           <td className="py-4 px-4">
                             <button
                               type="button"
@@ -361,7 +367,7 @@ export default function LiveMeetingReport() {
               <div className="pagination-content w-full">
                 <div className="w-full flex justify-between items-center">
                   <div className="flex items-center">
-                    <span className="text-bgray-600 dark:text-bgray-50 text-sm">
+                    <span className="text-bgray-600 dark:text-white text-sm">
                       Records: {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalRecords)} of {totalRecords}
                     </span>
                   </div>
@@ -374,7 +380,7 @@ export default function LiveMeetingReport() {
                     >
                       <svg width="18" height="18" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.7217 5.03271L7.72168 10.0327L12.7217 15.0327" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </button>
-                    <button type="button" className="w-8 h-8 flex items-center justify-center rounded bg-success-50 text-success-300 font-semibold text-sm dark:bg-darkblack-500 dark:text-bgray-50">
+                    <button type="button" className="w-8 h-8 flex items-center justify-center rounded bg-success-50 text-success-300 font-semibold text-sm dark:bg-darkblack-500 dark:text-white">
                       {currentPage}
                     </button>
                     <button

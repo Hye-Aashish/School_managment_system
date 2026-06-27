@@ -42,6 +42,67 @@ export async function POST(req: NextRequest) {
         }));
 
         await Attendance.bulkWrite(operations);
+
+        // 🔔 Fire push notifications to affected students in the background
+        if (body.length > 0) {
+            (async () => {
+                try {
+                    const Student = require("@/models/Student").default;
+                    const { sendToTokens } = await import("@/lib/fcm");
+                    const { default: Notification } = await import("@/models/Notification");
+
+                    const studentIds = body.map((item: any) => item.student);
+                    const studentsObj = await Student.find({ _id: { $in: studentIds } });
+
+                    for (const item of body) {
+                        const studentObj = studentsObj.find((s: any) => s._id.toString() === item.student.toString());
+                        if (studentObj) {
+                            const tokens: string[] = [];
+                            if (studentObj.fcm_tokens && Array.isArray(studentObj.fcm_tokens)) {
+                                for (const t of studentObj.fcm_tokens) {
+                                    if (t.token) tokens.push(t.token);
+                                }
+                            }
+
+                            const statusStr = item.status;
+                            const isNegative = statusStr === "Absent" || statusStr === "Half Day";
+                            const emoji = isNegative ? "⚠️" : "✅";
+                            const title = `${emoji} Attendance: ${statusStr}`;
+                            const message = `You have been marked ${statusStr} for ${item.date}.`;
+                            const route = "/attendance";
+
+                            if (tokens.length > 0) {
+                                await sendToTokens(tokens, {
+                                    title,
+                                    body: message,
+                                    data: {
+                                        type: "attendance",
+                                        route,
+                                        title,
+                                        body: message,
+                                    },
+                                });
+                            }
+
+                            await Notification.create({
+                                title,
+                                message,
+                                type: "attendance",
+                                route,
+                                targetType: "student",
+                                targetAdmissionNo: studentObj.admission_no,
+                                sentBy: "system",
+                                recipientCount: tokens.length,
+                                readBy: [],
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to send attendance notifications:", err);
+                }
+            })();
+        }
+
         return apiResponse.success({ message: "Attendance saved successfully" });
     } catch (error: any) {
         console.error("API Error (Attendance POST):", error);

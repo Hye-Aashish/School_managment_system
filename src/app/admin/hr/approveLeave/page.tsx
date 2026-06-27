@@ -8,27 +8,44 @@ export default function ApproveLeaveRequest() {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     const [leaveRequests, setLeaveRequests] = useState([
-          { id: 1, staff: "Nishant Khare (1002)", leaveType: "Casual Leave", leaveDate: "12/03/2025 - 12/03/2025", days: 1, applyDate: "12/02/2025", status: "Approved", reason: "Family event." },
-          { id: 2, staff: "Jason Sharlton (90006)", leaveType: "Medical Leave", leaveDate: "12/11/2025 - 12/13/2025", days: 3, applyDate: "12/11/2025", status: "Approved", reason: "High fever and rest." },
-          { id: 3, staff: "Joe Black (9000)", leaveType: "Medical Leave", leaveDate: "12/22/2025 - 12/24/2025", days: 3, applyDate: "12/22/2025", status: "Approved", reason: "Dental treatment checkup." },
-          { id: 4, staff: "James Deckar (9004)", leaveType: "Maternity Leave", leaveDate: "12/17/2025 - 12/22/2025", days: 5, applyDate: "12/17/2025", status: "Pending", reason: "Maternity rest period." },
-          { id: 5, staff: "William Abbot (9003)", leaveType: "Medical Leave", leaveDate: "12/06/2025 - 12/10/2025", days: 4, applyDate: "12/06/2025", status: "Approved", reason: "Flu recovery." },
-          { id: 6, staff: "Jason Sharlton (90006)", leaveType: "Medical Leave", leaveDate: "11/11/2025 - 11/13/2025", days: 3, applyDate: "11/11/2025", status: "Pending", reason: "Regular health scan." },
-          { id: 7, staff: "Joe Black (9000)", leaveType: "Medical Leave", leaveDate: "11/22/2025 - 11/24/2025", days: 3, applyDate: "11/22/2025", status: "Approved", reason: "Doctor prescribed bedrest." },
-          { id: 8, staff: "James Deckar (9004)", leaveType: "Maternity Leave", leaveDate: "11/17/2025 - 11/22/2025", days: 5, applyDate: "11/17/2025", status: "Pending", reason: "Antenatal checkup." },
-          { id: 9, staff: "William Abbot (9003)", leaveType: "Medical Leave", leaveDate: "11/06/2025 - 11/10/2025", days: 4, applyDate: "11/06/2025", status: "Approved", reason: "Suffering from migraine." },
-          { id: 10, staff: "Jason Sharlton (90006)", leaveType: "Medical Leave", leaveDate: "10/11/2025 - 10/13/2025", days: 3, applyDate: "10/11/2025", status: "Pending", reason: "Physical therapy session." },
-          { id: 11, staff: "Joe Black (9000)", leaveType: "Medical Leave", leaveDate: "10/22/2025 - 10/23/2025", days: 3, applyDate: "10/22/2025", status: "Approved", reason: "Viral recovery." },
-          { id: 12, staff: "James Deckar (9004)", leaveType: "Maternity Leave", leaveDate: "10/16/2025 - 10/22/2025", days: 5, applyDate: "10/16/2025", status: "Approved", reason: "Pre-maternity leave phase." },
-          { id: 13, staff: "William Abbot (9003)", leaveType: "Medical Leave", leaveDate: "10/06/2025 - 10/09/2025", days: 4, applyDate: "10/06/2025", status: "Approved", reason: "Severe headache." },
-          { id: 14, staff: "Jason Sharlton (90006)", leaveType: "Medical Leave", leaveDate: "09/11/2025 - 09/12/2025", days: 3, applyDate: "09/11/2025", status: "Pending", reason: "Doctor appointment." },
-          { id: 15, staff: "Joe Black (9000)", leaveType: "Medical Leave", leaveDate: "09/22/2025 - 09/23/2025", days: 3, applyDate: "09/22/2025", status: "Approved", reason: "Routine wellness visit." },
-          { id: 16, staff: "James Deckar (9004)", leaveType: "Maternity Leave", leaveDate: "09/16/2025 - 09/22/2025", days: 5, applyDate: "09/16/2025", status: "Approved", reason: "Maternity health consultation." },
-          { id: 17, staff: "William Abbot (9003)", leaveType: "Medical Leave", leaveDate: "09/05/2025 - 09/09/2025", days: 4, applyDate: "09/05/2025", status: "Approved", reason: "Stomach virus." },
-          { id: 18, staff: "Joe Black (9000)", leaveType: "Medical Leave", leaveDate: "08/21/2025 - 08/23/2025", days: 3, applyDate: "08/21/2025", status: "Approved", reason: "Eye surgery recovery." },
-          { id: 19, staff: "James Deckar (9004)", leaveType: "Maternity Leave", leaveDate: "08/16/2025 - 08/21/2025", days: 5, applyDate: "08/16/2025", status: "Approved", reason: "Doctor requested maternity leave." }
-     ]);
+     const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+     const [staffList, setStaffList] = useState<any[]>([]);
+     const [leaveTypes, setLeaveTypes] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
+
+     // Fetch data on mount
+     React.useEffect(() => {
+          const fetchData = async () => {
+               try {
+                    const [leavesRes, staffRes, typesRes] = await Promise.all([
+                         fetch("/api/staff-leave"),
+                         fetch("/api/staff"),
+                         fetch("/api/leave-type")
+                    ]);
+                    const leavesJson = await leavesRes.json();
+                    const staffJson = await staffRes.json();
+                    const typesJson = await typesRes.json();
+                    
+                    if (leavesJson.success && leavesJson.data) {
+                         setLeaveRequests(leavesJson.data);
+                    }
+                    if (staffJson.success && staffJson.data) {
+                         setStaffList(staffJson.data);
+                    }
+                    if (typesJson.success && typesJson.data) {
+                         setLeaveTypes(typesJson.data);
+                         if (typesJson.data.length > 0) {
+                              setAddLeaveType(typesJson.data[0].name);
+                         }
+                    }
+               } catch (error) {
+                    console.error("Error fetching data:", error);
+               } finally {
+                    setLoading(false);
+               }
+          };
+          fetchData();
+     }, []);
 
      const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
      const [showDetails, setShowDetails] = useState(false);
@@ -36,7 +53,7 @@ export default function ApproveLeaveRequest() {
 
      // Add Leave Form States
      const [addStaff, setAddStaff] = useState("");
-     const [addLeaveType, setAddLeaveType] = useState("Medical Leave");
+     const [addLeaveType, setAddLeaveType] = useState("");
      const [addFromDate, setAddFromDate] = useState("");
      const [addToDate, setAddToDate] = useState("");
      const [addReason, setAddReason] = useState("");
@@ -50,46 +67,86 @@ export default function ApproveLeaveRequest() {
           return diffDays;
      };
 
-     const handleAddLeave = (e: React.FormEvent) => {
+     const handleAddLeave = async (e: React.FormEvent) => {
           e.preventDefault();
           if (!addStaff || !addFromDate || !addToDate) return;
           const days = calculateDays(addFromDate, addToDate);
           
-          const formatDate = (dateStr: string) => {
-               const [y, m, d] = dateStr.split("-");
-               return `${m}/${d}/${y}`;
-          };
-
           const newRequest = {
-               id: Date.now(),
                staff: addStaff,
                leaveType: addLeaveType,
-               leaveDate: `${formatDate(addFromDate)} - ${formatDate(addToDate)}`,
+               fromDate: new Date(addFromDate),
+               toDate: new Date(addToDate),
                days,
-               applyDate: new Date().toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }),
-               status: "Pending" as const,
                reason: addReason
           };
 
-          setLeaveRequests([newRequest, ...leaveRequests]);
-          setShowAddModal(false);
-          setAddStaff("");
-          setAddLeaveType("Medical Leave");
-          setAddFromDate("");
-          setAddToDate("");
-          setAddReason("");
-     };
-
-     const handleStatusChange = (id: number, newStatus: "Approved" | "Pending" | "Disapproved") => {
-          setLeaveRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
-          if (selectedRequest && selectedRequest.id === id) {
-               setSelectedRequest((prev: any) => prev ? { ...prev, status: newStatus } : null);
+          try {
+               const res = await fetch("/api/staff-leave", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newRequest)
+               });
+               const json = await res.json();
+               if (json.success && json.data) {
+                    setLeaveRequests([json.data, ...leaveRequests]);
+                    setShowAddModal(false);
+                    setAddStaff("");
+                    if (leaveTypes.length > 0) {
+                         setAddLeaveType(leaveTypes[0].name);
+                    } else {
+                         setAddLeaveType("");
+                    }
+                    setAddFromDate("");
+                    setAddToDate("");
+                    setAddReason("");
+               } else {
+                    alert(json.error || "Failed to add leave request");
+               }
+          } catch (error) {
+               console.error("Error adding leave request:", error);
+               alert("An error occurred");
           }
      };
 
-     const handleDelete = (id: number) => {
+     const handleStatusChange = async (id: string, newStatus: "Approved" | "Pending" | "Disapproved") => {
+          try {
+               const res = await fetch("/api/staff-leave", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, status: newStatus })
+               });
+               const json = await res.json();
+               if (json.success && json.data) {
+                    setLeaveRequests(prev => prev.map(r => r._id === id ? json.data : r));
+                    if (selectedRequest && selectedRequest._id === id) {
+                         setSelectedRequest(json.data);
+                    }
+               } else {
+                    alert(json.error || "Failed to update status");
+               }
+          } catch (error) {
+               console.error("Error updating status:", error);
+               alert("An error occurred");
+          }
+     };
+
+     const handleDelete = async (id: string) => {
           if (confirm("Are you sure you want to delete this leave request?")) {
-               setLeaveRequests(prev => prev.filter(r => r.id !== id));
+               try {
+                    const res = await fetch(`/api/staff-leave?id=${id}`, {
+                         method: "DELETE"
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                         setLeaveRequests(prev => prev.filter(r => r._id !== id));
+                    } else {
+                         alert(json.error || "Failed to delete");
+                    }
+               } catch (error) {
+                    console.error("Error deleting:", error);
+                    alert("An error occurred");
+               }
           }
      };
 
@@ -205,7 +262,7 @@ export default function ApproveLeaveRequest() {
                                              <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Staff
                                                             </span>
                                                             <span>
@@ -250,7 +307,7 @@ export default function ApproveLeaveRequest() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Leave Type
                                                             </span>
                                                             <span>
@@ -295,7 +352,7 @@ export default function ApproveLeaveRequest() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Leave Date
                                                             </span>
                                                             <span>
@@ -340,7 +397,7 @@ export default function ApproveLeaveRequest() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Days
                                                             </span>
                                                             <span>
@@ -385,7 +442,7 @@ export default function ApproveLeaveRequest() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Apply Date
                                                             </span>
                                                             <span>
@@ -430,7 +487,7 @@ export default function ApproveLeaveRequest() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Status
                                                             </span>
                                                             <span>
@@ -474,43 +531,56 @@ export default function ApproveLeaveRequest() {
                                                        </div>
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                       <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                             Action
                                                        </span>
                                                   </td>
                                              </tr>
                                         </thead>
                                         <tbody>
-                                             {leaveRequests.map((request) => (
-                                                  <tr
-                                                       key={request.id}
-                                                       className="border-b border-bgray-300 dark:border-darkblack-400"
-                                                  >
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 {request.staff}
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 {request.leaveType}
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 {request.leaveDate}
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 {request.days}
-                                                            </p>
-                                                       </td>
-                                                       <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                 {request.applyDate}
-                                                            </p>
-                                                       </td>
+                                              {loading ? (
+                                                   <tr>
+                                                        <td colSpan={7} className="py-10 text-center text-bgray-500">Loading leave requests...</td>
+                                                   </tr>
+                                              ) : leaveRequests.length === 0 ? (
+                                                   <tr>
+                                                        <td colSpan={7} className="py-10 text-center text-bgray-500">No leave requests found.</td>
+                                                   </tr>
+                                              ) : leaveRequests.map((request) => {
+                                                   const staffName = request.staff ? `${request.staff.firstName || ''} ${request.staff.lastName || ''} (${request.staff.staffId || ''})` : "Unknown Staff";
+                                                   const leaveDateRange = `${new Date(request.fromDate).toLocaleDateString()} - ${new Date(request.toDate).toLocaleDateString()}`;
+                                                   const applyDateStr = request.applyDate ? new Date(request.applyDate).toLocaleDateString() : new Date(request.created_at).toLocaleDateString();
+
+                                                   return (
+                                                   <tr
+                                                        key={request._id}
+                                                        className="border-b border-bgray-300 dark:border-darkblack-400"
+                                                   >
+                                                        <td className="py-5 px-6 xl:px-0">
+                                                             <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                  {staffName}
+                                                             </p>
+                                                        </td>
+                                                        <td className="py-5 px-6 xl:px-0">
+                                                             <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                  {request.leaveType}
+                                                             </p>
+                                                        </td>
+                                                        <td className="py-5 px-6 xl:px-0">
+                                                             <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                  {leaveDateRange}
+                                                             </p>
+                                                        </td>
+                                                        <td className="py-5 px-6 xl:px-0">
+                                                             <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                  {request.days}
+                                                             </p>
+                                                        </td>
+                                                        <td className="py-5 px-6 xl:px-0">
+                                                             <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                  {applyDateStr}
+                                                             </p>
+                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <span
                                                                  className={`px-3 py-1.5 text-xs font-semibold text-white rounded ${request.status === "Approved"
@@ -561,7 +631,7 @@ export default function ApproveLeaveRequest() {
                                                                  </button>
                                                                  <button
                                                                       type="button"
-                                                                      onClick={() => handleDelete(request.id)}
+                                                                      onClick={() => handleDelete(request._id)}
                                                                       className="text-bgray-900 dark:text-white hover:text-red-500 transition-colors"
                                                                       title="Delete"
                                                                  >
@@ -586,13 +656,28 @@ export default function ApproveLeaveRequest() {
                                                                                 strokeLinecap="round"
                                                                                 strokeLinejoin="round"
                                                                            />
-                                                                      </svg>
+                                                                           <path
+                                                                           d="M10 11V17"
+                                                                           stroke="currentColor"
+                                                                           strokeWidth="1.5"
+                                                                           strokeLinecap="round"
+                                                                           strokeLinejoin="round"
+                                                                      />
+                                                                      <path
+                                                                           d="M14 11V17"
+                                                                           stroke="currentColor"
+                                                                           strokeWidth="1.5"
+                                                                           strokeLinecap="round"
+                                                                           strokeLinejoin="round"
+                                                                      />
+                                                                 </svg>
                                                                  </button>
                                                             </div>
                                                        </td>
                                                   </tr>
-                                             ))}
-                                        </tbody>
+                                                  );
+                                        })}
+                                   </tbody>
                                    </table>
                               </div>
 
@@ -600,8 +685,8 @@ export default function ApproveLeaveRequest() {
                               <div className="pagination-content w-full">
                                    <div className="w-full flex lg:justify-between justify-center items-center">
                                         <div className="lg:flex hidden">
-                                             <p className="text-sm text-bgray-600 dark:text-bgray-50">
-                                                  Records: 1 to 19 of 19
+                                             <p className="text-sm text-bgray-600 dark:text-white">
+                                                  Records: {leaveRequests.length}
                                              </p>
                                         </div>
                                         <div className="flex sm:space-x-[35px] space-x-5 items-center">
@@ -627,7 +712,7 @@ export default function ApproveLeaveRequest() {
                                              <div className="flex items-center">
                                                   <button
                                                        type="button"
-                                                       className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                       className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                   >
                                                        1
                                                   </button>
@@ -670,24 +755,26 @@ export default function ApproveLeaveRequest() {
                                    </button>
                               </div>
                               <div className="space-y-4">
-                                   <div className="grid grid-cols-2 gap-4 bg-bgray-50 dark:bg-darkblack-550 p-4 rounded-xl">
-                                        <div>
-                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Staff Member</span>
-                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.staff}</span>
+                                        <div className="grid grid-cols-3 gap-4 pb-4 border-b border-bgray-100 dark:border-darkblack-400">
+                                             <span className="text-bgray-500 dark:text-bgray-400 font-medium">Staff Member</span>
+                                             <span className="text-bgray-600 dark:text-white font-medium col-span-2">{selectedRequest?.staff ? `${selectedRequest.staff.firstName || ''} ${selectedRequest.staff.lastName || ''}` : "Unknown"}</span>
                                         </div>
-                                        <div>
-                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Leave Type</span>
-                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.leaveType}</span>
+                                        <div className="grid grid-cols-3 gap-4 pb-4 border-b border-bgray-100 dark:border-darkblack-400">
+                                             <span className="text-bgray-500 dark:text-bgray-400 font-medium">Leave Type</span>
+                                             <span className="text-bgray-600 dark:text-white font-medium col-span-2">{selectedRequest?.leaveType}</span>
                                         </div>
-                                        <div>
-                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Leave Date</span>
-                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.leaveDate}</span>
+                                        <div className="grid grid-cols-3 gap-4 pb-4 border-b border-bgray-100 dark:border-darkblack-400">
+                                             <span className="text-bgray-500 dark:text-bgray-400 font-medium">Leave Date</span>
+                                             <span className="text-bgray-600 dark:text-white font-medium col-span-2">{selectedRequest ? `${new Date(selectedRequest.fromDate).toLocaleDateString()} - ${new Date(selectedRequest.toDate).toLocaleDateString()}` : ""}</span>
                                         </div>
-                                        <div>
-                                             <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block">Days Requested</span>
-                                             <span className="text-sm font-bold text-bgray-900 dark:text-white">{selectedRequest.days} {selectedRequest.days === 1 ? 'Day' : 'Days'}</span>
+                                        <div className="grid grid-cols-3 gap-4 pb-4 border-b border-bgray-100 dark:border-darkblack-400">
+                                             <span className="text-bgray-500 dark:text-bgray-400 font-medium">Days</span>
+                                             <span className="text-bgray-600 dark:text-white font-medium col-span-2">{selectedRequest?.days}</span>
                                         </div>
-                                   </div>
+                                        <div className="grid grid-cols-3 gap-4 pb-4 border-b border-bgray-100 dark:border-darkblack-400">
+                                             <span className="text-bgray-500 dark:text-bgray-400 font-medium">Apply Date</span>
+                                             <span className="text-bgray-600 dark:text-white font-medium col-span-2">{selectedRequest ? (selectedRequest.applyDate ? new Date(selectedRequest.applyDate).toLocaleDateString() : new Date(selectedRequest.created_at).toLocaleDateString()) : ""}</span>
+                                        </div>
 
                                    <div className="space-y-1">
                                         <span className="text-[10px] font-black text-bgray-400 uppercase tracking-widest font-bold">Reason for Leave</span>
@@ -707,22 +794,9 @@ export default function ApproveLeaveRequest() {
                                    </div>
                               </div>
                               <div className="flex justify-end gap-3 pt-4 border-t border-bgray-100 dark:border-darkblack-400">
-                                   {selectedRequest.status !== "Approved" && (
-                                        <button 
-                                             onClick={() => handleStatusChange(selectedRequest.id, "Approved")}
-                                             className="px-6 h-12 bg-green-500 hover:bg-green-600 text-white font-black rounded-xl transition-all text-xs uppercase tracking-widest"
-                                        >
-                                             Approve
-                                        </button>
-                                   )}
-                                   {selectedRequest.status !== "Disapproved" && (
-                                        <button 
-                                             onClick={() => handleStatusChange(selectedRequest.id, "Disapproved")}
-                                             className="px-6 h-12 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl transition-all text-xs uppercase tracking-widest"
-                                        >
-                                             Disapprove
-                                        </button>
-                                   )}
+                                        <button onClick={() => handleStatusChange(selectedRequest._id, "Pending")} className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedRequest?.status === "Pending" ? "bg-orange-500 text-white" : "bg-bgray-100 dark:bg-darkblack-500 text-bgray-600 dark:text-white hover:bg-orange-100 dark:hover:bg-orange-900/20"}`}>Pending</button>
+                                        <button onClick={() => handleStatusChange(selectedRequest._id, "Approved")} className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedRequest?.status === "Approved" ? "bg-green-500 text-white" : "bg-bgray-100 dark:bg-darkblack-500 text-bgray-600 dark:text-white hover:bg-green-100 dark:hover:bg-green-900/20"}`}>Approved</button>
+                                        <button onClick={() => handleStatusChange(selectedRequest._id, "Disapproved")} className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedRequest?.status === "Disapproved" ? "bg-red-500 text-white" : "bg-bgray-100 dark:bg-darkblack-500 text-bgray-600 dark:text-white hover:bg-red-100 dark:hover:bg-red-900/20"}`}>Disapproved</button>
                                    <button 
                                         onClick={() => setShowDetails(false)}
                                         className="px-6 h-12 bg-bgray-200 dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-300 font-black rounded-xl hover:bg-bgray-300 transition-all text-xs uppercase tracking-widest"
@@ -750,14 +824,20 @@ export default function ApproveLeaveRequest() {
                               </div>
                               <form onSubmit={handleAddLeave} className="p-6 space-y-4">
                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block font-bold">Staff Name / ID *</label>
-                                        <input 
-                                             required 
-                                             value={addStaff} 
-                                             onChange={e => setAddStaff(e.target.value)} 
-                                             placeholder="e.g. Jason Sharlton (90006)"
-                                             className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30" 
-                                        />
+                                        <label className="text-sm font-semibold text-bgray-600 dark:text-white">Staff *</label>
+                                        <select
+                                             required
+                                             value={addStaff}
+                                             onChange={(e) => setAddStaff(e.target.value)}
+                                             className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white outline-none focus:ring-2 focus:ring-success-300"
+                                        >
+                                             <option value="">Select Staff</option>
+                                             {staffList.map((staff) => (
+                                                  <option key={staff._id} value={staff._id}>
+                                                       {staff.firstName} {staff.lastName} ({staff.staffId})
+                                                  </option>
+                                             ))}
+                                        </select>
                                    </div>
                                    <div className="space-y-1">
                                         <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest block font-bold">Leave Type *</label>
@@ -766,10 +846,13 @@ export default function ApproveLeaveRequest() {
                                              onChange={e => setAddLeaveType(e.target.value)} 
                                              className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30"
                                         >
-                                             <option value="Medical Leave">Medical Leave</option>
-                                             <option value="Casual Leave">Casual Leave</option>
-                                             <option value="Maternity Leave">Maternity Leave</option>
-                                             <option value="Sick Leave">Sick Leave</option>
+                                             {leaveTypes.length === 0 ? (
+                                                  <option value="">No Leave Types</option>
+                                             ) : (
+                                                  leaveTypes.map((type) => (
+                                                       <option key={type._id} value={type.name}>{type.name}</option>
+                                                  ))
+                                             )}
                                         </select>
                                    </div>
                                    <div className="grid grid-cols-2 gap-4">

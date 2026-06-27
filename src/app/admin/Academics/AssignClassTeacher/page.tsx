@@ -1,9 +1,61 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function AssignClassTeacher() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "export" | null>(null);
      const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+     
+     const [classes, setClasses] = useState<any[]>([]);
+     const [selectedClass, setSelectedClass] = useState<string>("");
+     const [selectedSection, setSelectedSection] = useState<string>("");
+     const [loadingClasses, setLoadingClasses] = useState<boolean>(false);
+     const [isSaving, setIsSaving] = useState<boolean>(false);
+
+     const [teachers, setTeachers] = useState<any[]>([]);
+     const [classTeacherList, setClassTeacherList] = useState<any[]>([]);
+     
+     const fetchTeachers = async () => {
+          try {
+               const res = await fetch("/api/staff?role=Teacher");
+               const data = await res.json();
+               if (data.success) setTeachers(data.data);
+          } catch (error) {
+               console.error("Error fetching teachers:", error);
+          }
+     };
+
+     const fetchClassTeachers = async () => {
+          try {
+               const res = await fetch("/api/assign-class-teacher");
+               const data = await res.json();
+               if (data.success) setClassTeacherList(data.data);
+          } catch (error) {
+               console.error("Error fetching class teachers:", error);
+          }
+     };
+
+     useEffect(() => {
+          fetchTeachers();
+          fetchClassTeachers();
+     }, []);
+
+     useEffect(() => {
+          const fetchClasses = async () => {
+               setLoadingClasses(true);
+               try {
+                    const res = await fetch("/api/classes");
+                    const data = await res.json();
+                    if (data.success) {
+                         setClasses(data.data);
+                    }
+               } catch (error) {
+                    console.error("Error fetching classes:", error);
+               } finally {
+                    setLoadingClasses(false);
+               }
+          };
+          fetchClasses();
+     }, []);
 
      const toggleFilter = (type: "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
@@ -17,23 +69,57 @@ export default function AssignClassTeacher() {
           }
      };
 
-     const teachers = [
-          { id: "1", name: "Shivam Verma", code: "9002" },
-          { id: "2", name: "Jason Sharlton", code: "90006" },
-          { id: "3", name: "Albert Thomas", code: "54545454" },
-          { id: "4", name: "Jonathan Wood", code: "6332" },
-          { id: "5", name: "Nishant Khare", code: "1002" },
-     ];
+     const handleSave = async () => {
+          if (!selectedClass || !selectedSection || selectedTeachers.length === 0) {
+               alert("Please select class, section, and at least one teacher");
+               return;
+          }
+          setIsSaving(true);
+          try {
+               const res = await fetch("/api/assign-class-teacher", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                         className: selectedClass,
+                         section: selectedSection,
+                         teachers: selectedTeachers,
+                    }),
+               });
+               const data = await res.json();
+               if (data.success) {
+                    alert("Class teacher assigned successfully");
+                    setSelectedClass("");
+                    setSelectedSection("");
+                    setSelectedTeachers([]);
+                    fetchClassTeachers();
+               } else {
+                    alert("Failed to assign class teacher: " + data.error);
+               }
+          } catch (error) {
+               console.error("Error assigning class teacher:", error);
+               alert("An error occurred");
+          } finally {
+               setIsSaving(false);
+          }
+     };
 
-     const classTeacherList = [
-          { class: "Class 1", section: "A", teachers: ["Shivam Verma (9002)", "Albert Thomas (54545454)"] },
-          { class: "Class 1", section: "B", teachers: ["Shivam Verma (9002)", "Jason Sharlton (90006)"] },
-          { class: "Class 2", section: "A", teachers: ["Shivam Verma (9002)", "Jason Sharlton (90006)"] },
-          { class: "Class 3", section: "A", teachers: ["Shivam Verma (9002)", "Albert Thomas (54545454)"] },
-          { class: "Class 4", section: "A", teachers: ["Shivam Verma (9002)", "Jason Sharlton (90006)"] },
-          { class: "Class 5", section: "A", teachers: ["Shivam Verma (9002)", "Jason Sharlton (90006)"] },
-          { class: "Class 5", section: "B", teachers: ["Albert Thomas (54545454)"] },
-     ];
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure you want to delete this assignment?")) return;
+          try {
+               const res = await fetch(`/api/assign-class-teacher?id=${id}`, {
+                    method: "DELETE",
+               });
+               const data = await res.json();
+               if (data.success) {
+                    fetchClassTeachers();
+               } else {
+                    alert("Failed to delete assignment: " + data.error);
+               }
+          } catch (error) {
+               console.error("Error deleting assignment:", error);
+               alert("An error occurred");
+          }
+     };
 
      return (
           <>
@@ -50,13 +136,18 @@ export default function AssignClassTeacher() {
                                         <label className="text-sm font-medium text-bgray-900 dark:text-white">
                                              Class <span className="text-red-500">*</span>
                                         </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
+                                        <select
+                                             value={selectedClass}
+                                             onChange={(e) => {
+                                                  setSelectedClass(e.target.value);
+                                                  setSelectedSection("");
+                                             }}
+                                             className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                        >
                                              <option value="">Select</option>
-                                             <option value="class1">Class 1</option>
-                                             <option value="class2">Class 2</option>
-                                             <option value="class3">Class 3</option>
-                                             <option value="class4">Class 4</option>
-                                             <option value="class5">Class 5</option>
+                                             {classes.map(c => (
+                                                  <option key={c._id} value={c.name}>{c.name}</option>
+                                             ))}
                                         </select>
                                    </div>
 
@@ -65,11 +156,20 @@ export default function AssignClassTeacher() {
                                         <label className="text-sm font-medium text-bgray-900 dark:text-white">
                                              Section <span className="text-red-500">*</span>
                                         </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
+                                        <select
+                                             value={selectedSection}
+                                             onChange={(e) => setSelectedSection(e.target.value)}
+                                             disabled={!selectedClass}
+                                             className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                        >
                                              <option value="">Select</option>
-                                             <option value="a">A</option>
-                                             <option value="b">B</option>
-                                             <option value="c">C</option>
+                                             {classes.find(c => c.name === selectedClass)?.sections?.map((s: any) => {
+                                                  const sName = s.name || s;
+                                                  const sId = s._id || sName;
+                                                  return (
+                                                       <option key={sId} value={sName}>{sName}</option>
+                                                  );
+                                             })}
                                         </select>
                                    </div>
 
@@ -81,17 +181,17 @@ export default function AssignClassTeacher() {
                                         <div className="space-y-3 pt-2">
                                              {teachers.map((teacher) => (
                                                   <label
-                                                       key={teacher.id}
+                                                       key={teacher._id}
                                                        className="flex items-center space-x-3 cursor-pointer"
                                                   >
                                                        <input
                                                             type="checkbox"
-                                                            checked={selectedTeachers.includes(teacher.id)}
-                                                            onChange={() => handleTeacherToggle(teacher.id)}
+                                                            checked={selectedTeachers.includes(teacher._id)}
+                                                            onChange={() => handleTeacherToggle(teacher._id)}
                                                             className="focus:outline-none focus:ring-0 rounded border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 dark:bg-darkblack-600 dark:border-darkblack-400"
                                                        />
                                                        <span className="text-sm font-medium text-bgray-900 dark:text-white">
-                                                            {teacher.name} ({teacher.code})
+                                                            {teacher.firstName} {teacher.lastName} ({teacher.staffId || teacher.staff_id})
                                                        </span>
                                                   </label>
                                              ))}
@@ -101,9 +201,11 @@ export default function AssignClassTeacher() {
                                    {/* Save Button */}
                                    <button
                                         type="button"
-                                        className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full disabled:opacity-70"
                                    >
-                                        Save
+                                        {isSaving ? "Saving..." : "Save"}
                                    </button>
                               </div>
                          </div>
@@ -215,7 +317,7 @@ export default function AssignClassTeacher() {
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                       Class
                                                                  </span>
                                                                  <span>
@@ -260,7 +362,7 @@ export default function AssignClassTeacher() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                       Section
                                                                  </span>
                                                                  <span>
@@ -305,7 +407,7 @@ export default function AssignClassTeacher() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                       Class Teacher
                                                                  </span>
                                                                  <span>
@@ -349,7 +451,7 @@ export default function AssignClassTeacher() {
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Action
                                                             </span>
                                                        </td>
@@ -358,27 +460,27 @@ export default function AssignClassTeacher() {
                                              <tbody>
                                                   {classTeacherList.map((item, index) => (
                                                        <tr
-                                                            key={index}
+                                                            key={item._id}
                                                             className="border-b border-bgray-300 dark:border-darkblack-400"
                                                        >
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {item.class}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {item.section}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex flex-col space-y-1">
-                                                                      {item.teachers.map((teacher, tIndex) => (
+                                                                      {item.teachers?.map((teacher: any, tIndex: number) => (
                                                                            <p
                                                                                 key={tIndex}
-                                                                                className="font-medium text-base text-bgray-900 dark:text-bgray-50"
+                                                                                className="font-medium text-base text-bgray-900 dark:text-white"
                                                                            >
-                                                                                {teacher}
+                                                                                {teacher.firstName} {teacher.lastName} ({teacher.staffId || teacher.staff_id})
                                                                            </p>
                                                                       ))}
                                                                  </div>
@@ -407,6 +509,7 @@ export default function AssignClassTeacher() {
                                                                       </button>
                                                                       <button
                                                                            type="button"
+                                                                           onClick={() => handleDelete(item._id)}
                                                                            className="text-bgray-900 dark:text-white hover:text-red-500 transition-colors"
                                                                       >
                                                                            <svg
@@ -444,7 +547,7 @@ export default function AssignClassTeacher() {
                                    <div className="pagination-content w-full">
                                         <div className="w-full flex lg:justify-between justify-center items-center">
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">
+                                                  <span className="text-bgray-600 dark:text-white text-sm font-semibold">
                                                        Show result:
                                                   </span>
                                                   <div className="relative">
@@ -453,7 +556,7 @@ export default function AssignClassTeacher() {
                                                             className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                             onClick={() => toggleFilter("pagination")}
                                                        >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">
+                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-white">
                                                                  10
                                                             </span>
                                                             <span>
@@ -516,7 +619,7 @@ export default function AssignClassTeacher() {
                                                   <div className="flex items-center">
                                                        <button
                                                             type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                        >
                                                             1
                                                        </button>
@@ -552,7 +655,7 @@ export default function AssignClassTeacher() {
 
                                    {/* Records Info */}
                                    <div className="text-center">
-                                        <p className="text-sm text-bgray-600 dark:text-bgray-50">
+                                        <p className="text-sm text-bgray-600 dark:text-white">
                                              Records: 1 to 7 of 7
                                         </p>
                                    </div>

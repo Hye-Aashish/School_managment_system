@@ -163,7 +163,7 @@ export default function QuickFeesMaster() {
                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                               {/* Class */}
                               <div className="w-full">
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Class</label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Class</label>
                                    <div className="relative">
                                         <button
                                              type="button"
@@ -188,7 +188,7 @@ export default function QuickFeesMaster() {
 
                               {/* Section */}
                               <div className="w-full">
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Section</label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Section</label>
                                    <div className="relative">
                                         <button
                                              type="button"
@@ -213,7 +213,7 @@ export default function QuickFeesMaster() {
 
                               {/* Student */}
                               <div className="w-full">
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Student</label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Student</label>
                                    <div className="relative">
                                         <button
                                              type="button"
@@ -239,26 +239,26 @@ export default function QuickFeesMaster() {
                          {/* Fee Details Grid */}
                          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
                               <div>
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Total Fees <span className="text-red-500">*</span></label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Total Fees <span className="text-red-500">*</span></label>
                                    <input type="number" value={totalFees} onChange={(e) => setTotalFees(Number(e.target.value))} className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 px-4 border border-bgray-300 dark:border-darkblack-400 focus:border-success-300 dark:text-white" />
                               </div>
                               <div>
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">1st Installment</label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">1st Installment</label>
                                    <input type="number" value={firstInstallment} onChange={(e) => setFirstInstallment(Number(e.target.value))} className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 px-4 border border-bgray-300 dark:border-darkblack-400 focus:border-success-300 dark:text-white" />
                               </div>
                               <div>
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Balance Fees <span className="text-red-500">*</span></label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Balance Fees <span className="text-red-500">*</span></label>
                                    <input type="number" value={balanceFees} readOnly className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-400 px-4 border border-bgray-300 dark:border-darkblack-400 dark:text-white outline-none cursor-not-allowed" />
                               </div>
                               <div>
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">No. Of Installment <span className="text-red-500">*</span></label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">No. Of Installment <span className="text-red-500">*</span></label>
                                    <input type="number" value={noOfInstallment} onChange={(e) => setNoOfInstallment(Math.max(1, Number(e.target.value)))} className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 px-4 border border-bgray-300 dark:border-darkblack-400 focus:border-success-300 dark:text-white" />
                               </div>
                          </div>
 
                          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
                               <div>
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Monthly Day for Due date</label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Monthly Day for Due date</label>
                                    <div className="relative">
                                         <button
                                              type="button"
@@ -281,7 +281,7 @@ export default function QuickFeesMaster() {
                               </div>
 
                               <div>
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Fine Type</label>
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Fine Type</label>
                                    <div className="relative">
                                         <button
                                              type="button"
@@ -305,7 +305,7 @@ export default function QuickFeesMaster() {
 
                               {selectedFineType !== "none" && (
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Fine Type Value <span className="text-red-500">*</span></label>
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Fine Type Value <span className="text-red-500">*</span></label>
                                         <input type="number" value={fineValue} onChange={(e) => setFineValue(Number(e.target.value))} className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 px-4 border border-bgray-300 dark:border-darkblack-400 focus:border-success-300 dark:text-white" />
                                    </div>
                               )}
@@ -328,12 +328,12 @@ export default function QuickFeesMaster() {
                                         <table className="w-full whitespace-nowrap">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Fees Group *</th>
-                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Fees Type *</th>
-                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Fees Code *</th>
-                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Due Date</th>
-                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Fine Amount ($)</th>
-                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Amount ($) *</th>
+                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Fees Group *</th>
+                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Fees Type *</th>
+                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Fees Code *</th>
+                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Due Date</th>
+                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Fine Amount ($)</th>
+                                                       <th className="py-4 px-4 text-left text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Amount ($) *</th>
                                                   </tr>
                                              </thead>
                                              <tbody>

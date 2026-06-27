@@ -64,7 +64,7 @@ export default function Reports() {
                 }
                 if (classRes.ok) {
                         const json = await classRes.json();
-                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                        setClasses(json.data ? json.data.map((c: any) => c.name || c.className) : []);
                      }
            } catch (error) {
                 console.error("Error fetching initial data:", error);
@@ -81,7 +81,10 @@ export default function Reports() {
                 }
                 try {
                      const res = await fetch(`/api/sections?class=${selectedClass}`);
-                     if (res.ok) setSections(await res.json());
+                     if (res.ok) {
+                          const json = await res.json();
+                          setSections(json.data ? json.data.map((s: any) => s.name || s.sectionName) : []);
+                     }
                 } catch (err) { console.error(err); }
            };
            fetchSections();
@@ -101,9 +104,10 @@ export default function Reports() {
                 if (searchTerm) query.append("search", searchTerm);
 
                 const res = await fetch(`/api/cbse-marks?${query.toString()}`);
-                if (res.ok) {
-                     setMarksData(await res.json());
-                }
+                 if (res.ok) {
+                      const json = await res.json();
+                      setMarksData(json.data || []);
+                 }
            } catch (error) {
                 console.error("Error fetching marks:", error);
            } finally {
@@ -159,7 +163,7 @@ export default function Reports() {
                                         <>
                                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                                                    <div>
-                                                        <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Exam *</label>
+                                                        <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Exam *</label>
                                                         <select
                                                              disabled={isInitialLoading}
                                                              value={selectedExam}
@@ -171,7 +175,7 @@ export default function Reports() {
                                                         </select>
                                                    </div>
                                                    <div>
-                                                        <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Class</label>
+                                                        <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Class</label>
                                                         <select
                                                              value={selectedClass}
                                                              onChange={(e) => setSelectedClass(e.target.value)}
@@ -182,7 +186,7 @@ export default function Reports() {
                                                         </select>
                                                    </div>
                                                    <div>
-                                                        <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Section</label>
+                                                        <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Section</label>
                                                         <select
                                                              value={selectedSection}
                                                              onChange={(e) => setSelectedSection(e.target.value)}
@@ -220,12 +224,12 @@ export default function Reports() {
                                                   <table className="w-full border-collapse border border-bgray-300 dark:border-darkblack-400">
                                                        <thead>
                                                             <tr className="bg-bgray-50 dark:bg-darkblack-500">
-                                                                 <th className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-left text-xs font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider" rowSpan={2}>Student</th>
-                                                                 <th className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-left text-xs font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider" rowSpan={2}>Admission No</th>
+                                                                 <th className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-left text-xs font-bold text-bgray-600 dark:text-white uppercase tracking-wider" rowSpan={2}>Student</th>
+                                                                 <th className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-left text-xs font-bold text-bgray-600 dark:text-white uppercase tracking-wider" rowSpan={2}>Admission No</th>
                                                                  {subjects.map(subject => (
-                                                                      <th key={subject} className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-center text-xs font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider" colSpan={3}>{subject}</th>
+                                                                      <th key={subject} className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-center text-xs font-bold text-bgray-600 dark:text-white uppercase tracking-wider" colSpan={3}>{subject}</th>
                                                                  ))}
-                                                                 <th className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-center text-xs font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider" rowSpan={2}>Total</th>
+                                                                 <th className="border border-bgray-300 dark:border-darkblack-400 py-3 px-4 text-center text-xs font-bold text-bgray-600 dark:text-white uppercase tracking-wider" rowSpan={2}>Total</th>
                                                             </tr>
                                                             <tr className="bg-bgray-50 dark:bg-darkblack-500 text-[10px] text-bgray-500 dark:text-bgray-300">
                                                                  {subjects.map(subject => (

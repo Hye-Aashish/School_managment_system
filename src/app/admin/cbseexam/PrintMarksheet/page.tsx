@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 
-type IClass = string;
-type ISection = string;
+type IClass = { _id: string; name: string; sections: { _id: string; name: string }[] };
 
 interface ITemplate {
     _id: string;
@@ -22,7 +21,7 @@ interface IStudent {
 
 export default function StudentDetails() {
      const [classes, setClasses] = useState<IClass[]>([]);
-     const [sections, setSections] = useState<ISection[]>([]);
+     const [sections, setSections] = useState<string[]>([]);
      const [templates, setTemplates] = useState<ITemplate[]>([]);
      const [students, setStudents] = useState<IStudent[]>([]);
      const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +43,12 @@ export default function StudentDetails() {
                      ]);
                      if (classRes.ok) {
                         const json = await classRes.json();
-                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                        setClasses(json.data || []);
                      }
-                     if (templateRes.ok) setTemplates(await templateRes.json());
+                     if (templateRes.ok) {
+                         const tData = await templateRes.json();
+                         setTemplates(tData.data ? tData.data : tData);
+                     }
                } catch (error) {
                     console.error("Error fetching initial data:", error);
                }
@@ -55,19 +57,18 @@ export default function StudentDetails() {
      }, []);
 
      useEffect(() => {
-          const fetchSections = async () => {
-               if (!selectedClass) {
-                    setSections([]);
-                    return;
-               }
-               try {
-                    const res = await fetch(`/api/sections?class=${selectedClass}`);
-                    if (res.ok) setSections(await res.json());
-               } catch (err) { console.error(err); }
-          };
-          fetchSections();
+          if (!selectedClass) {
+               setSections([]);
+               return;
+          }
+          const cls = classes.find(c => c.name === selectedClass);
+          if (cls && cls.sections) {
+               setSections(cls.sections.map(s => s.name));
+          } else {
+               setSections([]);
+          }
           setSelectedSection(""); // Reset section when class changes
-     }, [selectedClass]);
+     }, [selectedClass, classes]);
 
      const fetchStudents = async () => {
           if (!selectedClass || !selectedSection) return;
@@ -82,8 +83,8 @@ export default function StudentDetails() {
                 
                 const res = await fetch(`/api/students?${query.toString()}`);
                 if (res.ok) {
-                     const data = await res.json();
-                     setStudents(data.data || []);
+                     const json = await res.json();
+                     setStudents(json.data?.students || []);
                 }
            } catch (error) {
                console.error("Error fetching students:", error);
@@ -159,7 +160,7 @@ export default function StudentDetails() {
                                                   <div className="flex flex-col items-start text-left">
                                                        <span className="text-xs text-bgray-500 dark:text-bgray-400">Class *</span>
                                                        <span className="text-sm text-bgray-900 dark:text-white font-medium">
-                                                            {classes.find(c => c === selectedClass) || "Select"}
+                                                            {selectedClass || "Select"}
                                                        </span>
                                                   </div>
                                                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -167,8 +168,8 @@ export default function StudentDetails() {
                                              {openFilter === "class" && (
                                                   <div className="absolute z-50 w-full mt-1 bg-white dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                                                        {classes.map(c => (
-                                                            <div key={c} onClick={() => { setSelectedClass(c); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm font-medium">
-                                                                 {c}
+                                                            <div key={c._id} onClick={() => { setSelectedClass(c.name); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm font-medium">
+                                                                 {c.name}
                                                             </div>
                                                        ))}
                                                   </div>
@@ -249,13 +250,13 @@ export default function StudentDetails() {
                                                                  className="w-5 h-5 text-success-300 rounded border-bgray-400 dark:bg-darkblack-600 cursor-pointer"
                                                             />
                                                        </th>
-                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-bgray-50">Admission No</th>
-                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-bgray-50">Student Name</th>
-                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-bgray-50">Father Name</th>
-                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-bgray-50">Date Of Birth</th>
-                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-bgray-50">Gender</th>
-                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-bgray-50">Mobile No.</th>
-                                                       <th className="py-5 px-6 xl:px-4 text-right font-medium text-bgray-600 dark:text-bgray-50">Action</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-white">Admission No</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-white">Student Name</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-white">Father Name</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-white">Date Of Birth</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-white">Gender</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-left font-medium text-bgray-600 dark:text-white">Mobile No.</th>
+                                                       <th className="py-5 px-6 xl:px-4 text-right font-medium text-bgray-600 dark:text-white">Action</th>
                                                   </tr>
                                              </thead>
                                              <tbody>

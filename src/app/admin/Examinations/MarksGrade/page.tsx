@@ -129,7 +129,7 @@ export default function MarksGrade() {
 
                                         {/* Exam Type */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Exam Type <span className="text-red-500">*</span>
                                              </label>
                                              <select
@@ -149,7 +149,7 @@ export default function MarksGrade() {
 
                                         {/* Grade Name */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Grade Name <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -163,7 +163,7 @@ export default function MarksGrade() {
 
                                         {/* Percent From */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Percent From <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -177,7 +177,7 @@ export default function MarksGrade() {
 
                                         {/* Percent Upto */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Percent Upto <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -191,7 +191,7 @@ export default function MarksGrade() {
 
                                         {/* Grade Point */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Grade Point <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -206,7 +206,7 @@ export default function MarksGrade() {
 
                                         {/* Description */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Description
                                              </label>
                                              <textarea
@@ -263,27 +263,27 @@ export default function MarksGrade() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Exam Type
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Grade Name
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Percent From / Upto
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Grade Point
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-right">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Action
                                                                  </span>
                                                             </td>
@@ -309,17 +309,17 @@ export default function MarksGrade() {
                                                                       <tr key={grade._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                            <td></td>
                                                                            <td className="py-4 px-6 xl:px-0">
-                                                                                <p className="text-sm font-medium text-bgray-900 dark:text-bgray-50">
+                                                                                <p className="text-sm font-medium text-bgray-900 dark:text-white">
                                                                                      {grade.gradeName}
                                                                                 </p>
                                                                            </td>
                                                                            <td className="py-4 px-6 xl:px-0">
-                                                                                <p className="text-sm font-medium text-bgray-900 dark:text-bgray-50">
+                                                                                <p className="text-sm font-medium text-bgray-900 dark:text-white">
                                                                                      {grade.percentFrom} To {grade.percentUpto}
                                                                                 </p>
                                                                            </td>
                                                                            <td className="py-4 px-6 xl:px-0">
-                                                                                <p className="text-sm font-medium text-bgray-900 dark:text-bgray-50">
+                                                                                <p className="text-sm font-medium text-bgray-900 dark:text-white">
                                                                                      {grade.gradePoint}
                                                                                 </p>
                                                                            </td>

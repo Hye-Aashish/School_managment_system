@@ -16,7 +16,7 @@ interface ITemplate {
 
 export default function TemplateList() {
      const [templates, setTemplates] = useState<ITemplate[]>([]);
-     const [classes, setClasses] = useState<IClass[]>([]);
+     const [classes, setClasses] = useState<{_id: string, name: string, sections: any[]}[]>([]);
      const [sections, setSections] = useState<ISection[]>([]);
      const [classSectionsMap, setClassSectionsMap] = useState<Record<string, string[]>>({});
      const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +47,7 @@ export default function TemplateList() {
                if (tempRes.ok) setTemplates(await tempRes.json());
                if (classRes.ok) {
                         const json = await classRes.json();
-                        setClasses(json.data ? json.data.map((c: any) => c.className) : []);
+                        setClasses(json.data || []);
                      }
                if (secRes.ok) setSections(await secRes.json());
           } catch (error) {
@@ -199,10 +199,10 @@ export default function TemplateList() {
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-bgray-50">Template</th>
-                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-bgray-50">Class Sections</th>
-                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-bgray-50">Description</th>
-                                                       <th className="py-5 px-6 xl:px-0 text-right font-medium text-bgray-600 dark:text-bgray-50">Action</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-white">Template</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-white">Class Sections</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-left font-medium text-bgray-600 dark:text-white">Description</th>
+                                                       <th className="py-5 px-6 xl:px-0 text-right font-medium text-bgray-600 dark:text-white">Action</th>
                                                   </tr>
                                              </thead>
                                              <tbody>
@@ -244,7 +244,7 @@ export default function TemplateList() {
                               </div>
                               <form onSubmit={handleSubmit} className="space-y-4">
                                    <div className="space-y-1">
-                                        <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Template Name *</label>
+                                        <label className="text-sm font-semibold text-bgray-600 dark:text-white">Template Name *</label>
                                         <input
                                              type="text"
                                              required
@@ -256,7 +256,7 @@ export default function TemplateList() {
 
                                    <div className="space-y-2">
                                         <div className="flex justify-between items-center">
-                                             <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class & Sections *</label>
+                                             <label className="text-sm font-semibold text-bgray-600 dark:text-white">Class & Sections *</label>
                                              <button type="button" onClick={handleAddClassSection} className="text-xs text-success-300 hover:underline font-bold">+ Add Class</button>
                                         </div>
                                         {formData.classSections.map((cs, idx) => (
@@ -269,7 +269,7 @@ export default function TemplateList() {
                                                        className="w-full h-9 bg-white dark:bg-darkblack-500 rounded border-bgray-300 text-sm focus:ring-success-300"
                                                   >
                                                        <option value="">Select Class</option>
-                                                       {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                                                       {classes.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                                   </select>
                                                    <div className="flex flex-wrap gap-2">
                                                         {(classSectionsMap[cs.className] || sections).map(s => (
@@ -291,7 +291,7 @@ export default function TemplateList() {
                                    </div>
 
                                    <div className="space-y-1">
-                                        <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</label>
+                                        <label className="text-sm font-semibold text-bgray-600 dark:text-white">Description</label>
                                         <textarea
                                              value={formData.description}
                                              onChange={(e) => setFormData({ ...formData, description: e.target.value })}

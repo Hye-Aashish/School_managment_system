@@ -8,6 +8,8 @@ import { apiResponse } from "@/lib/response";
 // GET: List all classes with sections
 export async function GET() {
     await dbConnect();
+    // Reference model to prevent tree-shaking
+    const _dummySection = Section;
     try {
         const classes = await Class.find({}).populate("sections").sort({ name: 1 });
         return apiResponse.success(classes);

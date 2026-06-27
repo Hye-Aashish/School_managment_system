@@ -116,7 +116,7 @@ export default function FeeType() {
                                    <form onSubmit={handleSave} className="flex flex-col space-y-5">
                                         {/* Name */}
                                         <div className="w-full">
-                                             <label htmlFor="name" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="name" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Name <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -132,7 +132,7 @@ export default function FeeType() {
 
                                         {/* Fees Code */}
                                         <div className="w-full">
-                                             <label htmlFor="fees_code" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="fees_code" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Fees Code <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -148,7 +148,7 @@ export default function FeeType() {
 
                                         {/* Description */}
                                         <div className="w-full">
-                                             <label htmlFor="description" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="description" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Description
                                              </label>
                                              <textarea
@@ -218,9 +218,9 @@ export default function FeeType() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Name</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Fees Code</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Name</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Fees Code</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Action</td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>

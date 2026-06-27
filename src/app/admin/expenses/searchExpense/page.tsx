@@ -158,7 +158,7 @@ export default function SearchExpensePage() {
                          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                               {/* Search Type */}
                               <div className="w-full">
-                                   <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                   <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                         Search Type <span className="text-red-500">*</span>
                                    </label>
                                    <div className="relative">
@@ -194,7 +194,7 @@ export default function SearchExpensePage() {
                               {/* Dynamic Input based on Search Type */}
                               {searchType === "Search By Date" ? (
                                    <div className="w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Date</label>
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Date</label>
                                         <input
                                              type="date"
                                              value={searchParams.date}
@@ -204,7 +204,7 @@ export default function SearchExpensePage() {
                                    </div>
                               ) : searchType === "Search By Expense Head" ? (
                                    <div className="w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Expense Head</label>
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Expense Head</label>
                                         <div className="relative">
                                              <button
                                                   type="button"
@@ -236,7 +236,7 @@ export default function SearchExpensePage() {
                                    </div>
                               ) : (
                                    <div className="w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Keywords</label>
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Keywords</label>
                                         <input
                                              type="text"
                                              value={searchParams.keyword}
@@ -286,19 +286,19 @@ export default function SearchExpensePage() {
                                         <thead>
                                              <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Name</span>
+                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-white">Name</span>
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Expense Head</span>
+                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-white">Expense Head</span>
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Invoice Number</span>
+                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-white">Invoice Number</span>
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date</span>
+                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-white">Date</span>
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Amount</span>
+                                                       <span className="text-sm font-semibold text-bgray-600 dark:text-white">Amount</span>
                                                   </td>
                                              </tr>
                                         </thead>
@@ -310,18 +310,18 @@ export default function SearchExpensePage() {
                                              ) : expenses.map((ex) => (
                                                   <tr key={ex._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{ex.name}</p>
+                                                            <p className="font-medium text-sm text-bgray-900 dark:text-white">{ex.name}</p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-sm text-bgray-900 dark:text-white">
                                                                  {typeof ex.expenseHead === "object" ? ex.expenseHead.name : ""}
                                                             </p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{ex.invoiceNumber || ""}</p>
+                                                            <p className="font-medium text-sm text-bgray-900 dark:text-white">{ex.invoiceNumber || ""}</p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-sm text-bgray-900 dark:text-white">
                                                                  {new Date(ex.date).toLocaleDateString()}
                                                             </p>
                                                        </td>

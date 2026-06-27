@@ -114,7 +114,7 @@ export default function UploadContent() {
                                         <div className="grid grid-cols-2 gap-6">
                                              <div className="space-y-1.5">
                                                   <label className="text-[10px] font-black text-bgray-400 uppercase tracking-widest px-1">Specific Class</label>
-                                                  <select value={formData.class} onChange={e => setFormData({...formData, class: e.target.value})} className="w-full h-14 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-6 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
+                                                  <select value={formData.class} onChange={e => setFormData({...formData, class: e.target.value, section: ""})} className="w-full h-14 bg-bgray-50 dark:bg-darkblack-500 rounded-2xl px-6 text-sm font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30 font-black">
                                                        <option value="">Global (All Classes)</option>
                                                        {classList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                                   </select>

@@ -82,12 +82,12 @@ export default function BehaviourHistoryModal({ isOpen, onClose, onRefresh, stud
           <table className="w-full">
             <thead>
               <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">Title</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">Point</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">Assign By</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">Title</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">Point</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">Date</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">Description</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">Assign By</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">Action</th>
               </tr>
             </thead>
             <tbody>

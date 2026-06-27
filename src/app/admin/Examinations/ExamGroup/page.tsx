@@ -257,21 +257,21 @@ export default function ExamGroup() {
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Name</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Name</span>
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">No Of Exams</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">No Of Exams</span>
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Exam Type</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Exam Type</span>
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-right">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -287,13 +287,13 @@ export default function ExamGroup() {
                                                        ) : filteredGroups.map((item, index) => (
                                                             <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.name}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.noOfExams}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.noOfExams}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.examType}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.examType}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <div className="flex justify-end space-x-3 items-center">

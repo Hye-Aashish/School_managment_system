@@ -102,7 +102,7 @@ export default function AddClass() {
                               </h3>
                               <div className="flex flex-col space-y-6">
                                    <div className="w-full space-y-2 mb-0">
-                                        <label className="text-sm font-semibold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">
+                                        <label className="text-sm font-semibold text-bgray-700 dark:text-white uppercase tracking-wider">
                                              Class Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -115,7 +115,7 @@ export default function AddClass() {
                                    </div>
 
                                    <div className="w-full space-y-3">
-                                        <label className="text-sm font-semibold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">
+                                        <label className="text-sm font-semibold text-bgray-700 dark:text-white uppercase tracking-wider">
                                              Assign Sections <span className="text-red-500">*</span>
                                         </label>
                                         <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto p-1">
@@ -125,7 +125,7 @@ export default function AddClass() {
                                                        className={`flex items-center p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
                                                             selectedSectionIds.includes(section._id)
                                                                  ? "border-success-300 bg-success-50/50 dark:bg-success-300/10 text-success-300"
-                                                                 : "border-bgray-200 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-50"
+                                                                 : "border-bgray-200 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-bgray-600 dark:text-white"
                                                        }`}
                                                   >
                                                        <input
@@ -206,13 +206,13 @@ export default function AddClass() {
                                              <thead>
                                                   <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500/30">
                                                        <td className="py-4 px-6">
-                                                            <span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Class</span>
+                                                            <span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Class</span>
                                                        </td>
                                                        <td className="py-4 px-6">
-                                                            <span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Sections</span>
+                                                            <span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Sections</span>
                                                        </td>
                                                        <td className="py-4 px-6 text-right">
-                                                            <span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Action</span>
+                                                            <span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Action</span>
                                                        </td>
                                                   </tr>
                                              </thead>
@@ -223,7 +223,7 @@ export default function AddClass() {
                                                        filteredClasses.map((item) => (
                                                             <tr key={item._id} className="border-b border-bgray-100 dark:border-darkblack-400 hover:bg-bgray-50/50 transition-colors">
                                                                  <td className="py-5 px-6">
-                                                                      <p className="font-bold text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-bold text-base text-bgray-900 dark:text-white">
                                                                            {item.name}
                                                                       </p>
                                                                  </td>
@@ -240,7 +240,7 @@ export default function AddClass() {
                                                                       <div className="flex justify-end space-x-2">
                                                                            <button
                                                                                 onClick={() => handleEdit(item)}
-                                                                                className="p-2 rounded-lg bg-bgray-50 dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-50 hover:bg-success-300 hover:text-white transition-all duration-200 shadow-sm"
+                                                                                className="p-2 rounded-lg bg-bgray-50 dark:bg-darkblack-500 text-bgray-600 dark:text-white hover:bg-success-300 hover:text-white transition-all duration-200 shadow-sm"
                                                                                 title="Edit"
                                                                            >
                                                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

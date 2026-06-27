@@ -162,7 +162,7 @@ export default function ZoomLiveMeetingReport() {
                       <thead>
                         <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500">
                           {["Admission No", "Student Name", "Father Name", "Last Join"].map(h => (
-                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-bgray-50">{h}</th>
+                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-white">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -186,12 +186,12 @@ export default function ZoomLiveMeetingReport() {
                     </span>
                     <div className="flex items-center gap-1">
                       <button type="button" disabled={joinPage === 1} onClick={() => setJoinPage(p => p - 1)}
-                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
                         <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M12.72 5L7.72 10L12.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                       <button type="button" className="w-8 h-8 flex items-center justify-center rounded text-sm font-semibold text-white" style={{ backgroundColor: "#6654c0" }}>{joinPage}</button>
                       <button type="button" disabled={joinPage === joinTotalPages} onClick={() => setJoinPage(p => p + 1)}
-                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
                         <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M7.72 5L12.72 10L7.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                     </div>
@@ -212,10 +212,10 @@ export default function ZoomLiveMeetingReport() {
             <div className="flex flex-col space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Class <span className="text-error-300">*</span></label>
+                  <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2">Class <span className="text-error-300">*</span></label>
                   <div className="relative">
                     <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("class")}>
-                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedClass || "All"}</span>
+                      <span className="text-sm text-bgray-900 dark:text-white">{selectedClass || "All"}</span>
                       <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
                     </button>
                     <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
@@ -228,10 +228,10 @@ export default function ZoomLiveMeetingReport() {
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Section <span className="text-error-300">*</span></label>
+                  <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2">Section <span className="text-error-300">*</span></label>
                   <div className="relative">
                     <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("section")}>
-                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedSection || "All"}</span>
+                      <span className="text-sm text-bgray-900 dark:text-white">{selectedSection || "All"}</span>
                       <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
                     </button>
                     <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"}`}>
@@ -285,24 +285,24 @@ export default function ZoomLiveMeetingReport() {
                   <thead>
                     <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                       {["Meeting Title","Description","Date Time","Created By","Total Join"].map((label) => (
-                        <td key={label} className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">{label}</td>
+                        <td key={label} className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">{label}</td>
                       ))}
-                      <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</td>
+                      <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Action</td>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
-                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-bgray-50">Loading...</td></tr>
+                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-white">Loading...</td></tr>
                     ) : filtered.length === 0 ? (
-                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-bgray-50">{searchQuery ? "No matching Zoom meetings found." : "No Zoom meetings found."}</td></tr>
+                      <tr><td colSpan={6} className="text-center py-4 text-bgray-600 dark:text-white">{searchQuery ? "No matching Zoom meetings found." : "No Zoom meetings found."}</td></tr>
                     ) : (
                       paginated.map((item) => (
                         <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
-                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.meetingTitle}</td>
-                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.description}</td>
-                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{new Date(item.dateTime).toLocaleString()}</td>
-                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</td>
-                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.joinList?.length || 0}</td>
+                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.meetingTitle}</td>
+                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.description}</td>
+                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{new Date(item.dateTime).toLocaleString()}</td>
+                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.createdBy}</td>
+                          <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.joinList?.length || 0}</td>
                           <td className="py-4 px-4">
                             <button
                               type="button"
@@ -326,7 +326,7 @@ export default function ZoomLiveMeetingReport() {
               </div>
               <div className="pagination-content w-full">
                 <div className="w-full flex justify-between items-center">
-                  <span className="text-bgray-600 dark:text-bgray-50 text-sm">
+                  <span className="text-bgray-600 dark:text-white text-sm">
                     Showing {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalRecords)} of {totalRecords} entries
                   </span>
                   <div className="flex gap-2">

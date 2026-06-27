@@ -146,7 +146,7 @@ export default function ExpenseHeadPage() {
                                         <form onSubmit={handleSubmit} className="w-full space-y-4">
                                              {/* Expense Head */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Expense Head <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
@@ -161,7 +161,7 @@ export default function ExpenseHeadPage() {
 
                                              {/* Description */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Description
                                                   </label>
                                                   <textarea
@@ -251,13 +251,13 @@ export default function ExpenseHeadPage() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Expense Head</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Expense Head</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Description</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-center">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -269,7 +269,7 @@ export default function ExpenseHeadPage() {
                                                        ) : filteredHeads.map((head) => (
                                                             <tr key={head._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{head.name}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">{head.name}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300">{head.description}</p>
@@ -305,7 +305,7 @@ export default function ExpenseHeadPage() {
 
                                         {/* Pagination */}
                                         <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
-                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50 font-bold">
+                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-white font-bold">
                                                   <span>Total Records: {filteredHeads.length}</span>
                                              </div>
                                         </div>

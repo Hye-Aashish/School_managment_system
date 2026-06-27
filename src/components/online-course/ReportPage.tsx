@@ -73,7 +73,7 @@ export default function ReportPage({ title, description, apiUrl, columns, transf
                     <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600 mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                         <div>
                             <h2 className="text-xl font-bold text-bgray-900 dark:text-white">{title}</h2>
-                            {description && <p className="text-sm text-bgray-500 dark:text-bgray-50 mt-1">{description}</p>}
+                            {description && <p className="text-sm text-bgray-500 dark:text-white mt-1">{description}</p>}
                         </div>
                         <button
                             onClick={downloadCSV}
@@ -116,9 +116,9 @@ export default function ReportPage({ title, description, apiUrl, columns, transf
                                 <table className="w-full border-collapse">
                                     <thead>
                                         <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                            <th className="py-4 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">#</th>
+                                            <th className="py-4 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">#</th>
                                             {columns.map((col) => (
-                                                <th key={col.key} className="py-4 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                <th key={col.key} className="py-4 px-4 text-left text-sm font-semibold text-bgray-600 dark:text-white">
                                                     {col.label}
                                                 </th>
                                             ))}
@@ -127,7 +127,7 @@ export default function ReportPage({ title, description, apiUrl, columns, transf
                                     <tbody>
                                         {filteredData.map((row, i) => (
                                             <tr key={i} className="border-b border-bgray-200 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors">
-                                                <td className="py-4 px-4 text-sm text-bgray-600 dark:text-bgray-50">{i + 1}</td>
+                                                <td className="py-4 px-4 text-sm text-bgray-600 dark:text-white">{i + 1}</td>
                                                 {columns.map((col) => (
                                                     <td key={col.key} className="py-4 px-4 text-sm text-bgray-900 dark:text-white capitalize">
                                                         {String(row[col.key] ?? "-")}

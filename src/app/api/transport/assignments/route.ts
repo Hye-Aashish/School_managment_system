@@ -38,3 +38,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    await dbConnect();
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+        const type = searchParams.get("type");
+
+        if (type === "routePoint") await TransportRoutePoint.findByIdAndDelete(id);
+        else if (type === "assignVehicle") await TransportAssignVehicle.findByIdAndDelete(id);
+        else if (type === "feesMaster") await TransportFeesMaster.findByIdAndDelete(id);
+        else return NextResponse.json({ success: false, error: "Invalid type" }, { status: 400 });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    }
+}

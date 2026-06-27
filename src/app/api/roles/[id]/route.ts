@@ -7,7 +7,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     try {
         await dbConnect();
         const { id } = await params;
-        const body = await req.json();
+        const text = await req.text();
+        const body = text ? JSON.parse(text) : {};
         const role = await Role.findByIdAndUpdate(id, body, { new: true });
         if (!role) {
             return NextResponse.json({ success: false, error: "Role not found" }, { status: 404 });

@@ -29,12 +29,27 @@ export default function GmeetLiveClassModal({ isOpen, onClose, onRefresh, editDa
   const [createdFor, setCreatedFor] = useState("");
   const [addedClasses, setAddedClasses] = useState<string[]>([]);
   const [meetUrl, setMeetUrl] = useState("");
-  const [tempClass, setTempClass] = useState("Class 1");
-  const [tempSection, setTempSection] = useState("A");
+  const [tempClass, setTempClass] = useState("");
+  const [tempSection, setTempSection] = useState("");
   const [status, setStatus] = useState("Awaited");
 
-  const classList = ["Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10"];
-  const sectionList = ["A","B","C","D","E"];
+  const [classesFromApi, setClassesFromApi] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/classes")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setClassesFromApi(data.data);
+          if (data.data.length > 0) {
+            setTempClass(data.data[0].name);
+            if (data.data[0].sections && data.data[0].sections.length > 0) {
+              setTempSection(data.data[0].sections[0].name);
+            }
+          }
+        }
+      });
+  }, []);
 
   useEffect(() => {
     if (editData) {
@@ -180,21 +195,33 @@ export default function GmeetLiveClassModal({ isOpen, onClose, onRefresh, editDa
             <div className="flex gap-2 mb-3">
               <select
                 value={tempClass}
-                onChange={(e) => setTempClass(e.target.value)}
+                onChange={(e) => {
+                  const cName = e.target.value;
+                  setTempClass(cName);
+                  const cObj = classesFromApi.find(c => c.name === cName);
+                  if (cObj && cObj.sections && cObj.sections.length > 0) {
+                    setTempSection(cObj.sections[0].name);
+                  } else {
+                    setTempSection("");
+                  }
+                }}
                 className="flex-1 px-3 py-2 border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 dark:bg-darkblack-500 text-bgray-900 dark:text-white text-sm"
               >
-                {classList.map(c => <option key={c} value={c}>{c}</option>)}
+                {classesFromApi.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
               </select>
               <select
                 value={tempSection}
                 onChange={(e) => setTempSection(e.target.value)}
                 className="w-24 px-3 py-2 border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 dark:bg-darkblack-500 text-bgray-900 dark:text-white text-sm"
               >
-                {sectionList.map(s => <option key={s} value={s}>{s}</option>)}
+                {classesFromApi.find(c => c.name === tempClass)?.sections.map((s: any) => (
+                  <option key={s._id} value={s.name}>{s.name}</option>
+                ))}
               </select>
               <button
                 type="button"
                 onClick={() => {
+                  if (!tempClass || !tempSection) return;
                   const newEntry = `${tempClass} (${tempSection})`;
                   if (!addedClasses.includes(newEntry)) {
                     setAddedClasses([...addedClasses, newEntry]);

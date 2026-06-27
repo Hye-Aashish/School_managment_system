@@ -91,7 +91,7 @@ export default function AddSubject() {
                               </h3>
                               <div className="flex flex-col space-y-6">
                                    <div className="w-full space-y-2">
-                                        <label className="text-sm font-semibold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">
+                                        <label className="text-sm font-semibold text-bgray-700 dark:text-white uppercase tracking-wider">
                                              Subject Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -104,7 +104,7 @@ export default function AddSubject() {
                                    </div>
 
                                    <div className="w-full space-y-3">
-                                        <label className="text-sm font-semibold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">
+                                        <label className="text-sm font-semibold text-bgray-700 dark:text-white uppercase tracking-wider">
                                              Subject Type
                                         </label>
                                         <div className="flex p-1 bg-bgray-50 dark:bg-darkblack-500 rounded-xl border border-bgray-200 dark:border-darkblack-400">
@@ -134,7 +134,7 @@ export default function AddSubject() {
                                    </div>
 
                                    <div className="w-full space-y-2">
-                                        <label className="text-sm font-semibold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">
+                                        <label className="text-sm font-semibold text-bgray-700 dark:text-white uppercase tracking-wider">
                                              Subject Code
                                         </label>
                                         <input
@@ -200,10 +200,10 @@ export default function AddSubject() {
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500/30">
-                                                       <td className="py-4 px-6"><span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Subject</span></td>
-                                                       <td className="py-4 px-6"><span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Code</span></td>
-                                                       <td className="py-4 px-6"><span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Type</span></td>
-                                                       <td className="py-4 px-6 text-right"><span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">Action</span></td>
+                                                       <td className="py-4 px-6"><span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Subject</span></td>
+                                                       <td className="py-4 px-6"><span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Code</span></td>
+                                                       <td className="py-4 px-6"><span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Type</span></td>
+                                                       <td className="py-4 px-6 text-right"><span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">Action</span></td>
                                                   </tr>
                                              </thead>
                                              <tbody>
@@ -212,7 +212,7 @@ export default function AddSubject() {
                                                   ) : filteredSubjects.length > 0 ? (
                                                        filteredSubjects.map((subject) => (
                                                             <tr key={subject._id} className="border-b border-bgray-100 dark:border-darkblack-400 hover:bg-bgray-50/50 transition-colors">
-                                                                 <td className="py-5 px-6"><p className="font-bold text-base text-bgray-900 dark:text-bgray-50">{subject.name}</p></td>
+                                                                 <td className="py-5 px-6"><p className="font-bold text-base text-bgray-900 dark:text-white">{subject.name}</p></td>
                                                                  <td className="py-5 px-6"><p className="text-sm text-bgray-600 dark:text-bgray-300 font-medium">{subject.code || "---"}</p></td>
                                                                  <td className="py-5 px-6">
                                                                       <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
@@ -225,7 +225,7 @@ export default function AddSubject() {
                                                                  </td>
                                                                  <td className="py-5 px-6">
                                                                       <div className="flex justify-end space-x-2">
-                                                                           <button onClick={() => handleEdit(subject)} className="p-2 rounded-lg bg-bgray-50 dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-50 hover:bg-success-300 hover:text-white transition-all shadow-sm" title="Edit">
+                                                                           <button onClick={() => handleEdit(subject)} className="p-2 rounded-lg bg-bgray-50 dark:bg-darkblack-500 text-bgray-600 dark:text-white hover:bg-success-300 hover:text-white transition-all shadow-sm" title="Edit">
                                                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                                                            </button>
                                                                            <button onClick={() => handleDelete(subject._id)} className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Delete">

@@ -68,7 +68,7 @@ export default function Settings() {
                               <div className="flex flex-col space-y-8 max-w-4xl">
                                    {/* API Key Field */}
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              API Key
                                         </label>
                                         <div className="flex-1">
@@ -76,7 +76,7 @@ export default function Settings() {
                                                   type="text"
                                                   value={apiKey}
                                                   onChange={(e) => setApiKey(e.target.value)}
-                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-bgray-50 focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
+                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
                                                   placeholder="Enter API Key"
                                              />
                                         </div>
@@ -84,7 +84,7 @@ export default function Settings() {
 
                                    {/* API Secret Field */}
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              API Secret
                                         </label>
                                         <div className="flex-1">
@@ -92,7 +92,7 @@ export default function Settings() {
                                                   type="text"
                                                   value={apiSecret}
                                                   onChange={(e) => setApiSecret(e.target.value)}
-                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-bgray-50 focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
+                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
                                                   placeholder="Enter API Secret"
                                              />
                                         </div>
@@ -100,7 +100,7 @@ export default function Settings() {
 
                                    {/* Use Google Calendar API */}
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              Use Google Calendar Api <span className="text-error-300">*</span>
                                         </label>
                                         <div className="flex-1">
@@ -114,7 +114,7 @@ export default function Settings() {
                                                             onChange={(e) => setUseGoogleCalendar(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Disabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Disabled</span>
                                                   </label>
                                                   <label className="flex items-center gap-2 cursor-pointer">
                                                        <input
@@ -125,7 +125,7 @@ export default function Settings() {
                                                             onChange={(e) => setUseGoogleCalendar(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Enabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Enabled</span>
                                                   </label>
                                              </div>
                                         </div>
@@ -133,7 +133,7 @@ export default function Settings() {
 
                                    {/* Parent Live Class */}
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              Parent Live Class <span className="text-error-300">*</span>
                                         </label>
                                         <div className="flex-1">
@@ -147,7 +147,7 @@ export default function Settings() {
                                                             onChange={(e) => setParentLiveClass(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Disabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Disabled</span>
                                                   </label>
                                                   <label className="flex items-center gap-2 cursor-pointer">
                                                        <input
@@ -158,7 +158,7 @@ export default function Settings() {
                                                             onChange={(e) => setParentLiveClass(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Enabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Enabled</span>
                                                   </label>
                                              </div>
                                         </div>

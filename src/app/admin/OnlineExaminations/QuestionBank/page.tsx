@@ -9,7 +9,6 @@ export default function QuestionBank() {
 
      // Dropdown data
      const [classes, setClasses] = useState<any[]>([]);
-     const [sections, setSections] = useState<any[]>([]);
      const [subjects] = useState<string[]>(["English", "Mathematics", "Science", "Hindi", "Social Science", "Sanskrit", "Computer", "General Knowledge"]);
      
      const [selectedClass, setSelectedClass] = useState("");
@@ -18,11 +17,6 @@ export default function QuestionBank() {
      const [selectedType, setSelectedType] = useState("");
      const [selectedLevel, setSelectedLevel] = useState("");
 
-     // Modal states
-     const [isModalOpen, setIsModalOpen] = useState(false);
-     const [isEditMode, setIsEditMode] = useState(false);
-     const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
-     
      const [formData, setFormData] = useState({
           question: "",
           question_type: "Single Choice",
@@ -33,6 +27,27 @@ export default function QuestionBank() {
           answer: "",
           options: ["", "", "", ""]
      });
+
+     const filterSections = useMemo(() => {
+          if (selectedClass) {
+               const cls = classes.find(c => c.name === selectedClass);
+               return cls ? cls.sections || [] : [];
+          }
+          return [];
+     }, [selectedClass, classes]);
+
+     const formSections = useMemo(() => {
+          if (formData.class) {
+               const cls = classes.find(c => c.name === formData.class);
+               return cls ? cls.sections || [] : [];
+          }
+          return [];
+     }, [formData.class, classes]);
+
+     // Modal states
+     const [isModalOpen, setIsModalOpen] = useState(false);
+     const [isEditMode, setIsEditMode] = useState(false);
+     const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
 
      useEffect(() => {
           fetchInitialData();
@@ -48,18 +63,6 @@ export default function QuestionBank() {
                console.error("Failed to fetch classes", error);
           }
      };
-
-     useEffect(() => {
-          if (selectedClass) {
-               fetch(`/api/sections?class=${selectedClass}`)
-                    .then(res => res.json())
-                    .then(data => {
-                         if (data.success) setSections(data.data);
-                    });
-          } else {
-               setSections([]);
-          }
-     }, [selectedClass]);
 
      const fetchQuestions = async () => {
           setLoading(true);
@@ -206,8 +209,8 @@ export default function QuestionBank() {
                                                   <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px]">
                                                        <div onClick={() => { setSelectedClass(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Classes</div>
                                                        {classes.map(c => (
-                                                            <div key={c._id} onClick={() => { setSelectedClass(c.className); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
-                                                                 {c.className}
+                                                            <div key={c._id} onClick={() => { setSelectedClass(c.name); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {c.name}
                                                             </div>
                                                        ))}
                                                   </div>
@@ -223,9 +226,9 @@ export default function QuestionBank() {
                                              {openFilter === "section" && (
                                                   <div className="absolute top-14 left-0 w-full z-50 bg-white dark:bg-darkblack-500 rounded-xl shadow-2xl border border-bgray-100 dark:border-darkblack-400 overflow-hidden font-bold uppercase text-[10px]">
                                                        <div onClick={() => { setSelectedSection(""); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors">All Sections</div>
-                                                       {sections.map(s => (
-                                                            <div key={s._id} onClick={() => { setSelectedSection(s.sectionName); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
-                                                                 {s.sectionName}
+                                                       {filterSections.map((s: any) => (
+                                                            <div key={s._id} onClick={() => { setSelectedSection(s.name); toggleFilter(null); }} className="px-4 py-2 hover:bg-success-300 hover:text-white cursor-pointer transition-colors border-t border-bgray-50 dark:border-darkblack-400">
+                                                                 {s.name}
                                                             </div>
                                                        ))}
                                                   </div>
@@ -427,7 +430,7 @@ export default function QuestionBank() {
                                                   required
                                              >
                                                   <option value="">Select Category</option>
-                                                  {classes.map(c => <option key={c._id} value={c.className}>{c.className}</option>)}
+                                                  {classes.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                              </select>
                                         </div>
                                         <div className="space-y-2">
@@ -439,7 +442,7 @@ export default function QuestionBank() {
                                                   required
                                              >
                                                   <option value="">All Regions</option>
-                                                  {sections.map(s => <option key={s._id} value={s.sectionName}>{s.sectionName}</option>)}
+                                                  {formSections.map((s: any) => <option key={s._id} value={s.name}>{s.name}</option>)}
                                              </select>
                                         </div>
                                    </div>

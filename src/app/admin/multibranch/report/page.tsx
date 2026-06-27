@@ -139,7 +139,7 @@ export default function MultiBranchReport() {
                                                   <path d="M17 11H15C14.4696 11 13.9609 11.2107 13.5858 11.5858C13.2107 11.9609 13 12.4696 13 13V17C13 17.5304 13.2107 18.0391 13.5858 18.4142C13.9609 18.7893 14.4696 19 15 19H17C17.5304 19 18.0391 18.7893 18.4142 18.4142C18.7893 18.0391 19 17.5304 19 17V13C19 12.4696 18.7893 11.9609 18.4142 11.5858C18.0391 11.2107 17.5304 11 17 11Z" stroke={activeReport === key ? "#22C55E" : "#718096"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                   <path d="M5 11V7C5 6.46957 5.21071 5.96086 5.58579 5.58579C5.96086 5.21071 6.46957 5 7 5H17C17.5304 5 18.0391 5.21071 18.4142 5.58579C18.7893 5.96086 19 6.46957 19 7V11" stroke={activeReport === key ? "#22C55E" : "#718096"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                              </svg>
-                                             <span className={`text-sm font-semibold ${activeReport === key ? "text-success-300" : "text-bgray-600 dark:text-bgray-50"}`}>
+                                             <span className={`text-sm font-semibold ${activeReport === key ? "text-success-300" : "text-bgray-600 dark:text-white"}`}>
                                                   {label}
                                              </span>
                                         </button>
@@ -152,7 +152,7 @@ export default function MultiBranchReport() {
                               <h3 className="text-lg font-semibold text-bgray-900 dark:text-white mb-4">Select Criteria</h3>
                               <div className="grid lg:grid-cols-2 grid-cols-1 gap-6">
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Date From <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -163,7 +163,7 @@ export default function MultiBranchReport() {
                                         />
                                    </div>
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Date To <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -230,13 +230,13 @@ export default function MultiBranchReport() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-4 px-4 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Date</span>
                                                             </td>
                                                             <td className="py-4 px-4 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Total Transactions</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Total Transactions</span>
                                                             </td>
                                                             <td className="py-4 px-4 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Amount ($)</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Amount ($)</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -244,7 +244,7 @@ export default function MultiBranchReport() {
                                                        {filtered.map((row, i) => (
                                                             <tr key={i} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors">
                                                                  <td className="py-4 px-4 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{row.date}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">{row.date}</p>
                                                                  </td>
                                                                  <td className="py-4 px-4 xl:px-0">
                                                                       <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300">{row.transactions}</p>

@@ -20,7 +20,26 @@ export default function Leaves() {
      const [showDetails, setShowDetails] = useState(false);
      const [showAddModal, setShowAddModal] = useState(false);
 
-     const [addLeaveType, setAddLeaveType] = useState("Medical Leave");
+     const [leaveTypes, setLeaveTypes] = useState<any[]>([]);
+     const [addLeaveType, setAddLeaveType] = useState("");
+
+     React.useEffect(() => {
+          const fetchTypes = async () => {
+               try {
+                    const res = await fetch("/api/leave-type");
+                    const json = await res.json();
+                    if (json.success && json.data) {
+                         setLeaveTypes(json.data);
+                         if (json.data.length > 0) {
+                              setAddLeaveType(json.data[0].name);
+                         }
+                    }
+               } catch (error) {
+                    console.error("Error fetching leave types:", error);
+               }
+          };
+          fetchTypes();
+     }, []);
      const [addFromDate, setAddFromDate] = useState("");
      const [addToDate, setAddToDate] = useState("");
      const [addReason, setAddReason] = useState("");
@@ -57,7 +76,11 @@ export default function Leaves() {
 
           setLeaveRequests([newRequest, ...leaveRequests]);
           setShowAddModal(false);
-          setAddLeaveType("Medical Leave");
+          if (leaveTypes.length > 0) {
+               setAddLeaveType(leaveTypes[0].name);
+          } else {
+               setAddLeaveType("");
+          }
           setAddFromDate("");
           setAddToDate("");
           setAddReason("");
@@ -178,7 +201,7 @@ export default function Leaves() {
                                              <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Staff
                                                             </span>
                                                             <span>
@@ -223,7 +246,7 @@ export default function Leaves() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Leave Type
                                                             </span>
                                                             <span>
@@ -268,7 +291,7 @@ export default function Leaves() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Leave Date
                                                             </span>
                                                             <span>
@@ -313,7 +336,7 @@ export default function Leaves() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Days
                                                             </span>
                                                             <span>
@@ -358,7 +381,7 @@ export default function Leaves() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Apply Date
                                                             </span>
                                                             <span>
@@ -403,7 +426,7 @@ export default function Leaves() {
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
                                                        <div className="flex space-x-2.5 items-center">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Status
                                                             </span>
                                                             <span>
@@ -447,7 +470,7 @@ export default function Leaves() {
                                                        </div>
                                                   </td>
                                                   <td className="py-5 px-6 xl:px-0">
-                                                       <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                       <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                             Action
                                                        </span>
                                                   </td>
@@ -460,27 +483,27 @@ export default function Leaves() {
                                                        className="border-b border-bgray-300 dark:border-darkblack-400"
                                                   >
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                  {leave.staff}
                                                             </p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                  {leave.leaveType}
                                                             </p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                  {leave.leaveDate}
                                                             </p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                  {leave.days}
                                                             </p>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                  {leave.applyDate}
                                                             </p>
                                                        </td>
@@ -536,7 +559,7 @@ export default function Leaves() {
                               <div className="pagination-content w-full">
                                    <div className="w-full flex lg:justify-between justify-center items-center">
                                         <div className="lg:flex hidden">
-                                             <p className="text-sm text-bgray-600 dark:text-bgray-50">
+                                             <p className="text-sm text-bgray-600 dark:text-white">
                                                   Records: 1 to 5 of 5
                                              </p>
                                         </div>
@@ -563,7 +586,7 @@ export default function Leaves() {
                                              <div className="flex items-center">
                                                   <button
                                                        type="button"
-                                                       className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                       className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                   >
                                                        1
                                                   </button>
@@ -676,10 +699,13 @@ export default function Leaves() {
                                              onChange={e => setAddLeaveType(e.target.value)} 
                                              className="w-full h-11 bg-bgray-50 dark:bg-darkblack-500 rounded-xl px-4 text-xs font-bold border-none outline-none focus:ring-2 focus:ring-success-300/30"
                                         >
-                                             <option value="Medical Leave">Medical Leave</option>
-                                             <option value="Casual Leave">Casual Leave</option>
-                                             <option value="Maternity Leave">Maternity Leave</option>
-                                             <option value="Sick Leave">Sick Leave</option>
+                                             {leaveTypes.length === 0 ? (
+                                                  <option value="">No Leave Types</option>
+                                             ) : (
+                                                  leaveTypes.map((type) => (
+                                                       <option key={type._id} value={type.name}>{type.name}</option>
+                                                  ))
+                                             )}
                                         </select>
                                    </div>
                                    <div className="grid grid-cols-2 gap-4">

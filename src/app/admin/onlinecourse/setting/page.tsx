@@ -68,7 +68,7 @@ export default function CourseSetting() {
      if (loading) {
           return (
                <div className="flex items-center justify-center min-h-[50vh]">
-                    <p className="text-lg font-medium text-bgray-600 dark:text-bgray-50">Loading settings...</p>
+                    <p className="text-lg font-medium text-bgray-600 dark:text-white">Loading settings...</p>
                </div>
           );
      }
@@ -139,7 +139,7 @@ export default function CourseSetting() {
                               <div className="space-y-4 mb-6">
                                    {/* Access Key ID */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2 block">
                                              Access Key ID <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -152,7 +152,7 @@ export default function CourseSetting() {
 
                                    {/* Secret Access Key */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2 block">
                                              Secret Access Key <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -165,7 +165,7 @@ export default function CourseSetting() {
 
                                    {/* Bucket Name */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2 block">
                                              Bucket Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -179,7 +179,7 @@ export default function CourseSetting() {
 
                                    {/* Region */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2 block">
                                              Region <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -210,7 +210,7 @@ export default function CourseSetting() {
                               <div className="space-y-4 mb-6">
                                    {/* Guest Login */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-3 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-3 block">
                                              Guest Login <span className="text-red-500">*</span>
                                         </label>
                                         <div className="flex gap-6">
@@ -242,7 +242,7 @@ export default function CourseSetting() {
 
                                    {/* Guest User Prefix */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2 block">
                                              Guest User Prefix <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -255,7 +255,7 @@ export default function CourseSetting() {
 
                                    {/* Guest User Id Start From */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2 block">
                                              Guest User Id Start From <span className="text-red-500">*</span>
                                         </label>
                                         <input

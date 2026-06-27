@@ -6,6 +6,7 @@ export interface IStudentCourse extends Document {
     status: "Active" | "Expired" | "Cancelled";
     purchase_date: Date;
     expiry_date?: Date;
+    completedItems?: string[];
 }
 
 const StudentCourseSchema: Schema = new Schema({
@@ -14,6 +15,7 @@ const StudentCourseSchema: Schema = new Schema({
     status: { type: String, enum: ["Active", "Expired", "Cancelled"], default: "Active" },
     purchase_date: { type: Date, default: Date.now },
     expiry_date: { type: Date },
+    completedItems: [{ type: String, default: [] }],
 });
 
 const StudentCourse: Model<IStudentCourse> = mongoose.models.StudentCourse || mongoose.model<IStudentCourse>("StudentCourse", StudentCourseSchema);

@@ -154,14 +154,14 @@ export default function BehaviourReports() {
                               <table className="w-full">
                                    <thead>
                                         <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Student</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Admission No</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Class</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Incident</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Points</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Date</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium">Assigned By</td>
-                                             <td className="py-5 px-4 text-bgray-600 dark:text-bgray-50 font-medium text-right">Action</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Student</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Admission No</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Class</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Incident</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Points</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Date</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium">Assigned By</td>
+                                             <td className="py-5 px-4 text-bgray-600 dark:text-white font-medium text-right">Action</td>
                                         </tr>
                                    </thead>
                                    <tbody>
@@ -171,21 +171,21 @@ export default function BehaviourReports() {
                                              <tr><td colSpan={8} className="text-center py-10 text-bgray-500">No reports found</td></tr>
                                         ) : filteredData.map((item) => (
                                              <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                  <td className="py-5 px-4 font-medium text-bgray-900 dark:text-bgray-50">
+                                                  <td className="py-5 px-4 font-medium text-bgray-900 dark:text-white">
                                                        {item.student?.fname} {item.student?.lname}
                                                   </td>
-                                                  <td className="py-5 px-4 text-bgray-900 dark:text-bgray-50">{item.student?.admission_no}</td>
-                                                  <td className="py-5 px-4 text-bgray-900 dark:text-bgray-50">
+                                                  <td className="py-5 px-4 text-bgray-900 dark:text-white">{item.student?.admission_no}</td>
+                                                  <td className="py-5 px-4 text-bgray-900 dark:text-white">
                                                        {item.student?.class} ({item.student?.section})
                                                   </td>
-                                                  <td className="py-5 px-4 text-bgray-900 dark:text-bgray-50">{item.incident?.title}</td>
+                                                  <td className="py-5 px-4 text-bgray-900 dark:text-white">{item.incident?.title}</td>
                                                   <td className={`py-5 px-4 font-bold ${item.incident?.point < 0 ? 'text-error-300' : 'text-success-300'}`}>
                                                        {item.incident?.point > 0 ? `+${item.incident?.point}` : item.incident?.point}
                                                   </td>
-                                                  <td className="py-5 px-4 text-bgray-900 dark:text-bgray-50">
+                                                  <td className="py-5 px-4 text-bgray-900 dark:text-white">
                                                        {new Date(item.date).toLocaleDateString()}
                                                   </td>
-                                                  <td className="py-5 px-4 text-bgray-900 dark:text-bgray-50">{item.assignedBy}</td>
+                                                  <td className="py-5 px-4 text-bgray-900 dark:text-white">{item.assignedBy}</td>
                                                   <td className="py-5 px-4 text-right">
                                                        <button 
                                                             onClick={() => handleView(item)}

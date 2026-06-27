@@ -242,11 +242,11 @@ export default function ZoomLiveMeetings() {
                   </button>
                   {showColMenu && (
                     <div className="absolute right-0 top-12 z-20 bg-white dark:bg-darkblack-500 rounded-lg shadow-lg border border-bgray-200 dark:border-darkblack-400 w-52 p-3">
-                      <p className="text-xs font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Toggle Columns</p>
+                      <p className="text-xs font-semibold text-bgray-600 dark:text-white mb-2">Toggle Columns</p>
                       {ALL_COLUMNS.filter((c) => c.key !== "action").map((col) => (
                         <label key={col.key} className="flex items-center gap-2 py-1 cursor-pointer">
                           <input type="checkbox" checked={isVisible(col.key)} onChange={() => toggleColumn(col.key)} className="accent-success-300" />
-                          <span className="text-sm text-bgray-900 dark:text-bgray-50">{col.label}</span>
+                          <span className="text-sm text-bgray-900 dark:text-white">{col.label}</span>
                         </label>
                       ))}
                     </div>
@@ -258,32 +258,32 @@ export default function ZoomLiveMeetings() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                      {isVisible("meetingTitle") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Meeting Title</td>}
-                      {isVisible("description") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</td>}
-                      {isVisible("dateTime") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date Time</td>}
-                      {isVisible("duration") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Duration (Min)</td>}
-                      {isVisible("createdBy") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Created By</td>}
-                      {isVisible("classes") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class</td>}
-                      {isVisible("status") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Status</td>}
-                      <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</td>
+                      {isVisible("meetingTitle") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Meeting Title</td>}
+                      {isVisible("description") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Description</td>}
+                      {isVisible("dateTime") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Date Time</td>}
+                      {isVisible("duration") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Duration (Min)</td>}
+                      {isVisible("createdBy") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Created By</td>}
+                      {isVisible("classes") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Class</td>}
+                      {isVisible("status") && <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Status</td>}
+                      <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Action</td>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
-                      <tr><td colSpan={8} className="text-center py-4 text-bgray-600 dark:text-bgray-50">Loading...</td></tr>
+                      <tr><td colSpan={8} className="text-center py-4 text-bgray-600 dark:text-white">Loading...</td></tr>
                     ) : filtered.length === 0 ? (
-                      <tr><td colSpan={8} className="text-center py-4 text-bgray-600 dark:text-bgray-50"> {searchQuery ? "No matching Zoom meetings found." : "No Zoom live meetings found."} </td></tr>
+                      <tr><td colSpan={8} className="text-center py-4 text-bgray-600 dark:text-white"> {searchQuery ? "No matching Zoom meetings found." : "No Zoom live meetings found."} </td></tr>
                     ) : (
                       filtered.map((item) => (
                         <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
-                          {isVisible("meetingTitle") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.meetingTitle}</td>}
-                          {isVisible("description") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.description}</td>}
-                          {isVisible("dateTime") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{new Date(item.dateTime).toLocaleString()}</td>}
-                          {isVisible("duration") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.duration}</td>}
-                          {isVisible("createdBy") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</td>}
-                          {isVisible("classes") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">{item.classes?.join(", ")}</td>}
+                          {isVisible("meetingTitle") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.meetingTitle}</td>}
+                          {isVisible("description") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.description}</td>}
+                          {isVisible("dateTime") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{new Date(item.dateTime).toLocaleString()}</td>}
+                          {isVisible("duration") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.duration}</td>}
+                          {isVisible("createdBy") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.createdBy}</td>}
+                          {isVisible("classes") && <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">{item.classes?.join(", ")}</td>}
                           {isVisible("status") && (
-                            <td className="py-4 px-4 text-sm text-bgray-900 dark:text-bgray-50">
+                            <td className="py-4 px-4 text-sm text-bgray-900 dark:text-white">
                               <select value={item.status} onChange={(e) => handleStatusChange(item._id, e.target.value)} className="bg-transparent focus:outline-none">
                                 <option value="Awaited">Awaited</option>
                                 <option value="Started">Started</option>
@@ -294,7 +294,7 @@ export default function ZoomLiveMeetings() {
                           )}
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                               <button type="button" onClick={() => handleEdit(item)} className="text-bgray-600 dark:text-bgray-50 hover:text-success-300 transition-colors"> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg> </button>
+                               <button type="button" onClick={() => handleEdit(item)} className="text-bgray-600 dark:text-white hover:text-success-300 transition-colors"> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg> </button>
                                <button type="button" onClick={() => { handleStatusChange(item._id, "Started"); window.open(item.meetingUrl || "#", "_blank"); }} style={{ backgroundColor: "#82b440" }} className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition duration-300"> <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg> Start </button>
                                <button type="button" onClick={() => handleDelete(item._id)} style={{ backgroundColor: "#7b61f8" }} className="w-8 h-8 flex items-center justify-center text-white rounded hover:opacity-90 transition duration-300"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                             </div>

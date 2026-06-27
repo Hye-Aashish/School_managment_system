@@ -1,13 +1,25 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
   // Public paths that don't need authentication
-  const isPublicPath = path === '/' || path === '/api/auth/login';
+  const isPublicPath =
+    path === '/' ||
+    path === '/api/auth/login' ||
+    path === '/api/student/auth/login' ||
+    path === '/api/student/payments/razorpay-callback' ||
+    path === '/api/student/fees/pay/razorpay-callback';
 
-  const token = request.cookies.get('auth_token')?.value || '';
+  let token = request.cookies.get('auth_token')?.value || '';
+
+  if (!token) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
 
   // Redirect to login if trying to access protected path without token
   if (!isPublicPath && !token) {
@@ -34,6 +46,6 @@ export const config = {
   matcher: [
     '/',
     '/admin/:path*',
-    '/api/((?!auth/login).*)', // Matches all API routes except login
+    '/api/((?!auth/login|student/auth/login|student/payments/razorpay-callback|student/fees/pay/razorpay-callback).*)', // Matches all API routes except login, student login, and callbacks
   ],
 };

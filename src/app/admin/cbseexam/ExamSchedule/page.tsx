@@ -16,6 +16,10 @@ interface IExamSchedule {
     roomNo: string;
     maxMarks: number;
     minMarks: number;
+    theoryMaxMarks?: number;
+    theoryMinMarks?: number;
+    practicalMaxMarks?: number;
+    practicalMinMarks?: number;
 }
 
 export default function ExamSchedule() {
@@ -30,6 +34,10 @@ export default function ExamSchedule() {
           time: "",
           duration: "",
           roomNo: "",
+          theoryMaxMarks: 80,
+          theoryMinMarks: 26,
+          practicalMaxMarks: 20,
+          practicalMinMarks: 7,
           maxMarks: 100,
           minMarks: 33
      });
@@ -74,15 +82,21 @@ export default function ExamSchedule() {
                const url = editingId ? `/api/cbse-exam-schedules/${editingId}` : "/api/cbse-exam-schedules";
                const method = editingId ? "PUT" : "POST";
 
+               const payload = {
+                    ...formData,
+                    maxMarks: (formData.theoryMaxMarks || 0) + (formData.practicalMaxMarks || 0),
+                    minMarks: (formData.theoryMinMarks || 0) + (formData.practicalMinMarks || 0)
+               };
+
                const res = await fetch(url, {
                     method,
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(formData),
+                    body: JSON.stringify(payload),
                });
 
                if (res.ok) {
                     setFormData({
-                         exam: "", subject: "", date: "", time: "", duration: "", roomNo: "", maxMarks: 100, minMarks: 33
+                         exam: "", subject: "", date: "", time: "", duration: "", roomNo: "", theoryMaxMarks: 80, theoryMinMarks: 26, practicalMaxMarks: 20, practicalMinMarks: 7, maxMarks: 100, minMarks: 33
                     });
                     setEditingId(null);
                     fetchData();
@@ -99,7 +113,7 @@ export default function ExamSchedule() {
           }
      };
 
-     const handleEdit = (schedule: IExamSchedule) => {
+     const handleEdit = (schedule: any) => {
           setEditingId(schedule._id);
           setFormData({
                exam: typeof schedule.exam === 'object' ? schedule.exam._id : schedule.exam,
@@ -108,6 +122,10 @@ export default function ExamSchedule() {
                time: schedule.time,
                duration: schedule.duration,
                roomNo: schedule.roomNo,
+               theoryMaxMarks: schedule.theoryMaxMarks !== undefined ? schedule.theoryMaxMarks : 80,
+               theoryMinMarks: schedule.theoryMinMarks !== undefined ? schedule.theoryMinMarks : 26,
+               practicalMaxMarks: schedule.practicalMaxMarks !== undefined ? schedule.practicalMaxMarks : 20,
+               practicalMinMarks: schedule.practicalMinMarks !== undefined ? schedule.practicalMinMarks : 7,
                maxMarks: schedule.maxMarks,
                minMarks: schedule.minMarks
           });
@@ -233,20 +251,40 @@ export default function ExamSchedule() {
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                              <div>
-                                                  <label className="block text-sm font-medium mb-1">Max Marks</label>
+                                                  <label className="block text-sm font-medium mb-1">Theory Max</label>
                                                   <input
                                                        type="number"
-                                                       value={formData.maxMarks}
-                                                       onChange={(e) => setFormData({ ...formData, maxMarks: parseInt(e.target.value) })}
+                                                       value={formData.theoryMaxMarks}
+                                                       onChange={(e) => setFormData({ ...formData, theoryMaxMarks: parseInt(e.target.value) || 0 })}
                                                        className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
                                                   />
                                              </div>
                                              <div>
-                                                  <label className="block text-sm font-medium mb-1">Min Marks</label>
+                                                  <label className="block text-sm font-medium mb-1">Theory Min (Pass)</label>
                                                   <input
                                                        type="number"
-                                                       value={formData.minMarks}
-                                                       onChange={(e) => setFormData({ ...formData, minMarks: parseInt(e.target.value) })}
+                                                       value={formData.theoryMinMarks}
+                                                       onChange={(e) => setFormData({ ...formData, theoryMinMarks: parseInt(e.target.value) || 0 })}
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  />
+                                             </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Practical Max</label>
+                                                  <input
+                                                       type="number"
+                                                       value={formData.practicalMaxMarks}
+                                                       onChange={(e) => setFormData({ ...formData, practicalMaxMarks: parseInt(e.target.value) || 0 })}
+                                                       className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
+                                                  />
+                                             </div>
+                                             <div>
+                                                  <label className="block text-sm font-medium mb-1">Practical Min (Pass)</label>
+                                                  <input
+                                                       type="number"
+                                                       value={formData.practicalMinMarks}
+                                                       onChange={(e) => setFormData({ ...formData, practicalMinMarks: parseInt(e.target.value) || 0 })}
                                                        className="w-full p-2.5 rounded-lg border dark:bg-darkblack-500"
                                                   />
                                              </div>
@@ -255,7 +293,7 @@ export default function ExamSchedule() {
                                              {editingId && (
                                                   <button
                                                        type="button"
-                                                       onClick={() => { setEditingId(null); setFormData({ exam: "", subject: "", date: "", time: "", duration: "", roomNo: "", maxMarks: 100, minMarks: 33 }); }}
+                                                       onClick={() => { setEditingId(null); setFormData({ exam: "", subject: "", date: "", time: "", duration: "", roomNo: "", theoryMaxMarks: 80, theoryMinMarks: 26, practicalMaxMarks: 20, practicalMinMarks: 7, maxMarks: 100, minMarks: 33 }); }}
                                                        className="w-full py-2.5 rounded-lg bg-bgray-200 dark:bg-darkblack-500 font-semibold"
                                                   >
                                                        Cancel
@@ -323,9 +361,10 @@ export default function ExamSchedule() {
                                                                                 </td>
                                                                                 <td className="py-4 px-6">{item.duration} min</td>
                                                                                 <td className="py-4 px-6">
-                                                                                     <div className="flex flex-col">
-                                                                                          <span className="text-xs">Max: <span className="font-semibold">{item.maxMarks}</span></span>
-                                                                                          <span className="text-xs text-bgray-500">Min: {item.minMarks}</span>
+                                                                                     <div className="flex flex-col space-y-0.5">
+                                                                                          <span className="text-xs font-semibold text-bgray-800 dark:text-white">Total: {item.maxMarks} (Pass: {item.minMarks})</span>
+                                                                                          <span className="text-[11px] text-bgray-500">Theory: {item.theoryMaxMarks || 0} / {item.theoryMinMarks || 0}</span>
+                                                                                          <span className="text-[11px] text-bgray-500">Practical: {item.practicalMaxMarks || 0} / {item.practicalMinMarks || 0}</span>
                                                                                      </div>
                                                                                 </td>
                                                                                 <td className="py-4 px-6 text-right">

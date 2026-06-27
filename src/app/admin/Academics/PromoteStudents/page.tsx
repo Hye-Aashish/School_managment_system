@@ -1,19 +1,70 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function PromoteStudents() {
      const [openFilter, setOpenFilter] = useState<"class" | "section" | "action" | "pagination" | "export" | null>(null);
-     const [students, setStudents] = useState([
-          { id: 1, admissionNo: "120020", name: "Ashwani Kumar", fatherName: "Arjun Kumar", dob: "09/25/2009", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 2, admissionNo: "18001", name: "Edward Thomas", fatherName: "Olivier Thomas", dob: "10/24/2013", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 3, admissionNo: "520039", name: "xavier bartlett", fatherName: "David bartlett", dob: "05/13/2009", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 4, admissionNo: "125005", name: "Nehal Wadhera", fatherName: "Karun wadhera", dob: "11/23/2006", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 5, admissionNo: "10024", name: "Steven Taylor", fatherName: "Jason Taylor", dob: "08/17/2017", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 6, admissionNo: "25001", name: "Georgia Wareham", fatherName: "Zakary Foulkes", dob: "05/10/2021", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 7, admissionNo: "659990", name: "James Bennett", fatherName: "David Wilson", dob: "05/05/2009", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 8, admissionNo: "2002", name: "Anubhav Sharma", fatherName: "Jay kumar", dob: "12/11/2020", currentResult: "pass", nextStatus: "continue", selected: false },
-          { id: 9, admissionNo: "19001", name: "Edward Thomas", fatherName: "Olivier Thomas", dob: "11/03/2014", currentResult: "pass", nextStatus: "continue", selected: false },
-     ]);
+     const [classes, setClasses] = useState<any[]>([]);
+     const [currentClass, setCurrentClass] = useState<string>("");
+     const [currentSection, setCurrentSection] = useState<string>("");
+     const [promoteClass, setPromoteClass] = useState<string>("");
+     const [promoteSection, setPromoteSection] = useState<string>("");
+     const [loadingClasses, setLoadingClasses] = useState<boolean>(false);
+
+     useEffect(() => {
+          const fetchClasses = async () => {
+               setLoadingClasses(true);
+               try {
+                    const res = await fetch("/api/classes");
+                    const data = await res.json();
+                    if (data.success) {
+                         setClasses(data.data);
+                    }
+               } catch (error) {
+                    console.error("Error fetching classes:", error);
+               } finally {
+                    setLoadingClasses(false);
+               }
+          };
+          fetchClasses();
+     }, []);
+
+     const [students, setStudents] = useState<any[]>([]);
+     const [loadingStudents, setLoadingStudents] = useState<boolean>(false);
+     const [isPromoting, setIsPromoting] = useState<boolean>(false);
+
+     useEffect(() => {
+          const fetchStudents = async () => {
+               if (!currentClass || !currentSection) {
+                    setStudents([]);
+                    return;
+               }
+               setLoadingStudents(true);
+               try {
+                    const res = await fetch(`/api/students?class=${encodeURIComponent(currentClass)}&section=${encodeURIComponent(currentSection)}&limit=1000`);
+                    const json = await res.json();
+                    if (json.success && json.data?.students) {
+                         setStudents(json.data.students.map((s: any) => ({
+                              ...s,
+                              currentResult: "pass",
+                              nextStatus: "continue",
+                              selected: true
+                         })));
+                    } else if (json.data && Array.isArray(json.data)) {
+                         setStudents(json.data.map((s: any) => ({
+                              ...s,
+                              currentResult: "pass",
+                              nextStatus: "continue",
+                              selected: true
+                         })));
+                    }
+               } catch (error) {
+                    console.error("Error fetching students:", error);
+               } finally {
+                    setLoadingStudents(false);
+               }
+          };
+          fetchStudents();
+     }, [currentClass, currentSection]);
 
      const toggleFilter = (type: "class" | "section" | "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
@@ -24,22 +75,72 @@ export default function PromoteStudents() {
           setStudents(students.map(student => ({ ...student, selected: checked })));
      };
 
-     const handleSelectStudent = (id: number) => {
+     const handleSelectStudent = (id: string) => {
           setStudents(students.map(student =>
-               student.id === id ? { ...student, selected: !student.selected } : student
+               student._id === id ? { ...student, selected: !student.selected } : student
           ));
      };
 
-     const handleResultChange = (id: number, result: string) => {
+     const handleResultChange = (id: string, result: string) => {
           setStudents(students.map(student =>
-               student.id === id ? { ...student, currentResult: result } : student
+               student._id === id ? { ...student, currentResult: result } : student
           ));
      };
 
-     const handleStatusChange = (id: number, status: string) => {
+     const handleStatusChange = (id: string, status: string) => {
           setStudents(students.map(student =>
-               student.id === id ? { ...student, nextStatus: status } : student
+               student._id === id ? { ...student, nextStatus: status } : student
           ));
+     };
+
+     const handlePromote = async () => {
+          const selectedStudents = students.filter(s => s.selected);
+          if (selectedStudents.length === 0) {
+               alert("Please select at least one student to promote.");
+               return;
+          }
+          if (!promoteClass || !promoteSection) {
+               alert("Please select a target class and section to promote to.");
+               return;
+          }
+
+          const payload = selectedStudents.map(student => {
+               const isPass = student.currentResult === "pass";
+               const isLeave = student.nextStatus === "leave";
+               
+               let update: any = { id: student._id };
+               if (isLeave) {
+                    update.status = "Disabled";
+               } else if (isPass) {
+                    update.class = promoteClass;
+                    update.section = promoteSection;
+               }
+               // If fail and continue, they stay in currentClass/currentSection so no update needed for class/section
+               return update;
+          });
+
+          setIsPromoting(true);
+          try {
+               const res = await fetch("/api/students", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+               });
+               const json = await res.json();
+               if (json.success) {
+                    alert("Students successfully processed!");
+                    // Refresh student list
+                    setStudents([]);
+                    setCurrentSection(""); // Trigger reload if they re-select
+               } else {
+                    alert("Failed to promote: " + (json.error || "Unknown error"));
+               }
+          } catch (err) {
+               console.error(err);
+               alert("An error occurred while promoting students.");
+          } finally {
+               setIsPromoting(false);
+          }
      };
 
      return (
@@ -52,22 +153,38 @@ export default function PromoteStudents() {
                                         <label className="block text-sm font-medium text-bgray-900 dark:text-white mb-2">
                                              Class <span className="text-red-500">*</span>
                                         </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="class1">Class 1</option>
-                                             <option value="class2">Class 2</option>
-                                             <option value="class3">Class 3</option>
-                                             <option value="class4">Class 4</option>
-                                             <option value="class5">Class 5</option>
+                                        <select
+                                             value={currentClass}
+                                             onChange={(e) => {
+                                                  setCurrentClass(e.target.value);
+                                                  setCurrentSection("");
+                                             }}
+                                             className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                        >
+                                             <option value="">Select Class</option>
+                                             {classes.map(c => (
+                                                  <option key={c._id} value={c.name}>{c.name}</option>
+                                             ))}
                                         </select>
                                    </div>
                                    <div>
                                         <label className="block text-sm font-medium text-bgray-900 dark:text-white mb-2">
                                              Section <span className="text-red-500">*</span>
                                         </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="a">A</option>
-                                             <option value="b">B</option>
-                                             <option value="c">C</option>
+                                        <select
+                                             value={currentSection}
+                                             onChange={(e) => setCurrentSection(e.target.value)}
+                                             disabled={!currentClass}
+                                             className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                        >
+                                             <option value="">Select Section</option>
+                                             {classes.find(c => c.name === currentClass)?.sections?.map((s: any) => {
+                                                  const sName = s.name || s;
+                                                  const sId = s._id || sName;
+                                                  return (
+                                                       <option key={sId} value={sName}>{sName}</option>
+                                                  );
+                                             })}
                                         </select>
                                    </div>
                               </div>
@@ -88,22 +205,38 @@ export default function PromoteStudents() {
                                         <label className="block text-sm font-medium text-bgray-900 dark:text-white mb-2">
                                              Class <span className="text-red-500">*</span>
                                         </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="class1">Class 1</option>
-                                             <option value="class2">Class 2</option>
-                                             <option value="class3">Class 3</option>
-                                             <option value="class4">Class 4</option>
-                                             <option value="class5">Class 5</option>
+                                        <select
+                                             value={promoteClass}
+                                             onChange={(e) => {
+                                                  setPromoteClass(e.target.value);
+                                                  setPromoteSection("");
+                                             }}
+                                             className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                        >
+                                             <option value="">Select Class</option>
+                                             {classes.map(c => (
+                                                  <option key={c._id} value={c.name}>{c.name}</option>
+                                             ))}
                                         </select>
                                    </div>
                                    <div>
                                         <label className="block text-sm font-medium text-bgray-900 dark:text-white mb-2">
                                              Section <span className="text-red-500">*</span>
                                         </label>
-                                        <select className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white">
-                                             <option value="b">B</option>
-                                             <option value="a">A</option>
-                                             <option value="c">C</option>
+                                        <select
+                                             value={promoteSection}
+                                             onChange={(e) => setPromoteSection(e.target.value)}
+                                             disabled={!promoteClass}
+                                             className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
+                                        >
+                                             <option value="">Select Section</option>
+                                             {classes.find(c => c.name === promoteClass)?.sections?.map((s: any) => {
+                                                  const sName = s.name || s;
+                                                  const sId = s._id || sName;
+                                                  return (
+                                                       <option key={sId} value={sName}>{sName}</option>
+                                                  );
+                                             })}
                                         </select>
                                    </div>
                                    
@@ -128,42 +261,42 @@ export default function PromoteStudents() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-3">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-white">
                                                                       Admission No
                                                                  </span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-3">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-white">
                                                                       Student Name
                                                                  </span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-3">
                                                             <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-gray-50">
+                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-white">
                                                                       Father Name
                                                                  </span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-3">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-white">
                                                                       Date Of Birth
                                                                  </span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-3">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-white">
                                                                       Current Result
                                                                  </span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-3">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-medium text-bgray-600 dark:text-white">
                                                                       Next Session Status
                                                                  </span>
                                                             </div>
@@ -171,9 +304,17 @@ export default function PromoteStudents() {
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  {students.map((student) => (
+                                                  {loadingStudents ? (
+                                                       <tr>
+                                                            <td colSpan={7} className="py-10 text-center text-bgray-500">Loading students...</td>
+                                                       </tr>
+                                                  ) : students.length === 0 ? (
+                                                       <tr>
+                                                            <td colSpan={7} className="py-10 text-center text-bgray-500">No students found in the selected class and section.</td>
+                                                       </tr>
+                                                  ) : students.map((student) => (
                                                        <tr
-                                                            key={student.id}
+                                                            key={student._id}
                                                             className="border-b border-bgray-300 dark:border-darkblack-400"
                                                        >
                                                             <td className="py-5 px-6 xl:px-3">
@@ -181,29 +322,29 @@ export default function PromoteStudents() {
                                                                       <input
                                                                            type="checkbox"
                                                                            checked={student.selected}
-                                                                           onChange={() => handleSelectStudent(student.id)}
+                                                                           onChange={() => handleSelectStudent(student._id)}
                                                                            className="focus:outline-none focus:ring-0 rounded border border-bgray-400 cursor-pointer w-5 h-5 text-success-300 dark:bg-darkblack-600 dark:border-darkblack-400"
                                                                       />
                                                                  </label>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-3">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      {student.admissionNo}
+                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-white">
+                                                                      {student.admission_no || student.admissionNo}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-3">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      {student.name}
+                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-white">
+                                                                      {student.fname} {student.lname}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-3">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      {student.fatherName}
+                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-white">
+                                                                      {student.father_name || student.fatherName || "N/A"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-3">
-                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">
-                                                                      {student.dob}
+                                                                 <p className="font-medium text-sm text-bgray-900 dark:text-white">
+                                                                      {student.dob || "N/A"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-3">
@@ -211,24 +352,24 @@ export default function PromoteStudents() {
                                                                       <label className="flex items-center space-x-2 cursor-pointer">
                                                                            <input
                                                                                 type="radio"
-                                                                                name={`result-${student.id}`}
+                                                                                name={`result-${student._id}`}
                                                                                 checked={student.currentResult === "pass"}
-                                                                                onChange={() => handleResultChange(student.id, "pass")}
+                                                                                onChange={() => handleResultChange(student._id, "pass")}
                                                                                 className="focus:outline-none focus:ring-0 w-4 h-4 text-blue-600 cursor-pointer"
                                                                            />
-                                                                           <span className="text-sm text-bgray-900 dark:text-bgray-50">
+                                                                           <span className="text-sm text-bgray-900 dark:text-white">
                                                                                 Pass
                                                                            </span>
                                                                       </label>
                                                                       <label className="flex items-center space-x-2 cursor-pointer">
                                                                            <input
                                                                                 type="radio"
-                                                                                name={`result-${student.id}`}
+                                                                                name={`result-${student._id}`}
                                                                                 checked={student.currentResult === "fail"}
-                                                                                onChange={() => handleResultChange(student.id, "fail")}
+                                                                                onChange={() => handleResultChange(student._id, "fail")}
                                                                                 className="focus:outline-none focus:ring-0 w-4 h-4 text-blue-600 cursor-pointer"
                                                                            />
-                                                                           <span className="text-sm text-bgray-900 dark:text-bgray-50">
+                                                                           <span className="text-sm text-bgray-900 dark:text-white">
                                                                                 Fail
                                                                            </span>
                                                                       </label>
@@ -239,24 +380,24 @@ export default function PromoteStudents() {
                                                                       <label className="flex items-center space-x-2 cursor-pointer">
                                                                            <input
                                                                                 type="radio"
-                                                                                name={`status-${student.id}`}
+                                                                                name={`status-${student._id}`}
                                                                                 checked={student.nextStatus === "continue"}
-                                                                                onChange={() => handleStatusChange(student.id, "continue")}
+                                                                                onChange={() => handleStatusChange(student._id, "continue")}
                                                                                 className="focus:outline-none focus:ring-0 w-4 h-4 text-blue-600 cursor-pointer"
                                                                            />
-                                                                           <span className="text-sm text-bgray-900 dark:text-bgray-50">
+                                                                           <span className="text-sm text-bgray-900 dark:text-white">
                                                                                 Continue
                                                                            </span>
                                                                       </label>
                                                                       <label className="flex items-center space-x-2 cursor-pointer">
                                                                            <input
                                                                                 type="radio"
-                                                                                name={`status-${student.id}`}
+                                                                                name={`status-${student._id}`}
                                                                                 checked={student.nextStatus === "leave"}
-                                                                                onChange={() => handleStatusChange(student.id, "leave")}
+                                                                                onChange={() => handleStatusChange(student._id, "leave")}
                                                                                 className="focus:outline-none focus:ring-0 w-4 h-4 text-blue-600 cursor-pointer"
                                                                            />
-                                                                           <span className="text-sm text-bgray-900 dark:text-bgray-50">
+                                                                           <span className="text-sm text-bgray-900 dark:text-white">
                                                                                 Leave
                                                                            </span>
                                                                       </label>
@@ -267,6 +408,16 @@ export default function PromoteStudents() {
                                              </tbody>
                                         </table>
                                    </div>
+                              </div>
+                              <div className="mt-8 flex justify-end">
+                                   <button
+                                        type="button"
+                                        onClick={handlePromote}
+                                        disabled={isPromoting || students.length === 0}
+                                        className="px-8 py-3 bg-success-300 text-white font-bold rounded-lg hover:bg-success-400 transition-colors disabled:opacity-50"
+                                   >
+                                        {isPromoting ? "Processing..." : "Promote Selected Students"}
+                                   </button>
                               </div>
                          </div>
                     </section>

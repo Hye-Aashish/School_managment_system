@@ -195,10 +195,10 @@ export default function ObservationParameter() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Parameter</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Parameter</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-right">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -210,7 +210,7 @@ export default function ObservationParameter() {
                                                        ) : filteredParameters.map((item) => (
                                                             <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.name}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <div className="flex justify-end space-x-3 items-center">
@@ -245,7 +245,7 @@ export default function ObservationParameter() {
 
                                         {/* Pagination */}
                                         <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
-                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50">
+                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-white">
                                                   <span>Total Records: {filteredParameters.length}</span>
                                              </div>
                                         </div>

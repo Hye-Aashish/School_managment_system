@@ -82,7 +82,7 @@ export default function Sidebar() {
                 <h2 className="text-bgray-900 dark:text-white font-black text-2xl tracking-tighter leading-none">SCHOOL<span className="text-primary">SYS</span></h2>
                 <div className="flex items-center gap-2 mt-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    <p className="text-[9px] text-bgray-400 dark:text-gray-500 font-black uppercase tracking-[0.3em]">Institutional Hub</p>
+                    <p className="text-[9px] text-bgray-400 dark:text-white0 font-black uppercase tracking-[0.3em]">Institutional Hub</p>
                 </div>
               </div>
             )}
@@ -92,7 +92,7 @@ export default function Sidebar() {
           {isDrawerOpen && (
             <button 
               onClick={toggleDrawer}
-              className="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-xl bg-bgray-50 dark:bg-white/[0.03] border border-bgray-200 dark:border-white/[0.05] text-bgray-500 dark:text-gray-500 hover:text-bgray-900 dark:hover:text-white lg:hidden z-20 transition-all hover:bg-bgray-100 dark:hover:bg-white/10"
+              className="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-xl bg-bgray-50 dark:bg-white/[0.03] border border-bgray-200 dark:border-white/[0.05] text-bgray-500 dark:text-white0 hover:text-bgray-900 dark:hover:text-white lg:hidden z-20 transition-all hover:bg-bgray-100 dark:hover:bg-white/10"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>

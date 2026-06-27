@@ -25,7 +25,7 @@ export default function BuildCV() {
           setLoading(true);
           const res = await fetch(`/api/students?class=${className}`);
           const data = await res.json();
-          if (data.success) setStudents(data.data);
+          if (data.success) setStudents(data.data?.students || []);
           setLoading(false);
      };
 

@@ -1,21 +1,116 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function ItemStore() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "export" | null>(null);
+     const [stores, setStores] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
+     const [searchQuery, setSearchQuery] = useState("");
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     
+     const [formData, setFormData] = useState({ _id: "", storeName: "", storeCode: "", description: "" });
+     const [isEditMode, setIsEditMode] = useState(false);
 
      const toggleFilter = (type: "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     const storeData = [
-          { storeName: "Libaray Store", storeCode: "LB2", description: "" },
-          { storeName: "Science Store", storeCode: "SC2", description: "" },
-          { storeName: "Uniform Dress Store", storeCode: "UND23", description: "" },
-          { storeName: "Furniture Store", storeCode: "FS342", description: "" },
-          { storeName: "Chemistry Equipment", storeCode: "Ch201", description: "The basic idea about the proper and necessary chemistry lab apparatus should be cleared among the students." },
-          { storeName: "Sports Store", storeCode: "sp55", description: "" },
-     ];
+     const fetchStores = async () => {
+          setLoading(true);
+          try {
+               const res = await fetch("/api/inventory/item-store");
+               const data = await res.json();
+               if (data.success) {
+                    setStores(data.data);
+               }
+          } catch (error) {
+               console.error("Failed to fetch item stores:", error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     useEffect(() => {
+          fetchStores();
+     }, []);
+
+     const filteredStores = stores.filter((store) => {
+          if (!searchQuery) return true;
+          const lowerQ = searchQuery.toLowerCase();
+          return (
+               (store.storeName && store.storeName.toLowerCase().includes(lowerQ)) ||
+               (store.storeCode && store.storeCode.toLowerCase().includes(lowerQ)) ||
+               (store.description && store.description.toLowerCase().includes(lowerQ))
+          );
+     });
+
+     const handleSave = async () => {
+          if (!formData.storeName) {
+               alert("Item Store Name is required.");
+               return;
+          }
+          setIsSubmitting(true);
+          try {
+               const url = isEditMode ? `/api/inventory/item-store/${formData._id}` : `/api/inventory/item-store`;
+               const method = isEditMode ? "PUT" : "POST";
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                         storeName: formData.storeName, 
+                         storeCode: formData.storeCode, 
+                         description: formData.description 
+                    })
+               });
+               const data = await res.json();
+               if (data.success) {
+                    setFormData({ _id: "", storeName: "", storeCode: "", description: "" });
+                    setIsEditMode(false);
+                    fetchStores();
+               } else {
+                    alert(data.error || "Failed to save store");
+               }
+          } catch (error) {
+               console.error(error);
+          } finally {
+               setIsSubmitting(false);
+          }
+     };
+
+     const handleEdit = (store: any) => {
+          setFormData({ 
+               _id: store._id, 
+               storeName: store.storeName, 
+               storeCode: store.storeCode || "", 
+               description: store.description || "" 
+          });
+          setIsEditMode(true);
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure you want to delete this store?")) return;
+          try {
+               const res = await fetch(`/api/inventory/item-store/${id}`, { method: "DELETE" });
+               const data = await res.json();
+               if (data.success) {
+                    fetchStores();
+               } else {
+                    alert(data.error || "Failed to delete");
+               }
+          } catch (error) {
+               console.error(error);
+          }
+     };
+
+     const onExport = (type: ExportType) => {
+          const exportData = filteredStores.map(store => ({
+               "Store Name": store.storeName,
+               "Store Code": store.storeCode || "N/A",
+               "Description": store.description || "N/A"
+          }));
+          handleExport(type, exportData, "Item_Stores");
+     };
 
      return (
           <>
@@ -25,49 +120,73 @@ export default function ItemStore() {
                               {/* Add Item Store Form */}
                               <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600 max-w-[420px]">
                                    <div className="flex flex-col space-y-5">
-                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Add Item Store</h3>
+                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">
+                                             {isEditMode ? "Edit Item Store" : "Add Item Store"}
+                                        </h3>
 
                                         <div className="w-full space-y-4">
                                              {/* Item Store Name */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Item Store Name <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
                                                        type="text"
+                                                       value={formData.storeName}
+                                                       onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
                                                        className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 px-4 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300"
                                                   />
                                              </div>
 
                                              {/* Item Store Code */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Item Store Code
                                                   </label>
                                                   <input
                                                        type="text"
+                                                       value={formData.storeCode}
+                                                       onChange={(e) => setFormData({ ...formData, storeCode: e.target.value })}
                                                        className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 px-4 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300"
                                                   />
                                              </div>
 
                                              {/* Description */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Description
                                                   </label>
                                                   <textarea
                                                        rows={4}
+                                                       value={formData.description}
+                                                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                        className="w-full rounded-lg bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 px-4 py-3 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 resize-none"
                                                   ></textarea>
                                              </div>
 
                                              {/* Save Button */}
-                                             <button
-                                                  type="button"
-                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
-                                             >
-                                                  Save
-                                             </button>
+                                             <div className="flex space-x-2">
+                                                  <button
+                                                       type="button"
+                                                       onClick={handleSave}
+                                                       disabled={isSubmitting}
+                                                       className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full disabled:opacity-50"
+                                                  >
+                                                       {isSubmitting ? "Saving..." : "Save"}
+                                                  </button>
+                                                  {isEditMode && (
+                                                       <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                 setFormData({ _id: "", storeName: "", storeCode: "", description: "" });
+                                                                 setIsEditMode(false);
+                                                            }}
+                                                            className="py-3.5 flex items-center justify-center text-bgray-900 dark:text-white font-bold bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all rounded-lg w-full"
+                                                       >
+                                                            Cancel
+                                                       </button>
+                                                  )}
+                                             </div>
                                         </div>
                                    </div>
                               </div>
@@ -110,6 +229,8 @@ export default function ItemStore() {
                                                             <input
                                                                  type="text"
                                                                  id="listSearch"
+                                                                 value={searchQuery}
+                                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                                  placeholder="Search..."
                                                                  className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
@@ -148,11 +269,11 @@ export default function ItemStore() {
                                                        className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"}`}
                                                   >
                                                        <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
+                                                            <li onClick={() => onExport('Copy')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
+                                                            <li onClick={() => onExport('Excel')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
+                                                            <li onClick={() => onExport('CSV')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
+                                                            <li onClick={() => onExport('PDF')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
+                                                            <li onClick={() => onExport('Print')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
                                                        </ul>
                                                   </div>
                                              </div>
@@ -165,7 +286,7 @@ export default function ItemStore() {
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Item Store Name</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Item Store Name</span>
                                                                       <span>
                                                                            <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                 <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -178,7 +299,7 @@ export default function ItemStore() {
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Item Store Code</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Item Store Code</span>
                                                                       <span>
                                                                            <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                 <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -191,7 +312,7 @@ export default function ItemStore() {
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-gray-50">Description</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Description</span>
                                                                       <span>
                                                                            <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                 <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -203,40 +324,54 @@ export default function ItemStore() {
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {storeData.map((store, index) => (
-                                                            <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{store.storeName}</p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{store.storeCode}</p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{store.description}</p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <div className="flex items-center space-x-2">
-                                                                           <button type="button" className="hover:opacity-70 transition">
-                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                     <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.43741 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                </svg>
-                                                                           </button>
-                                                                           <button type="button" className="hover:opacity-70 transition">
-                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <line x1="18" y1="6" x2="6" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
-                                                                                     <line x1="6" y1="6" x2="18" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
-                                                                                </svg>
-                                                                           </button>
-                                                                      </div>
+                                                       {loading ? (
+                                                            <tr>
+                                                                 <td colSpan={4} className="py-16 text-center">
+                                                                      <div className="w-8 h-8 border-4 border-success-300 border-t-transparent rounded-full animate-spin mx-auto"></div>
                                                                  </td>
                                                             </tr>
-                                                       ))}
+                                                       ) : filteredStores.length > 0 ? (
+                                                            filteredStores.map((store, index) => (
+                                                                 <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <p className="font-medium text-base text-bgray-900 dark:text-white">{store.storeName}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <p className="font-medium text-base text-bgray-900 dark:text-white">{store.storeCode}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <p className="font-medium text-base text-bgray-900 dark:text-white">{store.description}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <div className="flex items-center space-x-2">
+                                                                                <button type="button" onClick={() => handleEdit(store)} className="hover:opacity-70 transition">
+                                                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                          <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                          <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.43741 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                     </svg>
+                                                                                </button>
+                                                                                <button type="button" onClick={() => handleDelete(store._id)} className="hover:opacity-70 transition">
+                                                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                          <line x1="18" y1="6" x2="6" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
+                                                                                          <line x1="6" y1="6" x2="18" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
+                                                                                     </svg>
+                                                                                </button>
+                                                                           </div>
+                                                                      </td>
+                                                                 </tr>
+                                                            ))
+                                                       ) : (
+                                                            <tr>
+                                                                 <td colSpan={4} className="py-16 text-center text-bgray-400 text-sm font-semibold">
+                                                                      No item stores found.
+                                                                 </td>
+                                                            </tr>
+                                                       )}
                                                   </tbody>
                                              </table>
                                         </div>
@@ -245,7 +380,7 @@ export default function ItemStore() {
                                         <div className="pagination-content w-full">
                                              <div className="w-full flex lg:justify-between justify-center items-center">
                                                   <div className="lg:flex hidden space-x-4 items-center">
-                                                       <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Records: 1 to 6 of 6</span>
+                                                       <span className="text-bgray-600 dark:text-white text-sm font-semibold">Records: 1 to {filteredStores.length} of {filteredStores.length}</span>
                                                   </div>
                                                   <div className="flex sm:space-x-[35px] space-x-5 items-center">
                                                        <button type="button">
@@ -256,7 +391,7 @@ export default function ItemStore() {
                                                             </span>
                                                        </button>
                                                        <div className="flex items-center">
-                                                            <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">
+                                                            <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white">
                                                                  1
                                                             </button>
                                                        </div>

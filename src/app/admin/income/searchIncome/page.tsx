@@ -294,7 +294,7 @@ export default function StudentCategory() {
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0 w-[250px] lg:w-auto">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Name</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Name</span>
                                                                  <span>
                                                                       <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                            <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -307,7 +307,7 @@ export default function StudentCategory() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Invoice Number</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Invoice Number</span>
                                                                  <span>
                                                                       <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                            <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -320,7 +320,7 @@ export default function StudentCategory() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">Income Head</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Income Head</span>
                                                                  <span>
                                                                       <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                            <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -333,7 +333,7 @@ export default function StudentCategory() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Date</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Date</span>
                                                                  <span>
                                                                       <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                            <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -346,7 +346,7 @@ export default function StudentCategory() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Amount ($)</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Amount ($)</span>
                                                                  <span>
                                                                       <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                            <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -367,23 +367,23 @@ export default function StudentCategory() {
                                                   ) : filteredIncomes.map((income) => (
                                                        <tr key={income._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{income.name}</p>
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">{income.name}</p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{income.invoiceNumber}</p>
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">{income.invoiceNumber}</p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {typeof income.incomeHead === "object" ? income.incomeHead.name : ""}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {new Date(income.date).toLocaleDateString()}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">${income.amount.toFixed(2)}</p>
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">${income.amount.toFixed(2)}</p>
                                                             </td>
                                                        </tr>
                                                   ))}
@@ -393,7 +393,7 @@ export default function StudentCategory() {
 
                                    {/* Total Records - Simplified */}
                                    <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
-                                        <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50 font-semibold">
+                                        <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-white font-semibold">
                                              <span>Total Records: {filteredIncomes.length}</span>
                                         </div>
                                    </div>

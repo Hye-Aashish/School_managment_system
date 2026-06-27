@@ -228,8 +228,8 @@ export default function DesignMarksheet() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-4"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Template Name</span></td>
-                                                            <td className="py-5 px-4 text-right"><span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span></td>
+                                                            <td className="py-5 px-4"><span className="text-base font-medium text-bgray-600 dark:text-white">Template Name</span></td>
+                                                            <td className="py-5 px-4 text-right"><span className="text-base font-medium text-bgray-600 dark:text-white">Action</span></td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -239,7 +239,7 @@ export default function DesignMarksheet() {
                                                             <tr><td colSpan={2} className="py-20 text-center text-bgray-600 dark:text-bgray-300">No templates found</td></tr>
                                                        ) : templates.map((item) => (
                                                             <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                 <td className="py-5 px-4"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.templateName}</p></td>
+                                                                 <td className="py-5 px-4"><p className="font-medium text-base text-bgray-900 dark:text-white">{item.templateName}</p></td>
                                                                  <td className="py-5 px-4">
                                                                       <div className="flex justify-end space-x-3">
                                                                            <button onClick={() => handleEdit(item)} className="text-bgray-500 hover:text-success-300 transition-colors">

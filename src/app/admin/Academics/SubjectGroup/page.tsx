@@ -133,7 +133,7 @@ export default function SubjectGroup() {
                          </h3>
                          <div className="flex flex-col space-y-6">
                               <div className="space-y-2">
-                                   <label className="text-sm font-bold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">Group Name</label>
+                                   <label className="text-sm font-bold text-bgray-700 dark:text-white uppercase tracking-wider">Group Name</label>
                                    <input
                                         type="text"
                                         value={name}
@@ -144,7 +144,7 @@ export default function SubjectGroup() {
                               </div>
 
                               <div className="space-y-2">
-                                   <label className="text-sm font-bold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">Class</label>
+                                   <label className="text-sm font-bold text-bgray-700 dark:text-white uppercase tracking-wider">Class</label>
                                    <select
                                         value={selectedClassId}
                                         onChange={(e) => setSelectedClassId(e.target.value)}
@@ -157,7 +157,7 @@ export default function SubjectGroup() {
 
                               {selectedClassId && (
                                    <div className="space-y-3">
-                                        <label className="text-sm font-bold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">Sections</label>
+                                        <label className="text-sm font-bold text-bgray-700 dark:text-white uppercase tracking-wider">Sections</label>
                                         <div className="flex flex-wrap gap-2">
                                              {availableSections.map(s => (
                                                   <button
@@ -166,7 +166,7 @@ export default function SubjectGroup() {
                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                                                             selectedSectionIds.includes(s._id) 
                                                                  ? "bg-success-300 text-white border-success-300 shadow-sm" 
-                                                                 : "bg-bgray-50 dark:bg-darkblack-500 text-bgray-600 dark:text-bgray-50 border-bgray-200 dark:border-darkblack-400"
+                                                                 : "bg-bgray-50 dark:bg-darkblack-500 text-bgray-600 dark:text-white border-bgray-200 dark:border-darkblack-400"
                                                        }`}
                                                   >
                                                        {s.name}
@@ -177,7 +177,7 @@ export default function SubjectGroup() {
                               )}
 
                               <div className="space-y-3">
-                                   <label className="text-sm font-bold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">Subjects</label>
+                                   <label className="text-sm font-bold text-bgray-700 dark:text-white uppercase tracking-wider">Subjects</label>
                                    <div className="max-h-[250px] overflow-y-auto p-2 space-y-2 rounded-xl border border-bgray-100 dark:border-darkblack-400">
                                         {availableSubjects.map(sub => (
                                              <label key={sub._id} className="flex items-center gap-3 p-2 hover:bg-bgray-50 dark:hover:bg-darkblack-500 rounded-lg cursor-pointer transition-colors">
@@ -187,14 +187,14 @@ export default function SubjectGroup() {
                                                        onChange={() => setSelectedSubjectIds(prev => prev.includes(sub._id) ? prev.filter(id => id !== sub._id) : [...prev, sub._id])}
                                                        className="w-5 h-5 rounded border-bgray-300 text-success-300 focus:ring-success-300"
                                                   />
-                                                  <span className="text-sm font-semibold text-bgray-800 dark:text-bgray-50">{sub.name} <span className="text-xs text-bgray-400">({sub.type})</span></span>
+                                                  <span className="text-sm font-semibold text-bgray-800 dark:text-white">{sub.name} <span className="text-xs text-bgray-400">({sub.type})</span></span>
                                              </label>
                                         ))}
                                    </div>
                               </div>
 
                               <div className="space-y-2">
-                                   <label className="text-sm font-bold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">Description</label>
+                                   <label className="text-sm font-bold text-bgray-700 dark:text-white uppercase tracking-wider">Description</label>
                                    <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
@@ -237,7 +237,7 @@ export default function SubjectGroup() {
                          <div className="overflow-x-auto min-h-[60vh]">
                               <table className="w-full">
                                    <thead>
-                                        <tr className="bg-bgray-50 dark:bg-darkblack-500/30 text-left border-b border-bgray-200 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 text-xs font-bold uppercase tracking-widest">
+                                        <tr className="bg-bgray-50 dark:bg-darkblack-500/30 text-left border-b border-bgray-200 dark:border-darkblack-400 text-bgray-600 dark:text-white text-xs font-bold uppercase tracking-widest">
                                              <td className="px-6 py-4">Group Info</td>
                                              <td className="px-6 py-4">Class (Sections)</td>
                                              <td className="px-6 py-4">Subjects</td>
@@ -256,7 +256,7 @@ export default function SubjectGroup() {
                                                        </td>
                                                        <td className="px-6 py-6">
                                                             <div className="flex items-center gap-2">
-                                                                 <span className="font-bold text-bgray-800 dark:text-bgray-50">{group.class?.name || "N/A"}</span>
+                                                                 <span className="font-bold text-bgray-800 dark:text-white">{group.class?.name || "N/A"}</span>
                                                                  <div className="flex gap-1">
                                                                       {group.sections?.map((s: any) => (
                                                                            <span key={s._id} className="px-2 py-0.5 bg-bgray-100 dark:bg-darkblack-500 rounded text-[10px] font-black text-bgray-500 uppercase">{s.name}</span>

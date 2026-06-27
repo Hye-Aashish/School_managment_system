@@ -96,7 +96,7 @@ export default function MultiBranchOverview() {
                                    <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                         {headers.map((h) => (
                                              <td key={h} className="py-4 px-4 xl:px-0">
-                                                  <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">{h}</span>
+                                                  <span className="text-sm font-semibold text-bgray-600 dark:text-white">{h}</span>
                                              </td>
                                         ))}
                                    </tr>
@@ -119,7 +119,7 @@ export default function MultiBranchOverview() {
                                              <tr key={i} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                   {row.map((cell, j) => (
                                                        <td key={j} className="py-4 px-4 xl:px-0">
-                                                            <p className={`text-sm ${j === 0 ? "font-medium text-bgray-900 dark:text-bgray-50" : "font-normal text-bgray-600 dark:text-bgray-300"}`}>
+                                                            <p className={`text-sm ${j === 0 ? "font-medium text-bgray-900 dark:text-white" : "font-normal text-bgray-600 dark:text-bgray-300"}`}>
                                                                  {cell}
                                                             </p>
                                                        </td>

@@ -58,11 +58,11 @@ export default function OnlineCourseReport() {
                          {/* Stats Overview */}
                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                               <div className="bg-white dark:bg-darkblack-600 p-6 rounded-lg shadow-sm border border-bgray-200 dark:border-darkblack-400">
-                                   <p className="text-bgray-600 dark:text-bgray-50 text-sm font-medium mb-1">Total Categories</p>
+                                   <p className="text-bgray-600 dark:text-white text-sm font-medium mb-1">Total Categories</p>
                                    <h3 className="text-2xl font-bold text-bgray-900 dark:text-white">{loading ? "..." : stats.categories}</h3>
                               </div>
                               <div className="bg-white dark:bg-darkblack-600 p-6 rounded-lg shadow-sm border border-bgray-200 dark:border-darkblack-400">
-                                   <p className="text-bgray-600 dark:text-bgray-50 text-sm font-medium mb-1">Total Questions</p>
+                                   <p className="text-bgray-600 dark:text-white text-sm font-medium mb-1">Total Questions</p>
                                    <h3 className="text-2xl font-bold text-bgray-900 dark:text-white">{loading ? "..." : stats.questions}</h3>
                               </div>
                          </div>

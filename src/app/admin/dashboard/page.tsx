@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faLayoutGrid, faUserShield, faChartPie, faExclamationTriangle, faArrowTrendUp, faArrowTrendDown,
+  faTableCellsLarge, faUserShield, faChartPie, faExclamationTriangle, faArrowTrendUp, faArrowTrendDown,
   faUsers, faDollarSign, faCalendarCheck, faGlobe, faEnvelope, faBell, faUserGraduate, faWallet,
   faShieldHalved, faArrowUp, faArrowDown, faCircleCheck, faChartLine, faClockRotateLeft
 } from "@fortawesome/free-solid-svg-icons";
@@ -56,6 +56,7 @@ export default function Dashboard() {
     totalRevenue: 0,
     upcomingEvents: 0
   });
+  const [pieData, setPieData] = useState({ active: 60, disabled: 20, admissions: 20 });
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +86,15 @@ export default function Dashboard() {
               totalRevenue: statsData.totalIncome || 0,
               upcomingEvents: statsData.upcomingEvents || 0
         });
+
+        const total = (statsData.totalStudents || 0) + (statsData.onlineAdmissions || 0);
+        if (total > 0) {
+              setPieData({
+                  active: Math.round(((statsData.activeStudents || 0) / total) * 100),
+                  disabled: Math.round(((statsData.disabledStudents || 0) / total) * 100),
+                  admissions: Math.round(((statsData.onlineAdmissions || 0) / total) * 100)
+              });
+        }
 
         setRecentStudents(studentsData.data || []);
       } catch (err: any) {
@@ -249,21 +259,21 @@ export default function Dashboard() {
         {/* Sidebar */}
         <div className="2xl:col-span-4 space-y-10">
             <div className="card-modern p-10 bg-white dark:bg-darkblack-600 rounded-3xl shadow-xl">
-                <h3 className="text-2xl font-black text-bgray-900 dark:text-white mb-8 text-center">Category</h3>
-                <div className="h-[240px] flex items-center justify-center mb-8"><PieChart /></div>
+                <h3 className="text-2xl font-black text-bgray-900 dark:text-white mb-8 text-center">Student Demographics</h3>
+                <div className="h-[240px] flex items-center justify-center mb-8"><PieChart active={pieData.active} disabled={pieData.disabled} admissions={pieData.admissions} /></div>
                 <div className="space-y-4">
                     {[
-                        { label: 'Primary', val: 42, color: 'emerald' },
-                        { label: 'Middle', val: 28, color: 'blue' },
-                        { label: 'Higher', val: 30, color: 'orange' }
+                        { label: 'Active', val: pieData.active, colorClass: 'bg-emerald-500', textClass: 'text-emerald-500' },
+                        { label: 'Disabled', val: pieData.disabled, colorClass: 'bg-blue-500', textClass: 'text-blue-500' },
+                        { label: 'Admissions', val: pieData.admissions, colorClass: 'bg-orange-500', textClass: 'text-orange-500' }
                     ].map((item, i) => (
                         <div key={i} className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-black">{item.label}</span>
-                                <span className="text-sm font-black text-primary">{item.val}%</span>
+                                <span className={`text-sm font-black ${item.textClass}`}>{item.val}%</span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-white/10 h-1.5 rounded-full">
-                                <div className={`h-full bg-${item.color}-500`} style={{ width: `${item.val}%` }} />
+                            <div className="w-full bg-gray-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full ${item.colorClass}`} style={{ width: `${item.val}%` }} />
                             </div>
                         </div>
                     ))}

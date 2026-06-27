@@ -75,7 +75,7 @@ export default function AddCategory() {
                          </h3>
                          <div className="space-y-6">
                               <div className="space-y-2">
-                                   <label className="text-sm font-bold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">Category Name <span className="text-red-500">*</span></label>
+                                   <label className="text-sm font-bold text-bgray-700 dark:text-white uppercase tracking-wider">Category Name <span className="text-red-500">*</span></label>
                                    <input
                                         type="text"
                                         value={categoryName}
@@ -118,7 +118,7 @@ export default function AddCategory() {
                          <div className="overflow-x-auto min-h-[50vh]">
                               <table className="w-full">
                                    <thead>
-                                        <tr className="bg-bgray-50 dark:bg-darkblack-500/30 text-left border-b border-bgray-200 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 text-xs font-bold uppercase tracking-widest">
+                                        <tr className="bg-bgray-50 dark:bg-darkblack-500/30 text-left border-b border-bgray-200 dark:border-darkblack-400 text-bgray-600 dark:text-white text-xs font-bold uppercase tracking-widest">
                                              <td className="px-6 py-4">Category Name</td>
                                              <td className="px-6 py-4 text-right">Action</td>
                                         </tr>

@@ -17,9 +17,38 @@ export default function DisableStudentsList() {
      const [selectedSection, setSelectedSection] = useState("");
      const [searchQuery, setSearchQuery] = useState("");
 
+     const [classes, setClasses] = useState<any[]>([]);
+     const [availableSections, setAvailableSections] = useState<any[]>([]);
+
+     useEffect(() => {
+          fetchClasses();
+     }, []);
+
      useEffect(() => {
           fetchStudents();
      }, [currentPage, limit, selectedClass, selectedSection, searchQuery]);
+
+     const fetchClasses = async () => {
+          try {
+               const res = await fetch("/api/classes");
+               const data = await res.json();
+               if (data.success) {
+                    setClasses(data.data || []);
+               }
+          } catch (error) {
+               console.error("Error fetching classes:", error);
+          }
+     };
+
+     // Update available sections when class changes
+     useEffect(() => {
+          if (selectedClass) {
+               const cls = classes.find(c => c.name === selectedClass);
+               setAvailableSections(cls?.sections || []);
+          } else {
+               setAvailableSections([]);
+          }
+     }, [selectedClass, classes]);
 
      const fetchStudents = async () => {
           setIsLoading(true);
@@ -45,7 +74,10 @@ export default function DisableStudentsList() {
      };
 
      const handleFilterChange = (type: string, value: string) => {
-          if (type === "class") setSelectedClass(value);
+          if (type === "class") {
+               setSelectedClass(value);
+               setSelectedSection(""); // Reset section when class changes
+          }
           if (type === "section") setSelectedSection(value);
           setCurrentPage(1);
           setOpenFilter(null);
@@ -73,6 +105,21 @@ export default function DisableStudentsList() {
                     fetchStudents();
                } catch (error) {
                     console.error("Error deleting student:", error);
+               }
+          }
+     };
+
+     const handleEnable = async (admissionNo: string) => {
+          if (confirm("Are you sure you want to restore/enable this student?")) {
+               try {
+                    await fetch(`/api/students/${admissionNo}`, {
+                         method: "PATCH",
+                         headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ status: "Active", disable_reason: "" })
+                    });
+                    fetchStudents();
+               } catch (error) {
+                    console.error("Error restoring student:", error);
                }
           }
      };
@@ -160,7 +207,12 @@ export default function DisableStudentsList() {
                                                   className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"
                                                        }`}
                                              >
-                                                  <ul><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("class", "")}>All Classes</li>{["1St", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"].map((cls) => (<li key={cls} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("class", cls)}>{cls}</li>))}</ul>
+                                                  <ul>
+                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("class", "")}>All Classes</li>
+                                                       {classes.map((cls: any) => (
+                                                            <li key={cls._id} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("class", cls.name)}>{cls.name}</li>
+                                                       ))}
+                                                  </ul>
                                              </div>
                                         </div>
 
@@ -194,7 +246,12 @@ export default function DisableStudentsList() {
                                                   className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"
                                                        }`}
                                              >
-                                                  <ul><li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("section", "")}>All Sections</li>{["A", "B", "C", "D"].map((sec) => (<li key={sec} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("section", sec)}>{sec}</li>))}</ul>
+                                                  <ul>
+                                                       <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("section", "")}>All Sections</li>
+                                                       {availableSections.map((sec: any) => (
+                                                            <li key={sec._id} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => handleFilterChange("section", sec.name)}>{sec.name}</li>
+                                                       ))}
+                                                  </ul>
                                              </div>
                                         </div>
 
@@ -253,13 +310,13 @@ export default function DisableStudentsList() {
                                                        >
                                                             <div className="w-full flex space-x-2.5 items-center">
                                                                  <span
-                                                                      className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                      className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Admission No</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Student Name</span
                                                                  >
                                                             </div>
@@ -267,7 +324,7 @@ export default function DisableStudentsList() {
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="flex space-x-2.5 items-center">
                                                                  <span
-                                                                      className="text-base font-medium text-bgray-600 dark:text-gray-50"
+                                                                      className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >
                                                                       Class</span
                                                                  >
@@ -275,28 +332,28 @@ export default function DisableStudentsList() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Father Name</span
                                                                  >
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Disable Reason</span
                                                                  >
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Gender</span
                                                                  >
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Mobile Number</span
                                                                  >
                                                             </div>
@@ -324,37 +381,37 @@ export default function DisableStudentsList() {
                                                                  </label>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.admission_no}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.fname} {student.lname}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.class} ({student.section})
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.father_name}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.disable_reason || "N/A"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.gender}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.mobile}
                                                                  </p>
                                                             </td>
@@ -372,16 +429,19 @@ export default function DisableStudentsList() {
                                                                            </svg>
                                                                       </button>
 
-                                                                      <div
-                                                                           className={`rounded-lg shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-8 overflow-hidden transition-all ${openFilter === `action-${student.admission_no}` ? "block" : "hidden"}`}
-                                                                      >
-                                                                           <ul>
-                                                                                <li onClick={() => handleDelete(student.admission_no)} className="text-nowrap text-sm text-red-500 cursor-pointer px-5 py-3 hover:bg-bgray-100 dark:hover:bg-darkblack-600 font-semibold text-left">
-                                                                                     Delete
-                                                                                </li>
-                                                                           </ul>
-                                                                      </div>
-                                                                 </div>
+                                                                       <div
+                                                                            className={`rounded-lg shadow-lg bg-white dark:bg-darkblack-500 min-w-[150px] absolute right-0 z-10 top-8 overflow-hidden transition-all ${openFilter === `action-${student.admission_no}` ? "block" : "hidden"}`}
+                                                                       >
+                                                                            <ul>
+                                                                                 <li onClick={() => { handleEnable(student.admission_no); toggleFilter(`action-${student.admission_no}`); }} className="text-nowrap text-sm text-success-300 cursor-pointer px-5 py-3 hover:bg-bgray-100 dark:hover:bg-darkblack-600 font-semibold text-left border-b border-bgray-200 dark:border-darkblack-400">
+                                                                                      Enable
+                                                                                 </li>
+                                                                                  <li onClick={() => { handleDelete(student.admission_no); toggleFilter(`action-${student.admission_no}`); }} className="text-nowrap text-sm text-red-500 cursor-pointer px-5 py-3 hover:bg-bgray-100 dark:hover:bg-darkblack-600 font-semibold text-left">
+                                                                                       Delete
+                                                                                  </li>
+                                                                             </ul>
+                                                                        </div>
+                                                                  </div>
                                                             </td>
                                                        </tr>
                                                   ))}

@@ -10,6 +10,10 @@ import FeeType from "@/models/FeeType";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         await dbConnect();
+        
+        // Ensure models are registered for populate() (prevents tree-shaking)
+        const _ = [FeeGroup, FeeType];
+
         const { id } = await params;
         const studentId = id;
 
@@ -39,7 +43,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             payments,
             discounts
         });
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch student fee status" }, { status: 500 });
+    } catch (error: any) {
+        console.error("student-fees API error:", error);
+        return NextResponse.json({ error: "Failed to fetch student fee status", details: error?.message || String(error) }, { status: 500 });
     }
 }

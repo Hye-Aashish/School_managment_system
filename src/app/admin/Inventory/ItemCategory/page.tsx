@@ -1,20 +1,105 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function ItemCategory() {
      const [openFilter, setOpenFilter] = useState<"action" | "pagination" | "export" | null>(null);
+     const [categories, setCategories] = useState<any[]>([]);
+     const [loading, setLoading] = useState(true);
+     const [searchQuery, setSearchQuery] = useState("");
+     const [isSubmitting, setIsSubmitting] = useState(false);
+     
+     const [formData, setFormData] = useState({ _id: "", name: "", description: "" });
+     const [isEditMode, setIsEditMode] = useState(false);
 
      const toggleFilter = (type: "action" | "pagination" | "export") => {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     const categoryData = [
-          { category: "Sports", description: "" },
-          { category: "Staff Dress", description: "" },
-          { category: "Furniture", description: "" },
-          { category: "Books Stationery", description: "" },
-          { category: "Chemistry Lab Apparatus", description: "Chemistry Lab Apparatus" },
-     ];
+     const fetchCategories = async () => {
+          setLoading(true);
+          try {
+               const res = await fetch("/api/inventory/item-category");
+               const data = await res.json();
+               if (data.success) {
+                    setCategories(data.data);
+               }
+          } catch (error) {
+               console.error("Failed to fetch item categories:", error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     useEffect(() => {
+          fetchCategories();
+     }, []);
+
+     const filteredCategories = categories.filter((cat) => {
+          if (!searchQuery) return true;
+          const lowerQ = searchQuery.toLowerCase();
+          return (
+               (cat.name && cat.name.toLowerCase().includes(lowerQ)) ||
+               (cat.description && cat.description.toLowerCase().includes(lowerQ))
+          );
+     });
+
+     const handleSave = async () => {
+          if (!formData.name) {
+               alert("Item Category name is required.");
+               return;
+          }
+          setIsSubmitting(true);
+          try {
+               const url = isEditMode ? `/api/inventory/item-category/${formData._id}` : `/api/inventory/item-category`;
+               const method = isEditMode ? "PUT" : "POST";
+               const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: formData.name, description: formData.description })
+               });
+               const data = await res.json();
+               if (data.success) {
+                    setFormData({ _id: "", name: "", description: "" });
+                    setIsEditMode(false);
+                    fetchCategories();
+               } else {
+                    alert(data.error || "Failed to save category");
+               }
+          } catch (error) {
+               console.error(error);
+          } finally {
+               setIsSubmitting(false);
+          }
+     };
+
+     const handleEdit = (cat: any) => {
+          setFormData({ _id: cat._id, name: cat.name, description: cat.description || "" });
+          setIsEditMode(true);
+     };
+
+     const handleDelete = async (id: string) => {
+          if (!confirm("Are you sure you want to delete this category?")) return;
+          try {
+               const res = await fetch(`/api/inventory/item-category/${id}`, { method: "DELETE" });
+               const data = await res.json();
+               if (data.success) {
+                    fetchCategories();
+               } else {
+                    alert(data.error || "Failed to delete");
+               }
+          } catch (error) {
+               console.error(error);
+          }
+     };
+
+     const onExport = (type: ExportType) => {
+          const exportData = filteredCategories.map(cat => ({
+               "Category Name": cat.name,
+               "Description": cat.description || "N/A"
+          }));
+          handleExport(type, exportData, "Item_Categories");
+     };
 
      return (
           <>
@@ -24,38 +109,60 @@ export default function ItemCategory() {
                               {/* Add Item Category Form */}
                               <div className="w-full py-5 px-6 rounded-lg bg-white dark:bg-darkblack-600 max-w-[420px]">
                                    <div className="flex flex-col space-y-5">
-                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">Add Item Category</h3>
+                                        <h3 className="text-xl font-bold text-bgray-900 dark:text-white">
+                                             {isEditMode ? "Edit Item Category" : "Add Item Category"}
+                                        </h3>
 
                                         <div className="w-full space-y-4">
                                              {/* Item Category */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Item Category <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
                                                        type="text"
+                                                       value={formData.name}
+                                                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                        className="w-full h-12 rounded-lg bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 px-4 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300"
                                                   />
                                              </div>
 
                                              {/* Description */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Description
                                                   </label>
                                                   <textarea
                                                        rows={4}
+                                                       value={formData.description}
+                                                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                        className="w-full rounded-lg bg-white dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 px-4 py-3 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 resize-none"
                                                   ></textarea>
                                              </div>
 
                                              {/* Save Button */}
-                                             <button
-                                                  type="button"
-                                                  className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full"
-                                             >
-                                                  Save
-                                             </button>
+                                             <div className="flex space-x-2">
+                                                  <button
+                                                       type="button"
+                                                       onClick={handleSave}
+                                                       disabled={isSubmitting}
+                                                       className="py-3.5 flex items-center justify-center text-white font-bold bg-success-300 hover:bg-success-400 transition-all rounded-lg w-full disabled:opacity-50"
+                                                  >
+                                                       {isSubmitting ? "Saving..." : "Save"}
+                                                  </button>
+                                                  {isEditMode && (
+                                                       <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                 setFormData({ _id: "", name: "", description: "" });
+                                                                 setIsEditMode(false);
+                                                            }}
+                                                            className="py-3.5 flex items-center justify-center text-bgray-900 dark:text-white font-bold bg-bgray-200 dark:bg-darkblack-500 hover:bg-bgray-300 dark:hover:bg-darkblack-400 transition-all rounded-lg w-full"
+                                                       >
+                                                            Cancel
+                                                       </button>
+                                                  )}
+                                             </div>
                                         </div>
                                    </div>
                               </div>
@@ -98,6 +205,8 @@ export default function ItemCategory() {
                                                             <input
                                                                  type="text"
                                                                  id="listSearch"
+                                                                 value={searchQuery}
+                                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                                  placeholder="Search..."
                                                                  className="search-input w-full bg-bgray-200 border-none px-0 focus:outline-none focus:ring-0 text-sm placeholder:text-sm text-bgray-600 tracking-wide placeholder:font-medium placeholder:text-bgray-500 dark:bg-darkblack-500 dark:text-white"
                                                             />
@@ -120,7 +229,7 @@ export default function ItemCategory() {
                                                                  viewBox="0 0 21 21"
                                                                  fill="none"
                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                            >
+                                                             >
                                                                  <path
                                                                       d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186"
                                                                       stroke="#A0AEC0"
@@ -136,11 +245,11 @@ export default function ItemCategory() {
                                                        className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "export" ? "block" : "hidden"}`}
                                                   >
                                                        <ul>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
-                                                            <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
+                                                            <li onClick={() => onExport('Copy')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Copy</li>
+                                                            <li onClick={() => onExport('Excel')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Excel</li>
+                                                            <li onClick={() => onExport('CSV')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">CSV</li>
+                                                            <li onClick={() => onExport('PDF')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">PDF</li>
+                                                            <li onClick={() => onExport('Print')} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Print</li>
                                                        </ul>
                                                   </div>
                                              </div>
@@ -153,7 +262,7 @@ export default function ItemCategory() {
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Item Category</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Item Category</span>
                                                                       <span>
                                                                            <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                 <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -166,7 +275,7 @@ export default function ItemCategory() {
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
                                                                  <div className="w-full flex space-x-2.5 items-center">
-                                                                      <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Description</span>
+                                                                      <span className="text-base font-medium text-bgray-600 dark:text-white">Description</span>
                                                                       <span>
                                                                            <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                 <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -178,37 +287,51 @@ export default function ItemCategory() {
                                                                  </div>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {categoryData.map((item, index) => (
-                                                            <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.category}</p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.description}</p>
-                                                                 </td>
-                                                                 <td className="py-5 px-6 xl:px-0">
-                                                                      <div className="flex items-center space-x-2">
-                                                                           <button type="button" className="hover:opacity-70 transition">
-                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                     <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.43741 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                </svg>
-                                                                           </button>
-                                                                           <button type="button" className="hover:opacity-70 transition">
-                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                     <line x1="18" y1="6" x2="6" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
-                                                                                     <line x1="6" y1="6" x2="18" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
-                                                                                </svg>
-                                                                           </button>
-                                                                      </div>
+                                                       {loading ? (
+                                                            <tr>
+                                                                 <td colSpan={3} className="py-16 text-center">
+                                                                      <div className="w-8 h-8 border-4 border-success-300 border-t-transparent rounded-full animate-spin mx-auto"></div>
                                                                  </td>
                                                             </tr>
-                                                       ))}
+                                                       ) : filteredCategories.length > 0 ? (
+                                                            filteredCategories.map((item, index) => (
+                                                                 <tr key={index} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <p className="font-medium text-base text-bgray-900 dark:text-white">{item.name}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <p className="font-medium text-base text-bgray-900 dark:text-white">{item.description}</p>
+                                                                      </td>
+                                                                      <td className="py-5 px-6 xl:px-0">
+                                                                           <div className="flex items-center space-x-2">
+                                                                                <button type="button" onClick={() => handleEdit(item)} className="hover:opacity-70 transition">
+                                                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                          <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                          <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.43741 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#718096" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                     </svg>
+                                                                                </button>
+                                                                                <button type="button" onClick={() => handleDelete(item._id)} className="hover:opacity-70 transition">
+                                                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                          <line x1="18" y1="6" x2="6" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
+                                                                                          <line x1="6" y1="6" x2="18" y2="18" stroke="#718096" strokeWidth="2" strokeLinecap="round" />
+                                                                                     </svg>
+                                                                                </button>
+                                                                           </div>
+                                                                      </td>
+                                                                 </tr>
+                                                            ))
+                                                       ) : (
+                                                            <tr>
+                                                                 <td colSpan={3} className="py-16 text-center text-bgray-400 text-sm font-semibold">
+                                                                      No item categories found.
+                                                                 </td>
+                                                            </tr>
+                                                       )}
                                                   </tbody>
                                              </table>
                                         </div>
@@ -217,7 +340,7 @@ export default function ItemCategory() {
                                         <div className="pagination-content w-full">
                                              <div className="w-full flex lg:justify-between justify-center items-center">
                                                   <div className="lg:flex hidden space-x-4 items-center">
-                                                       <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Records: 1 to 5 of 5</span>
+                                                       <span className="text-bgray-600 dark:text-white text-sm font-semibold">Records: 1 to {filteredCategories.length} of {filteredCategories.length}</span>
                                                   </div>
                                                   <div className="flex sm:space-x-[35px] space-x-5 items-center">
                                                        <button type="button">
@@ -228,7 +351,7 @@ export default function ItemCategory() {
                                                             </span>
                                                        </button>
                                                        <div className="flex items-center">
-                                                            <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">
+                                                            <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white">
                                                                  1
                                                             </button>
                                                        </div>

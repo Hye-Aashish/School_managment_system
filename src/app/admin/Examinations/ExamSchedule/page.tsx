@@ -176,25 +176,25 @@ export default function ExamSchedule() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Subject</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Subject</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">Date From</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Date From</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Start Time</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Start Time</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Duration</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Duration</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Room No.</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Room No.</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Marks (Max.)</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Marks (Max.)</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Marks (Min.)</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Marks (Min.)</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -214,25 +214,25 @@ export default function ExamSchedule() {
                                                        ) : schedules.map((item) => (
                                                             <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.subject}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.subject}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.dateFrom}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.dateFrom}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.startTime}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.startTime}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.duration}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.duration}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.roomNo}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.roomNo}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.maxMarks}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.maxMarks}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.minMarks}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{item.minMarks}</p>
                                                                  </td>
                                                             </tr>
                                                        ))}

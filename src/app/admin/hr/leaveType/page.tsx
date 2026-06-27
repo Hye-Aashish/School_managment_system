@@ -4,35 +4,87 @@ import React, { useState } from "react";
 
 
 export default function AddLeaveType() {
-     const [leaveTypes, setLeaveTypes] = useState([
-          { id: 1, name: "Medical Leave" },
-          { id: 2, name: "Casual Leave" },
-          { id: 3, name: "Maternity Leave" },
-          { id: 4, name: "Sick Leave" },
-     ]);
-
+     const [leaveTypes, setLeaveTypes] = useState<any[]>([]);
      const [name, setName] = useState("");
-     const [editingId, setEditingId] = useState<number | null>(null);
+     const [editingId, setEditingId] = useState<string | null>(null);
+     const [loading, setLoading] = useState(true);
 
-     const handleSave = () => {
-          if (!name.trim()) return;
-          if (editingId !== null) {
-               setLeaveTypes(prev => prev.map(t => t.id === editingId ? { ...t, name } : t));
-               setEditingId(null);
-          } else {
-               setLeaveTypes(prev => [...prev, { id: Date.now(), name }]);
+     React.useEffect(() => {
+          fetchLeaveTypes();
+     }, []);
+
+     const fetchLeaveTypes = async () => {
+          try {
+               const res = await fetch("/api/leave-type");
+               const json = await res.json();
+               if (json.success) {
+                    setLeaveTypes(json.data);
+               }
+          } catch (error) {
+               console.error("Error fetching leave types:", error);
+          } finally {
+               setLoading(false);
           }
-          setName("");
      };
 
-     const handleEdit = (type: { id: number, name: string }) => {
+     const handleSave = async () => {
+          if (!name.trim()) return;
+          try {
+               if (editingId !== null) {
+                    const res = await fetch("/api/leave-type", {
+                         method: "PUT",
+                         headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ id: editingId, name })
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                         setLeaveTypes(prev => prev.map(t => t._id === editingId ? json.data : t));
+                         setEditingId(null);
+                         setName("");
+                    } else {
+                         alert(json.error || "Failed to update leave type");
+                    }
+               } else {
+                    const res = await fetch("/api/leave-type", {
+                         method: "POST",
+                         headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ name })
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                         setLeaveTypes([json.data, ...leaveTypes]);
+                         setName("");
+                    } else {
+                         alert(json.error || "Failed to create leave type");
+                    }
+               }
+          } catch (error) {
+               console.error("Error saving leave type:", error);
+               alert("An error occurred");
+          }
+     };
+
+     const handleEdit = (type: any) => {
           setName(type.name);
-          setEditingId(type.id);
+          setEditingId(type._id);
      };
 
-     const handleDelete = (id: number) => {
+     const handleDelete = async (id: string) => {
           if (confirm("Are you sure you want to delete this leave type?")) {
-               setLeaveTypes(prev => prev.filter(t => t.id !== id));
+               try {
+                    const res = await fetch(`/api/leave-type?id=${id}`, {
+                         method: "DELETE"
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                         setLeaveTypes(prev => prev.filter(t => t._id !== id));
+                    } else {
+                         alert(json.error || "Failed to delete leave type");
+                    }
+               } catch (error) {
+                    console.error("Error deleting leave type:", error);
+                    alert("An error occurred");
+               }
           }
      };
 
@@ -54,6 +106,8 @@ export default function AddLeaveType() {
                                         <input
                                              type="text"
                                              placeholder=""
+                                             value={name}
+                                             onChange={(e) => setName(e.target.value)}
                                              className="w-full px-4 py-3 text-sm border border-bgray-300 dark:border-darkblack-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-300 bg-white dark:bg-darkblack-500 text-bgray-900 dark:text-white"
                                         />
                                    </div>
@@ -149,7 +203,7 @@ export default function AddLeaveType() {
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                       Name
                                                                  </span>
                                                                  <span>
@@ -193,20 +247,28 @@ export default function AddLeaveType() {
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Action
                                                             </span>
                                                        </td>
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  {leaveTypes.map((type) => (
+                                                  {loading ? (
+                                                       <tr>
+                                                            <td colSpan={2} className="py-10 text-center text-bgray-500">Loading leave types...</td>
+                                                       </tr>
+                                                  ) : leaveTypes.length === 0 ? (
+                                                       <tr>
+                                                            <td colSpan={2} className="py-10 text-center text-bgray-500">No leave types found.</td>
+                                                       </tr>
+                                                  ) : leaveTypes.map((type) => (
                                                        <tr
-                                                            key={type.id}
+                                                            key={type._id}
                                                             className="border-b border-bgray-300 dark:border-darkblack-400"
                                                        >
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {type.name}
                                                                  </p>
                                                             </td>
@@ -214,6 +276,7 @@ export default function AddLeaveType() {
                                                                  <div className="flex space-x-3">
                                                                       <button
                                                                            type="button"
+                                                                           onClick={() => handleEdit(type)}
                                                                            className="text-bgray-900 dark:text-white hover:text-success-300 transition-colors"
                                                                       >
                                                                            <svg
@@ -234,6 +297,7 @@ export default function AddLeaveType() {
                                                                       </button>
                                                                       <button
                                                                            type="button"
+                                                                           onClick={() => handleDelete(type._id)}
                                                                            className="text-bgray-900 dark:text-white hover:text-red-500 transition-colors"
                                                                       >
                                                                            <svg
@@ -271,8 +335,8 @@ export default function AddLeaveType() {
                                    <div className="pagination-content w-full">
                                         <div className="w-full flex lg:justify-between justify-center items-center">
                                              <div className="lg:flex hidden">
-                                                  <p className="text-sm text-bgray-600 dark:text-bgray-50">
-                                                       Records: 1 to 4 of 4
+                                                  <p className="text-sm text-bgray-600 dark:text-white">
+                                                       Records: {leaveTypes.length}
                                                   </p>
                                              </div>
                                              <div className="flex sm:space-x-[35px] space-x-5 items-center">
@@ -298,7 +362,7 @@ export default function AddLeaveType() {
                                                   <div className="flex items-center">
                                                        <button
                                                             type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                        >
                                                             1
                                                        </button>

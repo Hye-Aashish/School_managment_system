@@ -320,7 +320,7 @@ export default function LiveClasses() {
                   </button>
                   {showColMenu && (
                     <div className="absolute right-0 top-12 z-20 bg-white dark:bg-darkblack-500 rounded-lg shadow-lg border border-bgray-200 dark:border-darkblack-400 w-52 p-3">
-                      <p className="text-xs font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Toggle Columns</p>
+                      <p className="text-xs font-semibold text-bgray-600 dark:text-white mb-2">Toggle Columns</p>
                       {ALL_COLUMNS.filter((c) => c.key !== "action").map((col) => (
                         <label key={col.key} className="flex items-center gap-2 py-1 cursor-pointer">
                           <input
@@ -329,7 +329,7 @@ export default function LiveClasses() {
                             onChange={() => toggleColumn(col.key)}
                             className="accent-success-300"
                           />
-                          <span className="text-sm text-bgray-900 dark:text-bgray-50">{col.label}</span>
+                          <span className="text-sm text-bgray-900 dark:text-white">{col.label}</span>
                         </label>
                       ))}
                     </div>
@@ -345,7 +345,7 @@ export default function LiveClasses() {
                       {isVisible("classTitle") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class Title</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Class Title</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -353,7 +353,7 @@ export default function LiveClasses() {
                       {isVisible("description") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Description</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Description</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -361,7 +361,7 @@ export default function LiveClasses() {
                       {isVisible("dateTime") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date Time</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Date Time</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -369,7 +369,7 @@ export default function LiveClasses() {
                       {isVisible("duration") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class Duration (Minutes)</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Class Duration (Minutes)</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -377,7 +377,7 @@ export default function LiveClasses() {
                       {isVisible("createdBy") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Created By</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Created By</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -385,7 +385,7 @@ export default function LiveClasses() {
                       {isVisible("createdFor") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Created For</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Created For</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -393,7 +393,7 @@ export default function LiveClasses() {
                       {isVisible("classes") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Class</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Class</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
@@ -401,24 +401,24 @@ export default function LiveClasses() {
                       {isVisible("status") && (
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Status</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">Status</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
                       )}
                       <td className="py-4 px-4">
-                        <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span>
+                        <span className="text-sm font-semibold text-bgray-600 dark:text-white">Action</span>
                       </td>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan={9} className="text-center py-4 text-bgray-600 dark:text-bgray-50">Loading...</td>
+                        <td colSpan={9} className="text-center py-4 text-bgray-600 dark:text-white">Loading...</td>
                       </tr>
                     ) : filtered.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="text-center py-4 text-bgray-600 dark:text-bgray-50">
+                        <td colSpan={9} className="text-center py-4 text-bgray-600 dark:text-white">
                           {searchQuery ? "No matching classes found." : "No live classes found."}
                         </td>
                       </tr>
@@ -427,34 +427,34 @@ export default function LiveClasses() {
                         <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
                           {isVisible("classTitle") && (
                             <td className="py-4 px-4">
-                              <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.classTitle}</p>
+                              <p className="text-sm text-bgray-900 dark:text-white">{item.classTitle}</p>
                             </td>
                           )}
                           {isVisible("description") && (
                             <td className="py-4 px-4">
-                              <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.description}</p>
+                              <p className="text-sm text-bgray-900 dark:text-white">{item.description}</p>
                             </td>
                           )}
                           {isVisible("dateTime") && (
                             <td className="py-4 px-4">
-                              <p className="text-sm text-bgray-900 dark:text-bgray-50 whitespace-pre-line">
+                              <p className="text-sm text-bgray-900 dark:text-white whitespace-pre-line">
                                 {new Date(item.dateTime).toLocaleString()}
                               </p>
                             </td>
                           )}
                           {isVisible("duration") && (
                             <td className="py-4 px-4">
-                              <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.duration}</p>
+                              <p className="text-sm text-bgray-900 dark:text-white">{item.duration}</p>
                             </td>
                           )}
                           {isVisible("createdBy") && (
                             <td className="py-4 px-4">
-                              <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</p>
+                              <p className="text-sm text-bgray-900 dark:text-white">{item.createdBy}</p>
                             </td>
                           )}
                           {isVisible("createdFor") && (
                             <td className="py-4 px-4">
-                              <p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdFor}</p>
+                              <p className="text-sm text-bgray-900 dark:text-white">{item.createdFor}</p>
                             </td>
                           )}
                           {isVisible("classes") && (
@@ -466,7 +466,7 @@ export default function LiveClasses() {
                                       <path d="M9 11L12 14L22 4" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                       <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
-                                    <span className="text-xs text-bgray-900 dark:text-bgray-50">{cls}</span>
+                                    <span className="text-xs text-bgray-900 dark:text-white">{cls}</span>
                                   </div>
                                 ))}
                               </div>
@@ -477,7 +477,7 @@ export default function LiveClasses() {
                               <select
                                 value={item.status}
                                 onChange={(e) => handleStatusChange(item._id, e.target.value)}
-                                className="text-sm text-bgray-900 dark:text-bgray-50 bg-bgray-100 dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-success-300"
+                                className="text-sm text-bgray-900 dark:text-white bg-bgray-100 dark:bg-darkblack-500 border border-bgray-300 dark:border-darkblack-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-success-300"
                               >
                                 <option value="Started">Started</option>
                                 <option value="Completed">Completed</option>
@@ -491,7 +491,7 @@ export default function LiveClasses() {
                               <button
                                 type="button"
                                 onClick={() => handleEdit(item)}
-                                className="text-bgray-600 dark:text-bgray-50 hover:text-success-300 transition-colors title='Edit'"
+                                className="text-bgray-600 dark:text-white hover:text-success-300 transition-colors title='Edit'"
                               >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
                               </button>

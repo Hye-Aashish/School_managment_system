@@ -7,13 +7,45 @@ import FeeMaster from "@/models/FeeMaster";
 import FeeGroup from "@/models/FeeGroup";
 import FeeType from "@/models/FeeType";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         if (mongoose.connection.readyState !== 1) {
             await mongoose.connect(process.env.MONGODB_URI!);
         }
 
-        const payments = await OfflineBankPayment.find()
+        const { searchParams } = new URL(req.url);
+        const className = searchParams.get("class");
+        const section = searchParams.get("section");
+        const search = searchParams.get("search");
+        const status = searchParams.get("status");
+        
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "10");
+        const skip = (page - 1) * limit;
+
+        let studentQuery: any = {};
+        if (className) studentQuery.class = className;
+        if (section) studentQuery.section = section;
+        if (search) {
+            const searchRegex = { $regex: search, $options: "i" };
+            studentQuery.$or = [
+                { fname: searchRegex },
+                { lname: searchRegex },
+                { admission_no: searchRegex }
+            ];
+        }
+
+        let paymentQuery: any = {};
+        if (status) paymentQuery.status = status;
+
+        if (Object.keys(studentQuery).length > 0) {
+            const students = await Student.find(studentQuery).select("_id");
+            const studentIds = students.map(s => s._id);
+            paymentQuery.student = { $in: studentIds };
+        }
+
+        const totalEntries = await OfflineBankPayment.countDocuments(paymentQuery);
+        const payments = await OfflineBankPayment.find(paymentQuery)
             .populate({
                 path: "student",
                 model: Student
@@ -26,9 +58,16 @@ export async function GET() {
                     { path: "fee_type", model: FeeType }
                 ]
             })
-            .sort({ submit_date: -1 });
+            .sort({ submit_date: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        return NextResponse.json(payments);
+        return NextResponse.json({
+            data: payments,
+            totalEntries,
+            totalPages: Math.ceil(totalEntries / limit),
+            currentPage: page
+        });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

@@ -17,6 +17,7 @@ export default function LiveClassesReport() {
   const [openFilter, setOpenFilter] = useState<"class" | "section" | null>(null);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
+  const [classes, setClasses] = useState<any[]>([]);
 
   const [liveClassesReportData, setLiveClassesReportData] = useState<LiveClass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,27 +28,30 @@ export default function LiveClassesReport() {
   const joinPerPage = 10;
 
   useEffect(() => {
-    const fetchClasses = async () => {
+    const fetchClassesAndLiveClasses = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/gmeet-live-classes");
-        const data = await res.json();
-        if (data.success) setLiveClassesReportData(data.data);
+        const [resClasses, resLiveClasses] = await Promise.all([
+          fetch("/api/classes"),
+          fetch("/api/gmeet-live-classes")
+        ]);
+        const dataClasses = await resClasses.json();
+        const dataLiveClasses = await resLiveClasses.json();
+        
+        if (dataClasses.success) setClasses(dataClasses.data || []);
+        if (dataLiveClasses.success) setLiveClassesReportData(dataLiveClasses.data || []);
       } catch (error) {
-        console.error("Failed to fetch classes:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchClasses();
+    fetchClassesAndLiveClasses();
   }, []);
 
   const toggleFilter = (type: "class" | "section") => {
     setOpenFilter(openFilter === type ? null : type);
   };
-
-  const classList = ["All","Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10"];
-  const sectionList = ["All","A","B","C","D","E"];
 
   const filtered = liveClassesReportData.filter((item) => {
     const q = searchQuery.toLowerCase();
@@ -74,7 +78,7 @@ export default function LiveClassesReport() {
     new Date(item.dateTime).toLocaleString(),
     item.createdBy,
     item.createdFor,
-    "0",
+    (item.joinList?.length || 0).toString(),
   ];
 
   const handleCopy = () => {
@@ -163,7 +167,7 @@ export default function LiveClassesReport() {
                       <thead>
                         <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500">
                           {["Admission No", "Student Name", "Father Name", "Last Join"].map(h => (
-                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-bgray-50">{h}</th>
+                            <th key={h} className="text-left py-3 px-5 text-sm font-semibold text-bgray-700 dark:text-white">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -188,12 +192,12 @@ export default function LiveClassesReport() {
                     </span>
                     <div className="flex items-center gap-1">
                       <button type="button" disabled={joinPage === 1} onClick={() => setJoinPage(p => p - 1)}
-                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
                         <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M12.72 5L7.72 10L12.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                       <button type="button" className="w-8 h-8 flex items-center justify-center rounded text-sm font-semibold text-white" style={{ backgroundColor: "#6654c0" }}>{joinPage}</button>
                       <button type="button" disabled={joinPage === totalPages} onClick={() => setJoinPage(p => p + 1)}
-                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
+                        className="w-8 h-8 flex items-center justify-center rounded border border-bgray-300 dark:border-darkblack-400 text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 disabled:opacity-40 transition">
                         <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><path d="M7.72 5L12.72 10L7.72 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                     </div>
@@ -213,16 +217,17 @@ export default function LiveClassesReport() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Class Dropdown */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Class <span className="text-error-300">*</span></label>
+                  <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2">Class <span className="text-error-300">*</span></label>
                   <div className="relative">
                     <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("class")}>
-                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedClass || "All"}</span>
+                      <span className="text-sm text-bgray-900 dark:text-white">{selectedClass || "All"}</span>
                       <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
                     </button>
                     <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
                       <ul className="max-h-48 overflow-y-auto">
-                        {classList.map((cls) => (
-                          <li key={cls} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(cls === "All" ? "" : cls); setOpenFilter(null); }}>{cls}</li>
+                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(""); setSelectedSection(""); setOpenFilter(null); }}>All</li>
+                        {classes.map((cls) => (
+                          <li key={cls._id || cls.name} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedClass(cls.name); setSelectedSection(""); setOpenFilter(null); }}>{cls.name}</li>
                         ))}
                       </ul>
                     </div>
@@ -230,16 +235,17 @@ export default function LiveClassesReport() {
                 </div>
                 {/* Section Dropdown */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 mb-2">Section <span className="text-error-300">*</span></label>
+                  <label className="text-sm font-medium text-bgray-900 dark:text-white mb-2">Section <span className="text-error-300">*</span></label>
                   <div className="relative">
                     <button type="button" className="w-full h-12 rounded-lg bg-bgray-100 dark:bg-darkblack-500 px-4 flex justify-between items-center border border-bgray-300 dark:border-darkblack-400" onClick={() => toggleFilter("section")}>
-                      <span className="text-sm text-bgray-900 dark:text-bgray-50">{selectedSection || "All"}</span>
+                      <span className="text-sm text-bgray-900 dark:text-white">{selectedSection || "All"}</span>
                       <span><svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.58203 8.3186L10.582 13.3186L15.582 8.3186" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
                     </button>
                     <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute left-0 z-10 top-14 overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"}`}>
                       <ul className="max-h-48 overflow-y-auto">
-                        {sectionList.map((section) => (
-                          <li key={section} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(section === "All" ? "" : section); setOpenFilter(null); }}>{section}</li>
+                        <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(""); setOpenFilter(null); }}>All</li>
+                        {selectedClass && classes.find(c => c.name === selectedClass)?.sections?.map((sec: any) => (
+                          <li key={sec._id || sec} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-medium" onClick={() => { setSelectedSection(sec.name || sec); setOpenFilter(null); }}>{sec.name || sec}</li>
                         ))}
                       </ul>
                     </div>
@@ -301,28 +307,28 @@ export default function LiveClassesReport() {
                       {["Class Title","Description","Date Time","Created By","Created For","Total Join"].map((label) => (
                         <td key={label} className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">{label}</span>
+                            <span className="text-sm font-semibold text-bgray-600 dark:text-white">{label}</span>
                             <button type="button"><SortIcon /></button>
                           </div>
                         </td>
                       ))}
-                      <td className="py-4 px-4"><span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span></td>
+                      <td className="py-4 px-4"><span className="text-sm font-semibold text-bgray-600 dark:text-white">Action</span></td>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
-                      <tr><td colSpan={7} className="text-center py-4 text-bgray-600 dark:text-bgray-50">Loading...</td></tr>
+                      <tr><td colSpan={7} className="text-center py-4 text-bgray-600 dark:text-white">Loading...</td></tr>
                     ) : filtered.length === 0 ? (
-                      <tr><td colSpan={7} className="text-center py-4 text-bgray-600 dark:text-bgray-50">{searchQuery ? "No matching classes found." : "No classes found."}</td></tr>
+                      <tr><td colSpan={7} className="text-center py-4 text-bgray-600 dark:text-white">{searchQuery ? "No matching classes found." : "No classes found."}</td></tr>
                     ) : (
                       filtered.map((item) => (
                         <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition duration-200">
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.classTitle}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.description}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{new Date(item.dateTime).toLocaleString()}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdBy}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">{item.createdFor}</p></td>
-                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-bgray-50">0</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.classTitle}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.description}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{new Date(item.dateTime).toLocaleString()}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.createdBy}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.createdFor}</p></td>
+                          <td className="py-4 px-4"><p className="text-sm text-bgray-900 dark:text-white">{item.joinList?.length || 0}</p></td>
                           <td className="py-4 px-4">
                             <button
                               type="button"

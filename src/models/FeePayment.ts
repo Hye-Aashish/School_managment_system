@@ -4,7 +4,7 @@ export interface IFeePayment extends Document {
     student: mongoose.Types.ObjectId;
     fee_master: mongoose.Types.ObjectId;
     amount_paid: number;
-    payment_mode: string; // Cash, Cheque, Online, Bank Transfer
+    payment_mode: string; // Cash, Cheque, Online, Bank Transfer, DD
     date: string;
     reference_no?: string;
     note?: string;
@@ -12,6 +12,8 @@ export interface IFeePayment extends Document {
     fine_amount: number;
     discount?: mongoose.Types.ObjectId;
     status: string; // Success, Refunded
+    online_payment_id?: string; // Razorpay payment ID or Cashfree order ID
+    attachment_url?: string;    // Receipt/cheque image URL
     created_at: Date;
 }
 
@@ -27,6 +29,8 @@ const FeePaymentSchema: Schema = new Schema({
     fine_amount: { type: Number, default: 0 },
     discount: { type: Schema.Types.ObjectId, ref: "FeeDiscount" },
     status: { type: String, default: "Success" },
+    online_payment_id: { type: String },
+    attachment_url: { type: String },
     created_at: { type: Date, default: Date.now },
 });
 

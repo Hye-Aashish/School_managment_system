@@ -24,26 +24,34 @@ export default function AssignIncidentList() {
      const [searchTerm, setSearchTerm] = useState("");
      const [selectedClass, setSelectedClass] = useState("All");
      const [selectedSection, setSelectedSection] = useState("All");
+     const [classes, setClasses] = useState<any[]>([]);
      const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
      const menuRef = useRef<HTMLDivElement>(null);
 
-     const fetchStudents = async () => {
+     const fetchData = async () => {
           setIsLoading(true);
           try {
-               const res = await fetch("/api/assign-incidents/student-points");
-               const json = await res.json();
-               if (json.success) {
-                    setStudents(json.data);
+               const [resStudents, resClasses] = await Promise.all([
+                    fetch("/api/assign-incidents/student-points"),
+                    fetch("/api/classes")
+               ]);
+               const jsonStudents = await resStudents.json();
+               const jsonClasses = await resClasses.json();
+               if (jsonStudents.success) {
+                    setStudents(jsonStudents.data || []);
+               }
+               if (jsonClasses.success) {
+                    setClasses(jsonClasses.data || []);
                }
           } catch (error) {
-               console.error("Error fetching student points:", error);
+               console.error("Error fetching data:", error);
           } finally {
                setIsLoading(false);
           }
      };
 
      useEffect(() => {
-          fetchStudents();
+          fetchData();
           const handleClickOutside = (event: MouseEvent) => {
                if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                     setOpenActionMenuId(null);
@@ -53,8 +61,7 @@ export default function AssignIncidentList() {
           return () => document.removeEventListener("mousedown", handleClickOutside);
      }, []);
 
-     const classList = ["All", "Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
-     const sectionList = ["All", "A", "B", "C", "D", "E"];
+
 
      const filteredData = students.filter(student => {
           const matchesSearch = 
@@ -98,11 +105,12 @@ export default function AssignIncidentList() {
                                         <div className="flex flex-col w-full">
                                              <select
                                                   value={selectedClass}
-                                                  onChange={(e) => setSelectedClass(e.target.value)}
-                                                  className="w-full h-14 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px] text-sm text-bgray-900 dark:text-bgray-50 focus:outline-none"
+                                                  onChange={(e) => { setSelectedClass(e.target.value); setSelectedSection("All"); }}
+                                                  className="w-full h-14 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px] text-sm text-bgray-900 dark:text-white focus:outline-none"
                                              >
-                                                  {classList.map((cls) => (
-                                                       <option key={cls} value={cls}>{cls}</option>
+                                                  <option value="All">All Classes</option>
+                                                  {classes.map((cls) => (
+                                                       <option key={cls._id || cls.name} value={cls.name}>{cls.name}</option>
                                                   ))}
                                              </select>
                                         </div>
@@ -110,10 +118,11 @@ export default function AssignIncidentList() {
                                              <select
                                                   value={selectedSection}
                                                   onChange={(e) => setSelectedSection(e.target.value)}
-                                                  className="w-full h-14 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px] text-sm text-bgray-900 dark:text-bgray-50 focus:outline-none"
+                                                  className="w-full h-14 bg-bgray-200 dark:bg-darkblack-500 rounded-lg px-[18px] text-sm text-bgray-900 dark:text-white focus:outline-none"
                                              >
-                                                  {sectionList.map((section) => (
-                                                       <option key={section} value={section}>{section}</option>
+                                                  <option value="All">All Sections</option>
+                                                  {selectedClass !== "All" && classes.find(c => c.name === selectedClass)?.sections?.map((sec: any) => (
+                                                       <option key={sec._id || sec} value={sec.name || sec}>{sec.name || sec}</option>
                                                   ))}
                                              </select>
                                         </div>
@@ -123,13 +132,13 @@ export default function AssignIncidentList() {
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium whitespace-nowrap">Student Name</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Admission No</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Class</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Gender</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Phone</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Total Points</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-right pr-6 text-bgray-600 dark:text-bgray-50 font-medium">Action</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium whitespace-nowrap">Student Name</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Admission No</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Class</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Gender</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Phone</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Total Points</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-right pr-6 text-bgray-600 dark:text-white font-medium">Action</td>
                                                   </tr>
                                              </thead>
                                              <tbody>
@@ -139,12 +148,12 @@ export default function AssignIncidentList() {
                                                        <tr><td colSpan={7} className="text-center py-10">No students found</td></tr>
                                                   ) : filteredData.map((item) => (
                                                        <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-bgray-50">{item.fname} {item.lname}</td>
-                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-bgray-50">{item.admission_no}</td>
-                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-bgray-50">{item.class}({item.section})</td>
-                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-bgray-50">{item.gender}</td>
-                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-bgray-50">{item.phone}</td>
-                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-bgray-50 text-center">{item.totalPoints}</td>
+                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-white">{item.fname} {item.lname}</td>
+                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-white">{item.admission_no}</td>
+                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-white">{item.class}({item.section})</td>
+                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-white">{item.gender}</td>
+                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-white">{item.phone}</td>
+                                                            <td className="py-5 px-6 xl:px-0 font-medium text-base text-bgray-900 dark:text-white text-center">{item.totalPoints}</td>
                                                             <td className="py-5 px-6 xl:px-0 pr-6 text-right relative">
                                                                  <button 
                                                                    onClick={() => setOpenActionMenuId(openActionMenuId === item._id ? null : item._id)}
@@ -184,7 +193,7 @@ export default function AssignIncidentList() {
                     <AssignIncidentModal 
                         isOpen={isAssignModalOpen} 
                         onClose={() => setIsAssignModalOpen(false)} 
-                        onRefresh={fetchStudents} 
+                        onRefresh={fetchData} 
                         studentId={selectedStudent.id} 
                         studentName={selectedStudent.name} 
                     />
@@ -194,7 +203,7 @@ export default function AssignIncidentList() {
                     <BehaviourHistoryModal 
                         isOpen={isHistoryModalOpen} 
                         onClose={() => setIsHistoryModalOpen(false)} 
-                        onRefresh={fetchStudents}
+                        onRefresh={fetchData}
                         studentId={selectedStudent.id} 
                         studentName={selectedStudent.name} 
                     />

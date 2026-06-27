@@ -289,7 +289,7 @@ export default function BulkStudents() {
                                                        >
                                                             <div className="w-full flex space-x-2.5 items-center">
                                                                  <span
-                                                                      className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                      className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Admission No</span>
                                                                  <span>
                                                                       <svg
@@ -333,7 +333,7 @@ export default function BulkStudents() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Student Name</span
                                                                  >
                                                                  <span>
@@ -379,7 +379,7 @@ export default function BulkStudents() {
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="flex space-x-2.5 items-center">
                                                                  <span
-                                                                      className="text-base font-medium text-bgray-600 dark:text-gray-50"
+                                                                      className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >
                                                                       Class</span
                                                                  >
@@ -425,7 +425,7 @@ export default function BulkStudents() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Date Of Birth</span
                                                                  >
                                                                  <span>
@@ -470,7 +470,7 @@ export default function BulkStudents() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Gender</span
                                                                  >
                                                                  <span>
@@ -515,7 +515,7 @@ export default function BulkStudents() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Category</span
                                                                  >
                                                                  <span>
@@ -560,7 +560,7 @@ export default function BulkStudents() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0 w-[165px]">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50"
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white"
                                                                  >Mobile Number</span
                                                                  >
                                                                  <span>
@@ -628,37 +628,37 @@ export default function BulkStudents() {
                                                                  </label>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.admission_no}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.fname} {student.lname}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.class}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.dob}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.gender}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.category}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {student.mobile}
                                                                  </p>
                                                             </td>
@@ -721,7 +721,7 @@ export default function BulkStudents() {
                                              className="w-full flex lg:justify-between justify-center items-center"
                                         >
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold"
+                                                  <span className="text-bgray-600 dark:text-white text-sm font-semibold"
                                                   >Show result:</span
                                                   >
                                                   <div className="relative">
@@ -730,7 +730,7 @@ export default function BulkStudents() {
                                                             className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                             onClick={() => toggleFilter("pagination")}
                                                        >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50"
+                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-white"
                                                             >3</span
                                                             >
                                                             <span>

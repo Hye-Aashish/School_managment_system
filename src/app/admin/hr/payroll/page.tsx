@@ -428,22 +428,22 @@ export default function StaffPayslip() {
                                                             key={staff._id}
                                                             className="border-b border-bgray-250 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-550 transition-colors"
                                                        >
-                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-white">
                                                                  {staff.staffId}
                                                             </td>
-                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-white">
                                                                  {staff.firstName} {staff.lastName}
                                                             </td>
-                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-white">
                                                                  {staff.role}
                                                             </td>
-                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-white">
                                                                  {staff.department || "N/A"}
                                                             </td>
-                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-white">
                                                                  {staff.designation || "N/A"}
                                                             </td>
-                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                            <td className="py-5 px-4 font-medium text-base text-bgray-900 dark:text-white">
                                                                  {staff.phone || "N/A"}
                                                             </td>
                                                             <td className="py-5 px-4">
@@ -682,7 +682,7 @@ export default function StaffPayslip() {
                                                         <th className="py-3 px-4 text-right">Amount ($)</th>
                                                    </tr>
                                               </thead>
-                                              <tbody className="divide-y divide-bgray-200 dark:divide-darkblack-400 text-bgray-900 dark:text-bgray-50">
+                                              <tbody className="divide-y divide-bgray-200 dark:divide-darkblack-400 text-bgray-900 dark:text-white">
                                                    <tr>
                                                         <td className="py-3 px-4">Basic Salary</td>
                                                         <td className="py-3 px-4 text-right font-semibold">${viewingPayslip.basicSalary || 0}</td>

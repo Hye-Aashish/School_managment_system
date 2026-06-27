@@ -92,10 +92,10 @@ export default function IncidentList() {
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Title</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Point</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-bgray-50 font-medium">Description</td>
-                                                       <td className="py-5 px-6 xl:px-0 text-right pr-6 text-bgray-600 dark:text-bgray-50 font-medium">Action</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Title</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Point</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-bgray-600 dark:text-white font-medium">Description</td>
+                                                       <td className="py-5 px-6 xl:px-0 text-right pr-6 text-bgray-600 dark:text-white font-medium">Action</td>
                                                   </tr>
                                              </thead>
                                              <tbody>
@@ -105,9 +105,9 @@ export default function IncidentList() {
                                                        <tr><td colSpan={4} className="text-center py-10">No incidents found</td></tr>
                                                   ) : filteredData.map((item) => (
                                                        <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.title}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{item.point}</p></td>
-                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-bgray-50 max-w-md truncate">{item.description}</p></td>
+                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-white">{item.title}</p></td>
+                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-white">{item.point}</p></td>
+                                                            <td className="py-5 px-6 xl:px-0"><p className="font-medium text-base text-bgray-900 dark:text-white max-w-md truncate">{item.description}</p></td>
                                                             <td className="py-5 px-6 xl:px-0 pr-6">
                                                                  <div className="flex items-center justify-end gap-2">
                                                                        <button onClick={() => { setEditData(item); setIsModalOpen(true); }} className="text-bgray-600 dark:text-bgray-400 hover:text-success-300 transition duration-300">

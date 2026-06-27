@@ -207,7 +207,7 @@ export default function QuestionBank() {
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                                    {/* Question Tag */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Question Tag
                                         </label>
                                         <div className="relative">
@@ -256,7 +256,7 @@ export default function QuestionBank() {
 
                                    {/* Question Type */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Question Type
                                         </label>
                                         <div className="relative">
@@ -305,7 +305,7 @@ export default function QuestionBank() {
 
                                    {/* Question Level */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Question Level
                                         </label>
                                         <div className="relative">
@@ -354,7 +354,7 @@ export default function QuestionBank() {
 
                                    {/* Created By */}
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Created By
                                         </label>
                                         <div className="relative">
@@ -668,7 +668,7 @@ export default function QuestionBank() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
                                                             <div className="flex items-center space-x-2.5">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Q. ID</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Q. ID</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -711,7 +711,7 @@ export default function QuestionBank() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
                                                             <div className="flex items-center space-x-2.5">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Question Tag</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Question Tag</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -754,7 +754,7 @@ export default function QuestionBank() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
                                                             <div className="flex items-center space-x-2.5">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Question Type</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Question Type</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -797,7 +797,7 @@ export default function QuestionBank() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
                                                             <div className="flex items-center space-x-2.5">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Level</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Level</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -840,7 +840,7 @@ export default function QuestionBank() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
                                                             <div className="flex items-center space-x-2.5">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Question</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Question</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -883,7 +883,7 @@ export default function QuestionBank() {
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
                                                             <div className="flex items-center space-x-2.5">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Created By</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Created By</span>
                                                                  <span>
                                                                       <svg
                                                                            width="14"
@@ -925,7 +925,7 @@ export default function QuestionBank() {
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-4">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                        </td>
                                                   </tr>
                                              </thead>
@@ -941,34 +941,34 @@ export default function QuestionBank() {
                                                                  </label>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {questions.length - index}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {question.subject || question.questionTag || "N/A"}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50 capitalize">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white capitalize">
                                                                       {(question.type || question.questionType || "").replace('_', ' ')}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50 capitalize">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white capitalize">
                                                                       {question.level}
                                                                  </p>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
                                                                  <div 
-                                                                      className="font-medium text-base text-bgray-900 dark:text-bgray-50 line-clamp-2 ck-content" 
+                                                                      className="font-medium text-base text-bgray-900 dark:text-white line-clamp-2 ck-content" 
                                                                       dangerouslySetInnerHTML={{ __html: question.question }}
                                                                       title={question.question?.replace(/<[^>]*>?/gm, '')}
                                                                  />
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-4">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {question.createdBy || "Super Admin"}
                                                                  </p>
                                                             </td>
@@ -1031,14 +1031,14 @@ export default function QuestionBank() {
                                    <div className="pagination-content w-full">
                                         <div className="w-full flex lg:justify-between justify-center items-center">
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">Show result:</span>
+                                                  <span className="text-bgray-600 dark:text-white text-sm font-semibold">Show result:</span>
                                                   <div className="relative">
                                                        <button
                                                             type="button"
                                                             className="px-2.5 py-[14px] border rounded-lg border-bgray-300 dark:border-darkblack-400 flex space-x-6 items-center"
                                                             onClick={() => toggleFilter("pagination")}
                                                        >
-                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-bgray-50">3</span>
+                                                            <span className="text-sm font-semibold text-bgray-900 dark:text-white">3</span>
                                                             <span>
                                                                  <svg
                                                                       width="17"
@@ -1082,7 +1082,7 @@ export default function QuestionBank() {
                                                   <div className="flex items-center">
                                                        <button
                                                             type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                        >
                                                             1
                                                        </button>
@@ -1152,7 +1152,7 @@ export default function QuestionBank() {
                                <form onSubmit={isEditMode ? handleUpdateQuestion : handleCreateQuestion}>
                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <div>
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Question Subject / Tag</label>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Question Subject / Tag</label>
                                              <input
                                                   type="text"
                                                   value={formData.subject}
@@ -1163,7 +1163,7 @@ export default function QuestionBank() {
                                              />
                                         </div>
                                         <div>
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Level</label>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Level</label>
                                              <select
                                                   value={formData.level}
                                                   onChange={(e) => setFormData({ ...formData, level: e.target.value })}
@@ -1175,7 +1175,7 @@ export default function QuestionBank() {
                                              </select>
                                         </div>
                                         <div>
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Question Type</label>
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Question Type</label>
                                              <select
                                                   value={formData.type}
                                                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -1189,7 +1189,7 @@ export default function QuestionBank() {
                                          </div>
 
                                          <div className="md:col-span-2">
-                                              <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">Question</label>
+                                              <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">Question</label>
                                               <textarea
                                                    id="question_editor"
                                                    name="question_editor"
@@ -1356,7 +1356,7 @@ export default function QuestionBank() {
                                          {/* Left Metadata Column */}
                                          <div className="lg:col-span-3 space-y-8">
                                               <div className="p-5 rounded-xl bg-bgray-50 dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400">
-                                                   <p className="text-xs font-black text-bgray-400 dark:text-bgray-500 uppercase tracking-[0.2em] mb-3">Level</p>
+                                                   <p className="text-xs font-black text-bgray-400 dark:text-white0 uppercase tracking-[0.2em] mb-3">Level</p>
                                                    <div className="flex items-center gap-2">
                                                         <span className={`w-3 h-3 rounded-full ${
                                                              selectedQuestion.level === 'high' ? 'bg-red-500' : 
@@ -1367,13 +1367,13 @@ export default function QuestionBank() {
                                               </div>
                                               
                                               <div className="p-5 rounded-xl bg-bgray-50 dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400">
-                                                   <p className="text-xs font-black text-bgray-400 dark:text-bgray-500 uppercase tracking-[0.2em] mb-3">Question Type</p>
+                                                   <p className="text-xs font-black text-bgray-400 dark:text-white0 uppercase tracking-[0.2em] mb-3">Question Type</p>
                                                    <p className="text-lg font-bold capitalize">{selectedQuestion.type.replace('_', ' ')}</p>
                                               </div>
 
                                               {selectedQuestion.subject && (
                                                    <div className="p-5 rounded-xl bg-bgray-50 dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400">
-                                                        <p className="text-xs font-black text-bgray-400 dark:text-bgray-500 uppercase tracking-[0.2em] mb-3">Subject / Tag</p>
+                                                        <p className="text-xs font-black text-bgray-400 dark:text-white0 uppercase tracking-[0.2em] mb-3">Subject / Tag</p>
                                                         <p className="text-lg font-bold">{selectedQuestion.subject}</p>
                                                    </div>
                                               )}
@@ -1382,7 +1382,7 @@ export default function QuestionBank() {
                                          {/* Right Question Content Column */}
                                          <div className="lg:col-span-9">
                                               <div className="mb-10">
-                                                   <p className="text-xs font-black text-bgray-400 dark:text-bgray-500 uppercase tracking-[0.2em] mb-4">Question</p>
+                                                   <p className="text-xs font-black text-bgray-400 dark:text-white0 uppercase tracking-[0.2em] mb-4">Question</p>
                                                    <div 
                                                         className="text-2xl leading-relaxed ck-content font-medium"
                                                         dangerouslySetInnerHTML={{ __html: selectedQuestion.question }}
@@ -1391,8 +1391,8 @@ export default function QuestionBank() {
 
                                               {(selectedQuestion.type === 'single_choice' || selectedQuestion.type === 'multiple_choice') && (
                                                    <div className="space-y-4">
-                                                        <p className="text-xs font-black text-bgray-400 dark:text-bgray-500 uppercase tracking-[0.2em] mb-2">Options & Answer</p>
-                                                        {selectedQuestion.options.map((option, idx) => {
+                                                        <p className="text-xs font-black text-bgray-400 dark:text-white0 uppercase tracking-[0.2em] mb-2">Options & Answer</p>
+                                                        {selectedQuestion.options.map((option: string, idx: number) => {
                                                              const isCorrect = selectedQuestion.type === 'single_choice' 
                                                                   ? selectedQuestion.answer === option 
                                                                   : selectedQuestion.answer.split(',').includes(option);
@@ -1428,7 +1428,7 @@ export default function QuestionBank() {
 
                                               {selectedQuestion.type === 'true_false' && (
                                                    <div className="space-y-4">
-                                                        <p className="text-xs font-black text-bgray-400 dark:text-bgray-500 uppercase tracking-[0.2em] mb-2">Correct Answer</p>
+                                                        <p className="text-xs font-black text-bgray-400 dark:text-white0 uppercase tracking-[0.2em] mb-2">Correct Answer</p>
                                                         <div className="flex gap-6">
                                                              {['True', 'False'].map((val) => (
                                                                   <div 

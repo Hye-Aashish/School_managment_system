@@ -69,7 +69,7 @@ export default function ZoomSettings() {
                          <div className="w-full py-[40px] px-[24px] rounded-lg bg-white dark:bg-darkblack-600">
                               <div className="flex flex-col space-y-8 max-w-4xl">
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              Zoom API Key
                                         </label>
                                         <div className="flex-1">
@@ -77,14 +77,14 @@ export default function ZoomSettings() {
                                                   type="text"
                                                   value={apiKey}
                                                   onChange={(e) => setApiKey(e.target.value)}
-                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-bgray-50 focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
+                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
                                                   placeholder="Enter Zoom API Key"
                                              />
                                         </div>
                                    </div>
 
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              Zoom API Secret
                                         </label>
                                         <div className="flex-1">
@@ -92,7 +92,7 @@ export default function ZoomSettings() {
                                                   type="text"
                                                   value={apiSecret}
                                                   onChange={(e) => setApiSecret(e.target.value)}
-                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-bgray-50 focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
+                                                  className="w-full h-12 px-4 rounded-lg border border-bgray-300 dark:border-darkblack-400 bg-white dark:bg-darkblack-500 text-sm text-bgray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-success-300 focus:border-transparent transition duration-300"
                                                   placeholder="Enter Zoom API Secret"
                                              />
                                         </div>
@@ -100,7 +100,7 @@ export default function ZoomSettings() {
 
                                    {/* Keeping these fields to match Gmeet structure even if potentially less relevant for Zoom in this context */}
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              Use Zoom Calendar <span className="text-error-300">*</span>
                                         </label>
                                         <div className="flex-1">
@@ -114,7 +114,7 @@ export default function ZoomSettings() {
                                                             onChange={(e) => setUseGoogleCalendar(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Disabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Disabled</span>
                                                   </label>
                                                   <label className="flex items-center gap-2 cursor-pointer">
                                                        <input
@@ -125,14 +125,14 @@ export default function ZoomSettings() {
                                                             onChange={(e) => setUseGoogleCalendar(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Enabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Enabled</span>
                                                   </label>
                                              </div>
                                         </div>
                                    </div>
 
                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                        <label className="text-sm font-medium text-bgray-900 dark:text-bgray-50 md:w-48 flex-shrink-0">
+                                        <label className="text-sm font-medium text-bgray-900 dark:text-white md:w-48 flex-shrink-0">
                                              Parent Live Class <span className="text-error-300">*</span>
                                         </label>
                                         <div className="flex-1">
@@ -146,7 +146,7 @@ export default function ZoomSettings() {
                                                             onChange={(e) => setParentLiveClass(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Disabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Disabled</span>
                                                   </label>
                                                   <label className="flex items-center gap-2 cursor-pointer">
                                                        <input
@@ -157,7 +157,7 @@ export default function ZoomSettings() {
                                                             onChange={(e) => setParentLiveClass(e.target.value)}
                                                             className="w-4 h-4 text-success-300 border-bgray-300 focus:ring-success-300 focus:ring-2"
                                                        />
-                                                       <span className="text-sm text-bgray-900 dark:text-bgray-50">Enabled</span>
+                                                       <span className="text-sm text-bgray-900 dark:text-white">Enabled</span>
                                                   </label>
                                              </div>
                                         </div>

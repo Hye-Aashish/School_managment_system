@@ -94,7 +94,7 @@ export default function AddSection() {
 
                               <div className="flex flex-col space-y-5">
                                    <div className="w-full space-y-2 mb-0">
-                                        <label className="text-sm font-semibold text-bgray-700 dark:text-bgray-50 uppercase tracking-wider">
+                                        <label className="text-sm font-semibold text-bgray-700 dark:text-white uppercase tracking-wider">
                                              Section Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -150,7 +150,7 @@ export default function AddSection() {
                                         <div className="relative">
                                              <button
                                                   type="button"
-                                                  className="px-4 h-full rounded-xl bg-bgray-50 dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400 flex items-center space-x-2 text-bgray-700 dark:text-bgray-50 font-semibold text-sm hover:bg-bgray-100 transition-all"
+                                                  className="px-4 h-full rounded-xl bg-bgray-50 dark:bg-darkblack-500 border border-bgray-200 dark:border-darkblack-400 flex items-center space-x-2 text-bgray-700 dark:text-white font-semibold text-sm hover:bg-bgray-100 transition-all"
                                                   onClick={() => toggleFilter("export")}
                                              >
                                                   <span>Export</span>
@@ -180,12 +180,12 @@ export default function AddSection() {
                                              <thead>
                                                   <tr className="border-b border-bgray-200 dark:border-darkblack-400 bg-bgray-50 dark:bg-darkblack-500/30">
                                                        <td className="py-4 px-6">
-                                                            <span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">
+                                                            <span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">
                                                                  Section Name
                                                             </span>
                                                        </td>
                                                        <td className="py-4 px-6 text-right">
-                                                            <span className="text-sm font-bold text-bgray-600 dark:text-bgray-50 uppercase tracking-wider">
+                                                            <span className="text-sm font-bold text-bgray-600 dark:text-white uppercase tracking-wider">
                                                                  Action
                                                             </span>
                                                        </td>
@@ -198,7 +198,7 @@ export default function AddSection() {
                                                        filteredSections.map((section) => (
                                                             <tr key={section._id} className="border-b border-bgray-100 dark:border-darkblack-400 hover:bg-bgray-50/50 dark:hover:bg-darkblack-500/20 transition-colors">
                                                                  <td className="py-5 px-6">
-                                                                      <p className="font-semibold text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-semibold text-base text-bgray-900 dark:text-white">
                                                                            {section.name}
                                                                       </p>
                                                                  </td>
@@ -225,7 +225,7 @@ export default function AddSection() {
                                    </div>
 
                                    <div className="py-4 border-t border-bgray-200 dark:border-darkblack-400">
-                                        <p className="text-sm text-bgray-600 dark:text-bgray-50 font-medium">
+                                        <p className="text-sm text-bgray-600 dark:text-white font-medium">
                                              Total Records: {filteredSections.length}
                                         </p>
                                    </div>

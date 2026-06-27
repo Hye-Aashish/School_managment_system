@@ -121,7 +121,7 @@ export default function FeesForward() {
                               <div className="flex items-end gap-4 mb-8">
                                    {/* Class */}
                                    <div className="w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Class <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
@@ -157,7 +157,7 @@ export default function FeesForward() {
 
                                    {/* Section */}
                                    <div className="w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Section <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
@@ -230,12 +230,12 @@ export default function FeesForward() {
                                         <table className="w-full">
                                              <thead>
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Student Name</td>
-                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Admission No</td>
-                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Admission Date</td>
-                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Roll Number</td>
-                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Father Name</td>
-                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Balance ($)</td>
+                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Student Name</td>
+                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Admission No</td>
+                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Admission Date</td>
+                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Roll Number</td>
+                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Father Name</td>
+                                                       <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Balance ($)</td>
                                                   </tr>
                                              </thead>
                                              <tbody>
@@ -270,7 +270,7 @@ export default function FeesForward() {
                                                             </tr>
                                                        ))
                                                   ) : (
-                                                       <tr><td colSpan={6} className="py-10 text-center text-bgray-600 dark:text-bgray-50">No students found. Please select criteria.</td></tr>
+                                                       <tr><td colSpan={6} className="py-10 text-center text-bgray-600 dark:text-white">No students found. Please select criteria.</td></tr>
                                                   )}
                                              </tbody>
                                         </table>

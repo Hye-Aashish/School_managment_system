@@ -223,16 +223,16 @@ export default function TermList() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Name</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Name</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Code</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Code</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Description</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Description</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-right">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -244,10 +244,10 @@ export default function TermList() {
                                                        ) : filteredTerms.map((term) => (
                                                             <tr key={term._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{term.name}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{term.name}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">{term.code}</p>
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">{term.code}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0 max-w-xs">
                                                                       <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300 truncate">{term.description}</p>
@@ -285,7 +285,7 @@ export default function TermList() {
 
                                         {/* Pagination */}
                                         <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
-                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50">
+                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-white">
                                                   <span>Total Records: {filteredTerms.length}</span>
                                              </div>
                                         </div>

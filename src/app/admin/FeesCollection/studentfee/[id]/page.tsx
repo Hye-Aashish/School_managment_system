@@ -16,6 +16,8 @@ export default function StudentFeeDetail() {
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
     const [note, setNote] = useState("");
     const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
+    const [referenceNo, setReferenceNo] = useState("");
+    const [expandedMaster, setExpandedMaster] = useState<string | null>(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -53,6 +55,7 @@ export default function StudentFeeDetail() {
                     fine_amount: fineAmount,
                     payment_mode: paymentMode,
                     date: paymentDate,
+                    reference_no: ["Cheque", "DD", "Bank Transfer", "UPI"].includes(paymentMode) ? referenceNo : undefined,
                     note: note,
                     discount: selectedDiscounts.length > 0 ? selectedDiscounts[0] : undefined // Simplification for now
                 })
@@ -155,36 +158,112 @@ export default function StudentFeeDetail() {
                         {masters.map((master: any) => {
                             const paid = getMasterStatus(master._id);
                             const balance = master.amount - paid;
+                            const hasHistory = payments.some((p: any) => p.fee_master === master._id);
                             return (
-                                <tr key={master._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500">
-                                    <td className="py-4 px-2 font-medium">{master.fee_group?.name}</td>
-                                    <td className="py-4 px-2">{master.fee_type?.name}</td>
-                                    <td className="py-4 px-2">{master.due_date}</td>
-                                    <td className="py-4 px-2 text-right">₹{master.amount.toFixed(2)}</td>
-                                    <td className="py-4 px-2 text-right text-success-300">₹{paid.toFixed(2)}</td>
-                                    <td className="py-4 px-2 text-right text-red-500 font-bold">₹{balance.toFixed(2)}</td>
-                                    <td className="py-4 px-2">
-                                        {balance > 0 ? (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedMaster(master);
-                                                    const paid = getMasterStatus(master._id);
-                                                    const balance = master.amount - paid;
-                                                    setPayingAmount(balance);
-                                                    setFineAmount(0);
-                                                    setDiscountAmount(0);
-                                                    setSelectedDiscounts([]);
-                                                    setShowPaymentModal(true);
-                                                }}
-                                                className="bg-success-300 text-white px-3 py-1 rounded text-sm hover:bg-success-400"
-                                            >
-                                                + Collect
-                                            </button>
-                                        ) : (
-                                            <span className="text-success-300 text-sm font-bold">Paid</span>
-                                        )}
-                                    </td>
-                                </tr>
+                                <React.Fragment key={master._id}>
+                                    <tr className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500">
+                                        <td className="py-4 px-2 font-medium flex items-center gap-2">
+                                            {hasHistory && (
+                                                <button 
+                                                    onClick={() => setExpandedMaster(expandedMaster === master._id ? null : master._id)}
+                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-darkblack-500 rounded text-gray-500 transition-transform"
+                                                    title="Toggle Payment History"
+                                                >
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-200 ${expandedMaster === master._id ? "rotate-90" : ""}`}><polyline points="9 18 15 12 9 6"/></svg>
+                                                </button>
+                                            )}
+                                            {master.fee_group?.name}
+                                        </td>
+                                        <td className="py-4 px-2">{master.fee_type?.name}</td>
+                                        <td className="py-4 px-2">{master.due_date}</td>
+                                        <td className="py-4 px-2 text-right">₹{master.amount.toFixed(2)}</td>
+                                        <td className="py-4 px-2 text-right text-success-300">₹{paid.toFixed(2)}</td>
+                                        <td className="py-4 px-2 text-right text-red-500 font-bold">₹{balance.toFixed(2)}</td>
+                                        <td className="py-4 px-2">
+                                            <div className="flex gap-2">
+                                                {balance > 0 ? (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedMaster(master);
+                                                            const paid = getMasterStatus(master._id);
+                                                            const balance = master.amount - paid;
+                                                            setPayingAmount(balance);
+                                                            setFineAmount(0);
+                                                            setDiscountAmount(0);
+                                                            setReferenceNo("");
+                                                            setSelectedDiscounts([]);
+                                                            setShowPaymentModal(true);
+                                                        }}
+                                                        className="bg-success-300 text-white px-3 py-1 rounded text-sm hover:bg-success-400"
+                                                    >
+                                                        + Collect
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-success-300 text-sm font-bold">Paid</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {expandedMaster === master._id && (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-4 bg-bgray-50/50 dark:bg-darkblack-700/30">
+                                                <div className="space-y-3">
+                                                    <h5 className="text-sm font-bold text-foreground">Payment History</h5>
+                                                    <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-darkblack-400 bg-white dark:bg-darkblack-600">
+                                                        <table className="w-full text-left text-xs">
+                                                            <thead>
+                                                                <tr className="border-b border-gray-100 dark:border-gray-700 font-bold bg-gray-50 dark:bg-darkblack-700/50 text-gray-500">
+                                                                    <th className="py-2.5 px-3">Date</th>
+                                                                    <th className="py-2.5 px-3">Mode</th>
+                                                                    <th className="py-2.5 px-3">Reference / Trans. ID</th>
+                                                                    <th className="py-2.5 px-3 text-right">Discount</th>
+                                                                    <th className="py-2.5 px-3 text-right">Fine</th>
+                                                                    <th className="py-2.5 px-3 text-right">Amount Paid</th>
+                                                                    <th className="py-2.5 px-3">Status</th>
+                                                                    <th className="py-2.5 px-3">Attachment</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {payments.filter((p: any) => p.fee_master === master._id).map((p: any) => (
+                                                                    <tr key={p._id} className="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50/50 dark:hover:bg-darkblack-500/50 text-foreground">
+                                                                        <td className="py-2.5 px-3">{p.date}</td>
+                                                                        <td className="py-2.5 px-3">
+                                                                            <span className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider text-[10px]">
+                                                                                {p.payment_mode}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-2.5 px-3 font-mono">{p.reference_no || p.online_payment_id || "-"}</td>
+                                                                        <td className="py-2.5 px-3 text-right text-green-600">₹{(p.discount_amount || 0).toFixed(2)}</td>
+                                                                        <td className="py-2.5 px-3 text-right text-red-500">₹{(p.fine_amount || 0).toFixed(2)}</td>
+                                                                        <td className="py-2.5 px-3 text-right font-bold">₹{(p.amount_paid || 0).toFixed(2)}</td>
+                                                                        <td className="py-2.5 px-3">
+                                                                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${p.status === "Refunded" ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
+                                                                                {p.status || "Success"}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-2.5 px-3">
+                                                                            {p.attachment_url ? (
+                                                                                <a 
+                                                                                    href={p.attachment_url} 
+                                                                                    target="_blank" 
+                                                                                    rel="noopener noreferrer" 
+                                                                                    className="text-indigo-600 hover:underline font-semibold flex items-center gap-0.5"
+                                                                                >
+                                                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                                                                    View
+                                                                                </a>
+                                                                            ) : "-"}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
                             );
                         })}
                     </tbody>
@@ -340,6 +419,20 @@ export default function StudentFeeDetail() {
                                     })}
                                 </div>
                             </div>
+
+                            {/* Reference Number */}
+                            {["Cheque", "DD", "Bank Transfer", "UPI"].includes(paymentMode) && (
+                                <div className="flex flex-col space-y-1">
+                                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Reference / Transaction Number</label>
+                                    <input
+                                        type="text"
+                                        value={referenceNo}
+                                        onChange={(e) => setReferenceNo(e.target.value)}
+                                        placeholder="Enter reference or transaction number"
+                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-darkblack-400 rounded-xl bg-white dark:bg-darkblack-500 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                    />
+                                </div>
+                            )}
 
                             {/* Note */}
                             <div className="flex flex-col space-y-1">

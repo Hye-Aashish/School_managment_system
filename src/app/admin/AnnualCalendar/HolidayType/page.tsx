@@ -153,7 +153,7 @@ export default function AddHolidayType() {
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                       Name
                                                                  </span>
                                                                  <span>
@@ -197,7 +197,7 @@ export default function AddHolidayType() {
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">
                                                                  Action
                                                             </span>
                                                        </td>
@@ -210,7 +210,7 @@ export default function AddHolidayType() {
                                                             className="border-b border-bgray-300 dark:border-darkblack-400"
                                                        >
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                 <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                       {type.name}
                                                                  </p>
                                                             </td>
@@ -275,7 +275,7 @@ export default function AddHolidayType() {
                                    <div className="pagination-content w-full">
                                         <div className="w-full flex lg:justify-between justify-center items-center">
                                              <div className="lg:flex hidden">
-                                                  <p className="text-sm text-bgray-600 dark:text-bgray-50">
+                                                  <p className="text-sm text-bgray-600 dark:text-white">
                                                        Records: 1 to 3 of 3
                                                   </p>
                                              </div>
@@ -302,7 +302,7 @@ export default function AddHolidayType() {
                                                   <div className="flex items-center">
                                                        <button
                                                             type="button"
-                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50"
+                                                            className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white"
                                                        >
                                                             1
                                                        </button>

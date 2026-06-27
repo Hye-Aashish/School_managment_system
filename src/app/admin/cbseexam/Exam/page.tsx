@@ -186,11 +186,11 @@ export default function ExamList() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Exam</th>
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Term</th>
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Exam Grade</th>
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Assessment</th>
-                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50">Action</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Exam</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Term</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Exam Grade</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Assessment</th>
+                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-white">Action</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -202,7 +202,7 @@ export default function ExamList() {
                                                             filteredExams.map((item) => (
                                                                  <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                       <td className="py-5 px-6">
-                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-white">{item.name}</p>
                                                                       </td>
                                                                       <td className="py-5 px-6">
                                                                            <p className="text-bgray-700 dark:text-bgray-200">
@@ -239,7 +239,7 @@ export default function ExamList() {
                                         <form onSubmit={handleSubmit} className="space-y-6">
                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                   <div>
-                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Exam Name *</label>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Exam Name *</label>
                                                        <input
                                                             type="text"
                                                             required
@@ -250,7 +250,7 @@ export default function ExamList() {
                                                        />
                                                   </div>
                                                   <div>
-                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Term *</label>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Term *</label>
                                                        <select
                                                             required
                                                             value={formData.term}
@@ -262,7 +262,7 @@ export default function ExamList() {
                                                        </select>
                                                   </div>
                                                   <div>
-                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Exam Grade *</label>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Exam Grade *</label>
                                                        <select
                                                             required
                                                             value={formData.examGrade}
@@ -274,7 +274,7 @@ export default function ExamList() {
                                                        </select>
                                                   </div>
                                                   <div>
-                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Assessment *</label>
+                                                       <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Assessment *</label>
                                                        <select
                                                             required
                                                             value={formData.assessment}
@@ -288,7 +288,7 @@ export default function ExamList() {
                                              </div>
 
                                              <div>
-                                                  <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Description</label>
+                                                  <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Description</label>
                                                   <textarea
                                                        rows={4}
                                                        value={formData.description}

@@ -9,6 +9,10 @@ export interface ICbseExamSchedule extends Document {
     roomNo: string;
     maxMarks: number;
     minMarks: number;
+    theoryMaxMarks?: number;
+    theoryMinMarks?: number;
+    practicalMaxMarks?: number;
+    practicalMinMarks?: number;
     created_at: Date;
 }
 
@@ -18,9 +22,13 @@ const CbseExamScheduleSchema: Schema = new Schema({
     date: { type: String, required: true },
     time: { type: String, required: true },
     duration: { type: String, required: true },
-    roomNo: { type: String, required: true },
+    roomNo: { type: String, default: "000" },
     maxMarks: { type: Number, required: true },
     minMarks: { type: Number, required: true },
+    theoryMaxMarks: { type: Number, default: 0 },
+    theoryMinMarks: { type: Number, default: 0 },
+    practicalMaxMarks: { type: Number, default: 0 },
+    practicalMinMarks: { type: Number, default: 0 },
     created_at: { type: Date, default: Date.now },
 });
 

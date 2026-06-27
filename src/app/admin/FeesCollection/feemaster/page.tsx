@@ -136,7 +136,7 @@ export default function Feemaster() {
                                    <div className="flex flex-col space-y-5">
                                         {/* Fees Group */}
                                         <div className="w-full">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Fees Group <span className="text-red-500">*</span>
                                              </label>
                                              <div className="relative">
@@ -190,7 +190,7 @@ export default function Feemaster() {
 
                                         {/* Fees Type */}
                                         <div className="w-full">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Fees Type <span className="text-red-500">*</span>
                                              </label>
                                              <div className="relative">
@@ -244,7 +244,7 @@ export default function Feemaster() {
 
                                         {/* Due Date */}
                                         <div className="w-full">
-                                             <label htmlFor="due_date" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="due_date" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Due Date
                                              </label>
                                              <input
@@ -258,7 +258,7 @@ export default function Feemaster() {
 
                                         {/* Amount */}
                                         <div className="w-full">
-                                             <label htmlFor="amount" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="amount" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Amount ($) <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -273,7 +273,7 @@ export default function Feemaster() {
 
                                         {/* Fine Type */}
                                         <div className="w-full">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-3 block">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-3 block">
                                                   Fine Type
                                              </label>
                                              <div className="flex flex-col space-y-3">
@@ -329,7 +329,7 @@ export default function Feemaster() {
                                              <div className="w-full flex gap-4">
                                                   {formData.fine_type === "percentage" && (
                                                        <div className="w-full">
-                                                            <label htmlFor="fine_percentage" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                            <label htmlFor="fine_percentage" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                                  Percentage (%) <span className="text-red-500">*</span>
                                                             </label>
                                                             <input
@@ -344,7 +344,7 @@ export default function Feemaster() {
                                                   )}
                                                   {formData.fine_type === "fixAmount" && (
                                                        <div className="w-full">
-                                                            <label htmlFor="fine_amount" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                            <label htmlFor="fine_amount" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                                  Fix Amount ($) <span className="text-red-500">*</span>
                                                             </label>
                                                             <input
@@ -474,14 +474,14 @@ export default function Feemaster() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Fees Group</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Fees Code</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Amount</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Fine Type</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Due Date</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Per Day</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Days-Fine Amount</td>
-                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Fees Group</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Fees Code</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Amount</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Fine Type</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Due Date</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Per Day</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Days-Fine Amount</td>
+                                                            <td className="py-5 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Action</td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -553,7 +553,7 @@ export default function Feemaster() {
                                                             ))
                                                        ) : (
                                                             <tr>
-                                                                 <td colSpan={8} className="py-10 text-center text-bgray-600 dark:text-bgray-50">
+                                                                 <td colSpan={8} className="py-10 text-center text-bgray-600 dark:text-white">
                                                                       {loading ? "Loading..." : "No Data Found"}
                                                                  </td>
                                                             </tr>

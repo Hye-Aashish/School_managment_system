@@ -113,7 +113,7 @@ export default function MarksDivision() {
 
                                         {/* Division Name */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Division Name <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -127,7 +127,7 @@ export default function MarksDivision() {
 
                                         {/* Percent From */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Percent From <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -141,7 +141,7 @@ export default function MarksDivision() {
 
                                         {/* Percent Upto */}
                                         <div className="w-full space-y-2">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white">
                                                   Percent Upto <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -195,22 +195,22 @@ export default function MarksDivision() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Division Name
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Percentage From
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Percentage Upto
                                                                  </span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-right">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">
                                                                       Action
                                                                  </span>
                                                             </td>
@@ -233,12 +233,12 @@ export default function MarksDivision() {
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-4 px-6 xl:px-0">
-                                                                      <p className="text-sm font-medium text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="text-sm font-medium text-bgray-900 dark:text-white">
                                                                            {division.percentFrom}
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-4 px-6 xl:px-0">
-                                                                      <p className="text-sm font-medium text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="text-sm font-medium text-bgray-900 dark:text-white">
                                                                            {division.percentUpto}
                                                                       </p>
                                                                  </td>

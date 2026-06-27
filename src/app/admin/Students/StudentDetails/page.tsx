@@ -374,8 +374,8 @@ export default function StudenDetails() {
                                                   {filteredStudents.length > 0 ? (
                                                        filteredStudents.map((student, idx) => (
                                                             <tr key={idx} className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50">{student.admission_no}</td>
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50 uppercase">
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white">{student.admission_no}</td>
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white uppercase">
                                                                       <div className="flex items-center gap-3">
                                                                            <div className="w-8 h-8 rounded-full bg-success-300 flex items-center justify-center text-white text-xs font-bold overflow-hidden shadow-sm">
                                                                                 {student.photo ? (
@@ -387,11 +387,11 @@ export default function StudenDetails() {
                                                                            <span>{student.fname} {student.lname}</span>
                                                                       </div>
                                                                  </td>
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50">{student.class} ({student.section})</td>
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50">{student.father_name}</td>
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50">{student.dob}</td>
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50">{student.gender}</td>
-                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-bgray-50">{student.mobile}</td>
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white">{student.class} ({student.section})</td>
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white">{student.father_name}</td>
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white">{student.dob}</td>
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white">{student.gender}</td>
+                                                                 <td className="py-5 px-6 xl:px-0 font-medium text-bgray-900 dark:text-white">{student.mobile}</td>
                                                                  <td className="py-5 px-6 xl:px-0 text-center relative">
                                                                       <button onClick={() => toggleAction(student.admission_no)} className="p-2 hover:bg-gray-100 dark:hover:bg-darkblack-500 rounded-full transition-colors">
                                                                            <svg width="18" height="4" viewBox="0 0 18 4" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -467,81 +467,81 @@ export default function StudenDetails() {
                                         {/* Section 1: Basic Details */}
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Admission No *</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Admission No *</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.admission_no} onChange={(e) => setEditStudent({ ...editStudent, admission_no: e.target.value })} required />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Roll Number</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Roll Number</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.roll_no} onChange={(e) => setEditStudent({ ...editStudent, roll_no: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Class *</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Class *</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.class} onChange={(e) => setEditStudent({ ...editStudent, class: e.target.value })} required>
                                                        {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
                                                   </select>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Section *</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Section *</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.section} onChange={(e) => setEditStudent({ ...editStudent, section: e.target.value })} required>
                                                        {SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                                                   </select>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">First Name *</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">First Name *</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.fname} onChange={(e) => setEditStudent({ ...editStudent, fname: e.target.value })} required />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Last Name</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Last Name</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.lname} onChange={(e) => setEditStudent({ ...editStudent, lname: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Gender *</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Gender *</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.gender} onChange={(e) => setEditStudent({ ...editStudent, gender: e.target.value })} required>
                                                        {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
                                                   </select>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Date of Birth *</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Date of Birth *</label>
                                                   <input type="date" className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.dob} onChange={(e) => setEditStudent({ ...editStudent, dob: e.target.value })} required />
                                              </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Category</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Category</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.category} onChange={(e) => setEditStudent({ ...editStudent, category: e.target.value })}>
                                                        <option value="">Select</option>
                                                        {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                                   </select>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Religion</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Religion</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.religion} onChange={(e) => setEditStudent({ ...editStudent, religion: e.target.value })}>
                                                        <option value="">Select</option>
                                                        {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                                                   </select>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Caste</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Caste</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.caste || ""} onChange={(e) => setEditStudent({ ...editStudent, caste: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Mobile Number</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Mobile Number</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.mobile} onChange={(e) => setEditStudent({ ...editStudent, mobile: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Email</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Email</label>
                                                   <input type="email" className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.email} onChange={(e) => setEditStudent({ ...editStudent, email: e.target.value })} />
                                              </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Admission Date</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Admission Date</label>
                                                   <input type="date" className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.admission_date} onChange={(e) => setEditStudent({ ...editStudent, admission_date: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Student Photo</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Student Photo</label>
                                                   <div className="flex items-center gap-3 p-2 bg-bgray-50 dark:bg-darkblack-500 rounded border border-dashed border-bgray-300">
                                                        <div className="w-10 h-10 rounded overflow-hidden bg-white">
                                                             {editStudent.photo ? <img src={editStudent.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[8px] text-bgray-300 uppercase">None</div>}
@@ -550,14 +550,14 @@ export default function StudenDetails() {
                                                   </div>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Blood Group</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Blood Group</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.blood_group} onChange={(e) => setEditStudent({ ...editStudent, blood_group: e.target.value })}>
                                                        <option value="">Select</option>
                                                        {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
                                                   </select>
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Student House</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Student House</label>
                                                   <select className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.student_house} onChange={(e) => setEditStudent({ ...editStudent, student_house: e.target.value })}>
                                                        <option value="">Select</option>
                                                        {STUDENT_HOUSES.map(h => <option key={h} value={h}>{h}</option>)}
@@ -567,15 +567,15 @@ export default function StudenDetails() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Height</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Height</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.height || ""} onChange={(e) => setEditStudent({ ...editStudent, height: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Weight</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Weight</label>
                                                   <input className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.weight || ""} onChange={(e) => setEditStudent({ ...editStudent, weight: e.target.value })} />
                                              </div>
                                              <div className="flex flex-col gap-1">
-                                                  <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Measurement Date</label>
+                                                  <label className="text-xs font-bold text-bgray-600 dark:text-white">Measurement Date</label>
                                                   <input type="date" className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm" value={editStudent.as_on_date || ""} onChange={(e) => setEditStudent({ ...editStudent, as_on_date: e.target.value })} />
                                              </div>
                                              <div className="flex items-center">
@@ -586,7 +586,7 @@ export default function StudenDetails() {
                                         </div>
 
                                         <div className="flex flex-col gap-1">
-                                             <label className="text-xs font-bold text-bgray-600 dark:text-bgray-50">Medical History</label>
+                                             <label className="text-xs font-bold text-bgray-600 dark:text-white">Medical History</label>
                                              <textarea className="bg-bgray-50 dark:bg-darkblack-500 p-2 rounded border border-bgray-200 dark:border-darkblack-400 dark:text-white focus:ring-1 focus:ring-success-300 outline-none text-sm min-h-[60px]" value={editStudent.medical_history || ""} onChange={(e) => setEditStudent({ ...editStudent, medical_history: e.target.value })} />
                                         </div>
 
@@ -808,7 +808,7 @@ export default function StudenDetails() {
                                    <button onClick={() => setDisableStudent(null)} className="text-bgray-500 hover:text-bgray-900 dark:hover:text-white text-2xl">&times;</button>
                               </div>
                               <div className="p-8 space-y-4">
-                                   <p className="text-bgray-600 dark:text-bgray-50">
+                                   <p className="text-bgray-600 dark:text-white">
                                         Are you sure you want to disable <b>{disableStudent.fname} {disableStudent.lname}</b>?
                                    </p>
                                    <div className="flex flex-col gap-2">

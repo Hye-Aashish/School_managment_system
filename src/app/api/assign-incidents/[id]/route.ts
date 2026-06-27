@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import StudentIncident from "@/models/StudentIncident";
+import Student from "@/models/Student";
+import Incident from "@/models/Incident";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   await dbConnect();
+  // Ensure models are registered (prevents tree-shaking)
+  console.log("Registered models:", Student.modelName, Incident.modelName);
   const { id } = await params;
   try {
     const assignment = await StudentIncident.findById(id).populate("student").populate("incident");

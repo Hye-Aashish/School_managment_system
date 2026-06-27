@@ -34,6 +34,9 @@ export interface IStudent extends Document {
     photo?: string;
     sibling_admission_no?: string;
     previous_balance: number;
+    password?: string;
+    theme_mode?: string;
+    fcm_tokens?: { token: string; updatedAt: Date }[];
     created_at: Date;
 }
 
@@ -71,6 +74,9 @@ const StudentSchema: Schema = new Schema({
     photo: { type: String },
     sibling_admission_no: { type: String },
     previous_balance: { type: Number, default: 0 },
+    password: { type: String, default: "student123" },
+    theme_mode: { type: String, default: "dark" },
+    fcm_tokens: [{ token: { type: String }, updatedAt: { type: Date, default: Date.now } }],
     created_at: { type: Date, default: Date.now },
 });
 

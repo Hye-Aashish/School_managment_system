@@ -177,9 +177,9 @@ export default function StudentCategory() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <th className="py-5 px-6 xl:px-0 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Category Name</th>
-                                                            <th className="py-5 px-6 xl:px-0 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Category ID</th>
-                                                            <th className="py-5 px-6 xl:px-0 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50 pr-4">Action</th>
+                                                            <th className="py-5 px-6 xl:px-0 text-left text-base font-semibold text-bgray-600 dark:text-white">Category Name</th>
+                                                            <th className="py-5 px-6 xl:px-0 text-left text-base font-semibold text-bgray-600 dark:text-white">Category ID</th>
+                                                            <th className="py-5 px-6 xl:px-0 text-right text-base font-semibold text-bgray-600 dark:text-white pr-4">Action</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -190,12 +190,12 @@ export default function StudentCategory() {
                                                        ) : categories.map((cat, idx) => (
                                                             <tr key={cat._id || idx} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-all">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                            {cat.category}
                                                                       </p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
                                                                            {idx + 1}
                                                                       </p>
                                                                  </td>

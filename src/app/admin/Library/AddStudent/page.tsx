@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { handleExport, ExportType } from "@/lib/export-utils";
 
 export default function StudentMembersList() {
@@ -9,30 +9,68 @@ export default function StudentMembersList() {
           setOpenFilter(openFilter === type ? null : type);
      };
 
-     const studentsData = [
-          { memberId: 57, cardNo: "", admissionNo: "120020", name: "Ashwani Kumar", class: "Class 1(A)", fatherName: "Arjun Kumar", dob: "09/25/2009", gender: "Male", mobile: "980678463", actionType: "back" },
-          { memberId: 52, cardNo: "8907", admissionNo: "18001", name: "Edward Thomas", class: "Class 1(A)", fatherName: "Olivier Thomas", dob: "10/24/2013", gender: "Male", mobile: "890678567S", actionType: "back" },
-          { memberId: "", cardNo: "", admissionNo: "520039", name: "xavier bartlett", class: "Class 1(A)", fatherName: "David bartlett", dob: "05/13/2009", gender: "Male", mobile: "0890789657", actionType: "plus" },
-          { memberId: 53, cardNo: "67888", admissionNo: "125005", name: "Nehal Wadhera", class: "Class 1(A)", fatherName: "Karun wadhera", dob: "11/23/2006", gender: "Male", mobile: "890786784", actionType: "back" },
-          { memberId: 54, cardNo: "1211", admissionNo: "10024", name: "Steven Taylor", class: "Class 1(A)", fatherName: "Jason Taylor", dob: "08/17/2017", gender: "Male", mobile: "890567345", actionType: "back" },
-          { memberId: "", cardNo: "", admissionNo: "25001", name: "Georgia Wareham", class: "Class 1(A)", fatherName: "Zakary Foulkes", dob: "05/10/2021", gender: "Female", mobile: "9808908777", actionType: "plus" },
-          { memberId: 56, cardNo: "78900", admissionNo: "659990", name: "James Bennett", class: "Class 1(A)", fatherName: "David Wilson", dob: "05/05/2009", gender: "Male", mobile: "8978786866", actionType: "back" },
-          { memberId: "", cardNo: "", admissionNo: "2002", name: "Anubhav Sharma", class: "Class 1(A)", fatherName: "Jay kumar", dob: "12/11/2020", gender: "Male", mobile: "9826456678", actionType: "plus" },
-          { memberId: "", cardNo: "", admissionNo: "19001", name: "Edward Thomas", class: "Class 1(A)", fatherName: "Olivier Thomas", dob: "11/03/2014", gender: "Male", mobile: "8233366613", actionType: "plus" },
-     ];
+     const [classList, setClassList] = useState<any[]>([]);
+     const [selectedClass, setSelectedClass] = useState<string>("");
+     const [selectedSection, setSelectedSection] = useState<string>("");
+     const [allStudents, setAllStudents] = useState<any[]>([]);
+     const [libraryMembers, setLibraryMembers] = useState<any[]>([]);
+     const [loading, setLoading] = useState<boolean>(true);
+
+     const fetchLibraryMembers = async () => {
+          const res = await fetch("/api/library-members?memberType=Student");
+          const d = await res.json();
+          if (d.success) setLibraryMembers(d.data);
+     };
+
+     useEffect(() => {
+          fetch("/api/classes").then(r => r.json()).then(d => { if(d.success) setClassList(d.data); });
+          fetch("/api/students").then(r => r.json()).then(d => { 
+               if(d.success && d.data?.students) setAllStudents(d.data.students);
+          });
+          fetchLibraryMembers().then(() => setLoading(false));
+     }, []);
+
+     const toggleMembership = async (student: any) => {
+          const isMember = libraryMembers.find(m => m.memberId === student.admission_no);
+          if (isMember) {
+               // Return membership
+               await fetch("/api/library-members", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ memberId: student.admission_no, action: "return" })
+               });
+          } else {
+               // Add membership
+               await fetch("/api/library-members", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ memberId: student.admission_no, memberType: "Student" })
+               });
+          }
+          await fetchLibraryMembers();
+     };
+
+     const filteredStudents = allStudents.filter(s => {
+          if (selectedClass && s.class !== selectedClass) return false;
+          if (selectedSection && s.section !== selectedSection) return false;
+          return true;
+     });
 
      const onExport = (type: ExportType) => {
-          const exportData = studentsData.map(s => ({
-               "Member ID": s.memberId,
-               "Library Card": s.cardNo,
-               "Admission No": s.admissionNo,
-               "Name": s.name,
-               "Class": s.class,
-               "Father Name": s.fatherName,
-               "DOB": s.dob,
-               "Gender": s.gender,
-               "Mobile": s.mobile
-          }));
+          const exportData = filteredStudents.map(s => {
+               const member = libraryMembers.find(m => m.memberId === s.admission_no);
+               return {
+                    "Member ID": s.admission_no,
+                    "Library Card": member ? member.libraryCardNo : "N/A",
+                    "Admission No": s.admission_no,
+                    "Name": `${s.fname} ${s.lname}`,
+                    "Class": `${s.class} (${s.section})`,
+                    "Father Name": s.father_name || "N/A",
+                    "DOB": s.dob || "N/A",
+                    "Gender": s.gender || "N/A",
+                    "Mobile": s.mobile || "N/A"
+               };
+          });
           handleExport(type, exportData, "Library_Members");
      };
 
@@ -45,7 +83,7 @@ export default function StudentMembersList() {
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                                    {/* Class Dropdown */}
                                    <div className="relative w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Class <span className="text-red-500">*</span>
                                         </label>
                                         <button
@@ -53,7 +91,7 @@ export default function StudentMembersList() {
                                              className="w-full h-12 rounded-lg bg-white border border-bgray-300 dark:border-darkblack-400 px-4 flex justify-between items-center dark:bg-darkblack-500"
                                              onClick={() => toggleFilter("class")}
                                         >
-                                             <span className="text-sm text-bgray-900 dark:text-white">Class 1</span>
+                                             <span className="text-sm text-bgray-900 dark:text-white">{selectedClass || "Select Class"}</span>
                                              <span>
                                                   <svg
                                                        width="21"
@@ -72,19 +110,20 @@ export default function StudentMembersList() {
                                                   </svg>
                                              </span>
                                         </button>
-                                        <div
-                                             className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-[70px] overflow-hidden transition-all ${openFilter === "class" ? "block" : "hidden"}`}
-                                        >
+                                        <div className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-[70px] max-h-60 overflow-y-auto transition-all ${openFilter === "class" ? "block" : "hidden"}`}>
                                              <ul>
-                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 1</li>
-                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 2</li>
-                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">Class 3</li>
+                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => { setSelectedClass(""); setSelectedSection(""); setOpenFilter(null); }}>All Classes</li>
+                                                  {classList.map((c) => (
+                                                       <li key={c._id} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => { setSelectedClass(c.name); setSelectedSection(""); setOpenFilter(null); }}>
+                                                            {c.name}
+                                                       </li>
+                                                  ))}
                                              </ul>
                                         </div>
                                    </div>
                                    {/* Section Dropdown */}
                                    <div className="relative w-full">
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                              Section
                                         </label>
                                         <button
@@ -92,7 +131,7 @@ export default function StudentMembersList() {
                                              className="w-full h-12 rounded-lg bg-white border border-bgray-300 dark:border-darkblack-400 px-4 flex justify-between items-center dark:bg-darkblack-500"
                                              onClick={() => toggleFilter("section")}
                                         >
-                                             <span className="text-sm text-bgray-900 dark:text-white">A</span>
+                                             <span className="text-sm text-bgray-900 dark:text-white">{selectedSection || "Select Section"}</span>
                                              <span>
                                                   <svg
                                                        width="21"
@@ -112,12 +151,15 @@ export default function StudentMembersList() {
                                              </span>
                                         </button>
                                         <div
-                                             className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-[70px] overflow-hidden transition-all ${openFilter === "section" ? "block" : "hidden"}`}
+                                             className={`rounded-lg w-full shadow-lg bg-white dark:bg-darkblack-500 absolute right-0 z-10 top-[70px] max-h-60 overflow-y-auto transition-all ${openFilter === "section" ? "block" : "hidden"}`}
                                         >
                                              <ul>
-                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">A</li>
-                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">B</li>
-                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold">C</li>
+                                                  <li className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => { setSelectedSection(""); setOpenFilter(null); }}>All Sections</li>
+                                                  {selectedClass && classList.find(c => c.name === selectedClass)?.sections?.map((s: any) => (
+                                                       <li key={s._id} className="text-sm text-bgray-900 dark:text-white cursor-pointer px-5 py-2 hover:bg-bgray-100 hover:dark:bg-darkblack-600 font-semibold" onClick={() => { setSelectedSection(s.name); setOpenFilter(null); }}>
+                                                            {s.name}
+                                                       </li>
+                                                  ))}
                                              </ul>
                                         </div>
                                    </div>
@@ -222,186 +264,141 @@ export default function StudentMembersList() {
                                                   <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Member ID</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Member ID</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Library Card No.</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Library Card No.</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-gray-50">Admission No</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Admission No</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Student Name</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Student Name</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Class</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Class</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Father Name</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Father Name</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Date Of Birth</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Date Of Birth</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Gender</span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Gender</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
                                                             <div className="w-full flex space-x-2.5 items-center">
-                                                                 <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Mobile Number</span>
-                                                                 <span>
-                                                                      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                           <path d="M10.332 1.31567V13.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M5.66602 11.3157L3.66602 13.3157L1.66602 11.3157" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M3.66602 13.3157V1.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                           <path d="M12.332 3.31567L10.332 1.31567L8.33203 3.31567" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                      </svg>
-                                                                 </span>
+                                                                 <span className="text-base font-medium text-bgray-600 dark:text-white">Mobile Number</span>
                                                             </div>
                                                        </td>
                                                        <td className="py-5 px-6 xl:px-0">
-                                                            <span className="text-base font-medium text-bgray-600 dark:text-bgray-50">Action</span>
+                                                            <span className="text-base font-medium text-bgray-600 dark:text-white">Action</span>
                                                        </td>
                                                   </tr>
                                              </thead>
                                              <tbody>
-                                                  {studentsData.map((student, index) => (
-                                                       <tr key={index} className={`border-b border-bgray-300 dark:border-darkblack-400 ${student.actionType === "plus" ? "bg-success-50 dark:bg-success-900/10" : ""}`}>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.memberId}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.cardNo}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.admissionNo}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.name}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.class}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.fatherName}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.dob}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.gender}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <p className="font-medium text-base text-bgray-900 dark:text-bgray-50">
-                                                                      {student.mobile}
-                                                                 </p>
-                                                            </td>
-                                                            <td className="py-5 px-6 xl:px-0">
-                                                                 <button
-                                                                      type="button"
-                                                                      className="hover:opacity-70 transition"
-                                                                 >
-                                                                      {student.actionType === "back" ? (
-                                                                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path d="M19 12H5" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                <path d="M12 19L5 12L12 5" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                           </svg>
-                                                                      ) : (
-                                                                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <line x1="12" y1="5" x2="12" y2="19" stroke="#22C55E" strokeWidth="2" strokeLinecap="round"/>
-                                                                                <line x1="5" y1="12" x2="19" y2="12" stroke="#22C55E" strokeWidth="2" strokeLinecap="round"/>
-                                                                           </svg>
-                                                                      )}
-                                                                 </button>
+                                                  {loading ? (
+                                                       <tr>
+                                                            <td colSpan={10} className="py-24 text-center">
+                                                                 <div className="w-8 h-8 border-4 border-success-300 border-t-transparent rounded-full animate-spin mx-auto"></div>
                                                             </td>
                                                        </tr>
-                                                  ))}
+                                                  ) : filteredStudents.length > 0 ? (
+                                                       filteredStudents.map((student) => {
+                                                            const member = libraryMembers.find(m => m.memberId === student.admission_no);
+                                                            return (
+                                                            <tr key={student._id} className="border-b border-bgray-300 dark:border-darkblack-400">
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <div className="flex items-center space-x-5">
+                                                                           <p className="font-semibold text-base text-bgray-900 dark:text-white">
+                                                                                {student.admission_no}
+                                                                           </p>
+                                                                      </div>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {member ? member.libraryCardNo : "N/A"}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.admission_no}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.fname} {student.lname}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.class} ({student.section})
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.father_name || "N/A"}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.dob || "N/A"}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.gender || "N/A"}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <p className="font-medium text-base text-bgray-900 dark:text-white">
+                                                                           {student.mobile || "N/A"}
+                                                                      </p>
+                                                                 </td>
+                                                                 <td className="py-5 px-6 xl:px-0">
+                                                                      <button
+                                                                           type="button"
+                                                                           onClick={() => toggleMembership(student)}
+                                                                           className="w-8 h-8 flex items-center justify-center bg-bgray-50 dark:bg-darkblack-500 rounded-lg hover:opacity-70 transition"
+                                                                      >
+                                                                           {member ? (
+                                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                     <path d="M19 12H5" stroke="#F43F5E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                     <path d="M12 19L5 12L12 5" stroke="#F43F5E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                </svg>
+                                                                           ) : (
+                                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                     <line x1="12" y1="5" x2="12" y2="19" stroke="#22C55E" strokeWidth="2" strokeLinecap="round"/>
+                                                                                     <line x1="5" y1="12" x2="19" y2="12" stroke="#22C55E" strokeWidth="2" strokeLinecap="round"/>
+                                                                                </svg>
+                                                                           )}
+                                                                      </button>
+                                                                 </td>
+                                                            </tr>
+                                                       )})
+                                                  ) : (
+                                                       <tr>
+                                                            <td colSpan={10} className="py-16 text-center text-bgray-400 text-sm font-semibold">
+                                                                 No students found.
+                                                            </td>
+                                                       </tr>
+                                                  )}
                                              </tbody>
                                         </table>
                                    </div>
@@ -410,8 +407,8 @@ export default function StudentMembersList() {
                                    <div className="pagination-content w-full">
                                         <div className="w-full flex lg:justify-between justify-center items-center">
                                              <div className="lg:flex hidden space-x-4 items-center">
-                                                  <span className="text-bgray-600 dark:text-bgray-50 text-sm font-semibold">
-                                                       Records: 1 to 9 of 9
+                                                  <span className="text-bgray-600 dark:text-white text-sm font-semibold">
+                                                       Records: 1 to {filteredStudents.length} of {filteredStudents.length}
                                                   </span>
                                              </div>
                                              <div className="flex sm:space-x-[35px] space-x-5 items-center">
@@ -423,7 +420,7 @@ export default function StudentMembersList() {
                                                        </span>
                                                   </button>
                                                   <div className="flex items-center">
-                                                       <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-bgray-50">
+                                                       <button type="button" className="rounded-lg text-success-300 lg:text-sm text-xs font-bold lg:px-6 lg:py-2.5 px-4 py-1.5 bg-success-50 dark:bg-darkblack-500 dark:text-white">
                                                             1
                                                        </button>
                                                   </div>

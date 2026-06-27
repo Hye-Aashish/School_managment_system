@@ -10,13 +10,17 @@ import { apiResponse } from "@/lib/response";
 // GET: List all subject groups with optional filtering
 export async function GET(req: NextRequest) {
     await dbConnect();
+    // Reference models to prevent tree-shaking
+    const _dummyClass = Class;
+    const _dummySection = Section;
+    const _dummySubject = Subject;
     try {
         const { searchParams } = new URL(req.url);
         const className = searchParams.get("class");
         const sectionName = searchParams.get("section");
 
         let query: any = {};
-        
+
         // Find by class name if provided
         if (className) {
             const classDoc = await Class.findOne({ name: className });
@@ -33,7 +37,7 @@ export async function GET(req: NextRequest) {
         // Frontend also filters by section name if provided
         let filteredGroups = groups;
         if (sectionName) {
-            filteredGroups = groups.filter((g: any) => 
+            filteredGroups = groups.filter((g: any) =>
                 g.sections.some((s: any) => s.name === sectionName)
             );
         }

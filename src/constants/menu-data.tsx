@@ -24,7 +24,8 @@ import {
     LibraryBig,
     Box,
     Contact,
-    Truck
+    Truck,
+    Settings
 } from "lucide-react";
 
 export interface SubMenuItem {
@@ -195,6 +196,7 @@ export const menu: MenuItem[] = [
         dropdown: true,
         submenu: [
             { title: "Exam Group", url: "/admin/Examinations/ExamGroup" },
+            { title: "Exam", url: "/admin/Examinations/Exam" },
             { title: "Exam Schedule", url: "/admin/Examinations/ExamSchedule" },
             { title: "Exam Result", url: "/admin/Examinations/ExamResult" },
             { title: "Design AdmitCard", url: "/admin/Examinations/DesignAdmitCard" },
@@ -371,6 +373,16 @@ export const menu: MenuItem[] = [
             { title: "Assign Vehicle", url: "/admin/Transport/AssignVehicle" },
             { title: "Route Pickup Point", url: "/admin/Transport/RoutePickupPoint" },
             { title: "Student Transport Fees", url: "/admin/Transport/StudentTransportFees" },
+        ],
+    },
+    {
+        title: "Settings",
+        url: "",
+        icon: <Settings size={20} />,
+        dropdown: true,
+        submenu: [
+            { title: "Notifications", url: "/admin/Notifications" },
+            { title: "Payment Gateway", url: "/admin/Settings/PaymentGateway" }
         ],
     },
 ];

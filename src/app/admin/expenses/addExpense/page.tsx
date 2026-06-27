@@ -278,7 +278,7 @@ export default function AddExpensePage() {
                                         <form onSubmit={handleSubmit} className="w-full space-y-4">
                                              {/* Expense Head */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Expense Head <span className="text-red-500">*</span>
                                                   </label>
                                                   <div className="relative">
@@ -317,7 +317,7 @@ export default function AddExpensePage() {
 
                                              {/* Name */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Name <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
@@ -332,7 +332,7 @@ export default function AddExpensePage() {
 
                                              {/* Invoice Number */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Invoice Number
                                                   </label>
                                                   <input
@@ -346,7 +346,7 @@ export default function AddExpensePage() {
 
                                              {/* Date */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Date <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
@@ -360,7 +360,7 @@ export default function AddExpensePage() {
 
                                              {/* Amount */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Amount ($) <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
@@ -375,7 +375,7 @@ export default function AddExpensePage() {
 
                                              {/* Attach Document */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Attach Document
                                                   </label>
                                                   <div className="w-full px-4 py-8 bg-bgray-200 dark:bg-darkblack-500 rounded-lg border-2 border-dashed border-bgray-400 dark:border-darkblack-400 flex flex-col items-center justify-center cursor-pointer hover:border-success-300 transition-all">
@@ -390,7 +390,7 @@ export default function AddExpensePage() {
 
                                              {/* Description */}
                                              <div className="w-full">
-                                                  <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Description
                                                   </label>
                                                   <textarea
@@ -490,19 +490,19 @@ export default function AddExpensePage() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Name</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Name</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Expense Head</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Expense Head</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Date</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Date</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Amount</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Amount</span>
                                                             </td>
                                                             <td className="py-5 px-6 xl:px-0 text-center">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -514,16 +514,16 @@ export default function AddExpensePage() {
                                                        ) : filteredExpenses.map((expense) => (
                                                             <tr key={expense._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{expense.name}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">{expense.name}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{typeof expense.expenseHead === "object" ? expense.expenseHead.name : ""}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">{typeof expense.expenseHead === "object" ? expense.expenseHead.name : ""}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{new Date(expense.date).toLocaleDateString()}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">{new Date(expense.date).toLocaleDateString()}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">${expense.amount.toFixed(2)}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">${expense.amount.toFixed(2)}</p>
                                                                  </td>
                                                                  <td className="py-5 px-6 xl:px-0">
                                                                       <div className="flex justify-center gap-2">
@@ -556,7 +556,7 @@ export default function AddExpensePage() {
 
                                         {/* Pagination */}
                                         <div className="pagination-content w-full border-t border-bgray-300 dark:border-darkblack-400 pt-4">
-                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-bgray-50 font-bold">
+                                             <div className="w-full flex justify-between items-center text-sm text-bgray-600 dark:text-white font-bold">
                                                   <span>Total Records: {filteredExpenses.length}</span>
                                              </div>
                                         </div>

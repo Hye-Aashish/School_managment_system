@@ -133,13 +133,13 @@ export default function MultiBranchSettings() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-4 px-4 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Branch</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Branch</span>
                                                             </td>
                                                             <td className="py-4 px-4 xl:px-0">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">URL</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">URL</span>
                                                             </td>
                                                             <td className="py-4 px-4 xl:px-0 text-right">
-                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</span>
+                                                                 <span className="text-sm font-semibold text-bgray-600 dark:text-white">Action</span>
                                                             </td>
                                                        </tr>
                                                   </thead>
@@ -147,7 +147,7 @@ export default function MultiBranchSettings() {
                                                        {filtered.map((branch) => (
                                                             <tr key={branch._id} className="border-b border-bgray-300 dark:border-darkblack-400 hover:bg-bgray-50 dark:hover:bg-darkblack-500 transition-colors">
                                                                  <td className="py-4 px-4 xl:px-0">
-                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-bgray-50">{branch.name}</p>
+                                                                      <p className="font-medium text-sm text-bgray-900 dark:text-white">{branch.name}</p>
                                                                  </td>
                                                                  <td className="py-4 px-4 xl:px-0">
                                                                       <p className="font-normal text-sm text-bgray-600 dark:text-bgray-300">{branch.url}</p>
@@ -194,7 +194,7 @@ export default function MultiBranchSettings() {
                               </h3>
                               <div className="space-y-4">
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-1 block">Branch Name *</label>
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-1 block">Branch Name *</label>
                                         <input
                                              type="text"
                                              value={form.name}
@@ -204,7 +204,7 @@ export default function MultiBranchSettings() {
                                         />
                                    </div>
                                    <div>
-                                        <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-1 block">Branch URL *</label>
+                                        <label className="text-sm font-medium text-bgray-600 dark:text-white mb-1 block">Branch URL *</label>
                                         <input
                                              type="text"
                                              value={form.url}
@@ -215,7 +215,7 @@ export default function MultiBranchSettings() {
                                    </div>
                               </div>
                               <div className="flex justify-end gap-3 mt-6">
-                                   <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg border border-bgray-300 dark:border-darkblack-400 text-sm text-bgray-600 dark:text-bgray-50 hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition-all">
+                                   <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg border border-bgray-300 dark:border-darkblack-400 text-sm text-bgray-600 dark:text-white hover:bg-bgray-100 dark:hover:bg-darkblack-500 transition-all">
                                         Cancel
                                    </button>
                                    <button

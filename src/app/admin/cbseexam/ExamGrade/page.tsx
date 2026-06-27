@@ -177,10 +177,10 @@ export default function ExamGrade() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Grade Title</th>
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Description</th>
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50 text-nowrap">Grades System</th>
-                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50">Action</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Grade Title</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Description</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white text-nowrap">Grades System</th>
+                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-white">Action</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -192,7 +192,7 @@ export default function ExamGrade() {
                                                             filteredGrades.map((item) => (
                                                                  <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                       <td className="py-5 px-6 align-top">
-                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-white">{item.name}</p>
                                                                       </td>
                                                                       <td className="py-5 px-6 align-top">
                                                                            <p className="text-bgray-700 dark:text-bgray-200 text-sm max-w-xs">{item.grades.map(g => g.grade).join(", ")}</p>
@@ -238,7 +238,7 @@ export default function ExamGrade() {
                                    ) : (
                                         <form onSubmit={handleSubmit} className="space-y-6">
                                              <div className="space-y-2">
-                                                  <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Grade System Name *</label>
+                                                  <label className="text-sm font-semibold text-bgray-600 dark:text-white">Grade System Name *</label>
                                                   <input
                                                        type="text"
                                                        required
@@ -251,7 +251,7 @@ export default function ExamGrade() {
 
                                              <div className="space-y-4">
                                                   <div className="flex justify-between items-center">
-                                                       <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Grades *</label>
+                                                       <label className="text-sm font-semibold text-bgray-600 dark:text-white">Grades *</label>
                                                        <button type="button" onClick={handleAddGrade} className="text-sm font-bold text-success-300 hover:text-success-400">+ Add Grade Row</button>
                                                   </div>
                                                   {formData.grades.map((g, index) => (

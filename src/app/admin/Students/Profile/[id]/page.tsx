@@ -57,7 +57,7 @@ export default function StudentProfile({ params }: { params: Promise<{ id: strin
         <div className="p-6 md:p-10 bg-bgray-100 dark:bg-darkblack-500 min-h-screen">
             {/* Header / Navigation */}
             <div className="flex items-center justify-between mb-8">
-                <button onClick={() => router.back()} className="flex items-center gap-2 text-bgray-600 dark:text-bgray-50 hover:text-success-300 transition-colors bg-white dark:bg-darkblack-600 px-4 py-2 rounded-lg shadow-sm">
+                <button onClick={() => router.back()} className="flex items-center gap-2 text-bgray-600 dark:text-white hover:text-success-300 transition-colors bg-white dark:bg-darkblack-600 px-4 py-2 rounded-lg shadow-sm">
                     <FontAwesomeIcon icon={faArrowLeft} />
                     <span>Back to List</span>
                 </button>
@@ -255,6 +255,30 @@ export default function StudentProfile({ params }: { params: Promise<{ id: strin
                                         {student.medical_history || "No records"}
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Enrolled Online Courses */}
+                        <div className="bg-white dark:bg-darkblack-600 rounded-2xl shadow-xl p-8">
+                            <h3 className="text-xl font-bold text-bgray-900 dark:text-white mb-6">Enrolled Online Courses</h3>
+                            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                                {(student as any).enrolledCourses && (student as any).enrolledCourses.length > 0 ? (
+                                    (student as any).enrolledCourses.map((enrollment: any) => (
+                                        <div key={enrollment._id} className="p-4 border border-bgray-200 dark:border-darkblack-400 rounded-xl flex flex-col space-y-2">
+                                            <p className="font-bold text-bgray-900 dark:text-white">{enrollment.course?.title || "Unknown Course"}</p>
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className={`px-2 py-1 rounded text-xs font-semibold ${enrollment.status === 'Active' ? 'bg-success-100 text-success-600' : 'bg-red-100 text-red-600'}`}>
+                                                    {enrollment.status}
+                                                </span>
+                                                <span className="text-bgray-500">
+                                                    Purchased: {new Date(enrollment.purchase_date).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-bgray-500 text-sm italic">No online courses enrolled.</p>
+                                )}
                             </div>
                         </div>
                     </div>

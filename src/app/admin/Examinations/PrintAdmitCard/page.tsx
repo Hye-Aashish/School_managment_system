@@ -56,6 +56,13 @@ export default function PrintAdmitCard() {
           if (data.success) setTemplates(data.data);
      };
 
+     const handleClassSelect = (cls: any) => {
+          setSelectedClass(cls);
+          setSelectedSection(null);
+          setSections(cls.sections || []);
+          setOpenFilter(null);
+     };
+
      const handleSearch = async () => {
           if (!selectedClass || !selectedSection) {
                alert("Please select Class and Section");
@@ -63,9 +70,9 @@ export default function PrintAdmitCard() {
           }
           setLoading(true);
           try {
-               const res = await fetch(`/api/students?class=${selectedClass.className}&section=${selectedSection.sectionName}`);
+               const res = await fetch(`/api/students?class=${selectedClass.name}&section=${selectedSection.name}`);
                const data = await res.json();
-               if (data.data) setStudents(data.data);
+               if (data.data && data.data.students) setStudents(data.data.students);
           } catch (error) {
                console.error("Error fetching students:", error);
           } finally {
@@ -143,21 +150,21 @@ export default function PrintAdmitCard() {
                                         {/* Class */}
                                         <div className="relative">
                                              <button type="button" onClick={() => toggleFilter("class")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
-                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Class</span><span className="text-sm dark:text-white truncate">{selectedClass ? selectedClass.className : "Select"}</span></div>
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Class</span><span className="text-sm dark:text-white truncate">{selectedClass ? selectedClass.name : "Select"}</span></div>
                                                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                              </button>
                                              <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "class" ? "block" : "hidden"}`}>
-                                                  <ul className="max-h-60 overflow-y-auto">{classes.map(c => (<li key={c._id} onClick={() => { setSelectedClass(c); fetchSections(c.className); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{c.className}</li>))}</ul>
+                                                  <ul className="max-h-60 overflow-y-auto">{classes.map(c => (<li key={c._id} onClick={() => { handleClassSelect(c); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{c.name}</li>))}</ul>
                                              </div>
                                         </div>
                                         {/* Section */}
                                         <div className="relative">
                                              <button type="button" onClick={() => toggleFilter("section")} className="w-full h-14 rounded-lg bg-bgray-200 px-4 flex justify-between items-center dark:bg-darkblack-500 overflow-hidden text-left">
-                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Section</span><span className="text-sm dark:text-white truncate">{selectedSection ? selectedSection.sectionName : "Select"}</span></div>
+                                                  <div className="flex flex-col"><span className="text-[10px] text-bgray-500">Section</span><span className="text-sm dark:text-white truncate">{selectedSection ? selectedSection.name : "Select"}</span></div>
                                                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7L10 12L15 7" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                              </button>
                                              <div className={`absolute z-10 w-full bg-white dark:bg-darkblack-500 shadow-xl rounded-lg top-14 left-0 ${openFilter === "section" ? "block" : "hidden"}`}>
-                                                  <ul className="max-h-60 overflow-y-auto">{sections.map(s => (<li key={s._id} onClick={() => { setSelectedSection(s); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{s.sectionName}</li>))}</ul>
+                                                  <ul className="max-h-60 overflow-y-auto">{sections.map(s => (<li key={s._id} onClick={() => { setSelectedSection(s); setOpenFilter(null); }} className="px-4 py-2 hover:bg-bgray-100 dark:hover:bg-darkblack-600 cursor-pointer text-sm dark:text-white">{s.name}</li>))}</ul>
                                              </div>
                                         </div>
 
@@ -175,12 +182,12 @@ export default function PrintAdmitCard() {
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
                                                             <td className="py-4 px-4"><input type="checkbox" onChange={handleSelectAll} checked={students.length > 0 && selectedStudents.length === students.length} className="w-5 h-5 cursor-pointer"/></td>
-                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Admission No</td>
-                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Student Name</td>
-                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Class/Section</td>
-                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Father Name</td>
-                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">DOB</td>
-                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-bgray-50">Gender</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-white">Admission No</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-white">Student Name</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-white">Class/Section</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-white">Father Name</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-white">DOB</td>
+                                                            <td className="py-4 px-4 text-sm font-bold text-bgray-600 dark:text-white">Gender</td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>

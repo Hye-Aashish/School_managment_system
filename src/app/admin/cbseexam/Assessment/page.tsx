@@ -167,9 +167,9 @@ export default function AssessmentList() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Assessment</th>
-                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-bgray-50">Types</th>
-                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-bgray-50">Action</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Assessment</th>
+                                                            <th className="py-5 px-6 text-left text-base font-semibold text-bgray-600 dark:text-white">Types</th>
+                                                            <th className="py-5 px-6 text-right text-base font-semibold text-bgray-600 dark:text-white">Action</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -181,7 +181,7 @@ export default function AssessmentList() {
                                                             filteredAssessments.map((item) => (
                                                                  <tr key={item._id} className="border-b border-bgray-300 dark:border-darkblack-400">
                                                                       <td className="py-5 px-6 align-top">
-                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-bgray-50">{item.name}</p>
+                                                                           <p className="font-bold text-lg text-bgray-900 dark:text-white">{item.name}</p>
                                                                       </td>
                                                                       <td className="py-5 px-6">
                                                                            <div className="flex flex-wrap gap-2">
@@ -211,7 +211,7 @@ export default function AssessmentList() {
                                    ) : (
                                         <form onSubmit={handleSubmit} className="space-y-6">
                                              <div>
-                                                  <label className="block text-sm font-semibold text-bgray-600 dark:text-bgray-50 mb-2">Assessment Name *</label>
+                                                  <label className="block text-sm font-semibold text-bgray-600 dark:text-white mb-2">Assessment Name *</label>
                                                   <input
                                                        type="text"
                                                        required
@@ -224,7 +224,7 @@ export default function AssessmentList() {
 
                                              <div className="space-y-4">
                                                   <div className="flex justify-between items-center">
-                                                       <label className="text-sm font-semibold text-bgray-600 dark:text-bgray-50">Assessment Types</label>
+                                                       <label className="text-sm font-semibold text-bgray-600 dark:text-white">Assessment Types</label>
                                                        <button
                                                             type="button"
                                                             onClick={handleAddType}

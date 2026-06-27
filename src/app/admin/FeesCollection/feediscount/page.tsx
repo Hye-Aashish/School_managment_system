@@ -156,7 +156,7 @@ export default function FeeDiscount() {
                                    <form onSubmit={handleSave} className="flex flex-col space-y-5">
                                         {/* Name */}
                                         <div className="w-full">
-                                             <label htmlFor="name" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="name" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Name <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -172,7 +172,7 @@ export default function FeeDiscount() {
 
                                         {/* Discount Code */}
                                         <div className="w-full">
-                                             <label htmlFor="discount_code" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="discount_code" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Discount Code <span className="text-red-500">*</span>
                                              </label>
                                              <input
@@ -188,7 +188,7 @@ export default function FeeDiscount() {
 
                                         {/* Discount Type */}
                                         <div className="w-full">
-                                             <label className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-3 block">
+                                             <label className="text-sm font-medium text-bgray-600 dark:text-white mb-3 block">
                                                   Discount Type
                                              </label>
                                              <div className="flex items-center gap-6">
@@ -221,7 +221,7 @@ export default function FeeDiscount() {
                                         <div className="w-full grid grid-cols-2 gap-4">
                                              {/* Percentage */}
                                              <div className="w-full">
-                                                  <label htmlFor="percentage" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label htmlFor="percentage" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Percentage (%) {formData.type === "percentage" && <span className="text-red-500">*</span>}
                                                   </label>
                                                   <input
@@ -238,7 +238,7 @@ export default function FeeDiscount() {
 
                                              {/* Amount */}
                                              <div className="w-full">
-                                                  <label htmlFor="amount" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label htmlFor="amount" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Amount ($) {formData.type === "fixAmount" && <span className="text-red-500">*</span>}
                                                   </label>
                                                   <input
@@ -258,7 +258,7 @@ export default function FeeDiscount() {
                                         <div className="w-full grid grid-cols-2 gap-4">
                                              {/* Number Of Use Count */}
                                              <div className="w-full">
-                                                  <label htmlFor="use_count" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label htmlFor="use_count" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Number Of Use Count <span className="text-red-500">*</span>
                                                   </label>
                                                   <input
@@ -274,7 +274,7 @@ export default function FeeDiscount() {
 
                                              {/* Expiry Date */}
                                              <div className="w-full">
-                                                  <label htmlFor="expiry_date" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                                  <label htmlFor="expiry_date" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                        Expiry Date
                                                   </label>
                                                   <input
@@ -289,7 +289,7 @@ export default function FeeDiscount() {
 
                                         {/* Description */}
                                         <div className="w-full">
-                                             <label htmlFor="description" className="text-sm font-medium text-bgray-600 dark:text-bgray-50 mb-2 block">
+                                             <label htmlFor="description" className="text-sm font-medium text-bgray-600 dark:text-white mb-2 block">
                                                   Description
                                              </label>
                                              <textarea
@@ -367,13 +367,13 @@ export default function FeeDiscount() {
                                              <table className="w-full">
                                                   <thead>
                                                        <tr className="border-b border-bgray-300 dark:border-darkblack-400">
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Name</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Discount Code</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Percentage (%)</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Amount ($)</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Use Count</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Expiry Date</td>
-                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-bgray-50">Action</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Name</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Discount Code</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Percentage (%)</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Amount ($)</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Use Count</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Expiry Date</td>
+                                                            <td className="py-4 px-4 text-sm font-semibold text-bgray-600 dark:text-white">Action</td>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
